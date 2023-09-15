@@ -1,10 +1,12 @@
-import { commands, ExtensionContext, window } from "vscode";
+import { commands, env, ExtensionContext, Uri, window } from "vscode";
 import { start, stop } from "./launcher/start";
 import { updateStatusBar } from "./launcher/status-bar";
 import { showCommands } from "./launcher/show-commands";
 import { Controllers, withController } from "./launcher/controller";
 import { logger } from "./logger";
 import { MarimoExplorer } from "./explorer/explorer";
+import { DOCUMENTATION_URL } from "./constants";
+import { convertNotebook } from "./convert/convert";
 
 export async function activate(extension: ExtensionContext) {
   logger.log("marimo extension is now active!");
@@ -45,10 +47,29 @@ export async function activate(extension: ExtensionContext) {
       controller.open("system");
     });
   });
+  commands.registerCommand("vscode-marimo.openDocumentation", () => {
+    env.openExternal(Uri.parse(DOCUMENTATION_URL));
+  });
   commands.registerCommand("vscode-marimo.reloadBrowser", () => {
     withController(extension, async (controller) => {
       controller.reloadPanel();
     });
+  });
+  commands.registerCommand("vscode-marimo.convertToMarimoApp", async () => {
+    // active ipynb file
+    const editor = window.activeTextEditor;
+    if (!editor) {
+      window.showErrorMessage("No active editor");
+      return;
+    }
+
+    const filePath = editor.document.uri.fsPath;
+    if (!filePath.endsWith(".ipynb")) {
+      window.showErrorMessage("Not a notebook file");
+      return;
+    }
+
+    await convertNotebook(filePath);
   });
 
   window.onDidCloseTerminal((error) => {

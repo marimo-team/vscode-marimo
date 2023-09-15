@@ -5,7 +5,7 @@
   "publisher": "marimo-team",
   "description": "Run marimo in VSCode",
   "packageManager": "pnpm@8.6.0",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "engines": {
     "vscode": "^1.80.0"
   },
@@ -21,8 +21,9 @@
     "onCommand:vscode-marimo.stop",
     "onCommand:vscode-marimo.edit",
     "onCommand:vscode-marimo.run",
-    "onCommand:vscode-marimo.showCommands",
-    "onCommand:vscode-marimo.openInBrowser"
+    "onCommand:vscode-marimo.openDocumentation",
+    "onCommand:vscode-marimo.openInBrowser",
+    "onCommand:vscode-marimo.showCommands"
   ],
   "repository": {
     "type": "git",
@@ -55,6 +56,19 @@
         "enablement": "resourceLangId == python && marimo.isMarimoApp",
         "category": "marimo",
         "title": "Start marimo server (run)"
+      },
+      {
+        "command": "vscode-marimo.convertToMarimoApp",
+        "enablement": "resourceExtname == .ipynb",
+        "category": "marimo",
+        "title": "Convert Jupyter notebook to marimo notebook",
+        "icon": "$(symbol-boolean)"
+      },
+      {
+        "command": "vscode-marimo.openDocumentation",
+        "category": "marimo",
+        "title": "Show documentation",
+        "icon": "$(question)"
       },
       {
         "command": "vscode-marimo.openInBrowser",
@@ -117,6 +131,12 @@
         {
           "when": "resourceLangId == python && marimo.isMarimoApp",
           "command": "vscode-marimo.showCommands",
+          "group": "navigation"
+        },
+        {
+          "when": "resourceExtname == .ipynb",
+          "command": "vscode-marimo.convertToMarimoApp",
+          "icon": "$(symbol-boolean)",
           "group": "navigation"
         }
       ],

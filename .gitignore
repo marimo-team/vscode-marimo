@@ -11,3 +11,6 @@ logs
 node_modules
 temp
 !.vscode
+
+# python
+__pycache__/

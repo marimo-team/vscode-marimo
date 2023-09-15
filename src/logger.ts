@@ -13,6 +13,14 @@ class Logger {
     }
   }
 
+  error(...args: unknown[]) {
+    if (this.prefix) {
+      channel.appendLine(`${this.prefix}: ${args.join(" ")}`);
+    } else {
+      channel.appendLine(args.join(" "));
+    }
+  }
+
   createLogger(prefix: string) {
     if (!this.prefix) {
       return new Logger(prefix);

@@ -17,6 +17,7 @@ Check out the marimo documentation at <https://docs.marimo.io/>.
 - 🚀 Launch marimo from VS Code, in both "edit mode" and "run mode".
 - 💻 View the terminal output of marimo directly in VS Code.
 - 🌐 View the marimo browser window directly in VS Code or in your default browser.
+- 📓 Convert Jupyter notebooks to marimo notebooks.
 
 ## Known Issues
 

@@ -1,6 +1,7 @@
-import { QuickPickItem, window } from "vscode";
+import { QuickPickItem, Uri, env, window } from "vscode";
 import { start, stop } from "./start";
 import { MarimoController } from "./controller";
+import { DOCUMENTATION_URL } from "../constants";
 
 interface CommandPickItem extends QuickPickItem {
   handler: () => void;
@@ -70,6 +71,13 @@ export async function showCommands(controller: MarimoController) {
         controller.terminal.show();
       },
       if: controller.active,
+    },
+    {
+      label: "$(question) Show documentation",
+      handler() {
+        env.openExternal(Uri.parse(DOCUMENTATION_URL));
+      },
+      if: true,
     },
     {
       label: "$(close) Stop server",
