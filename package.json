@@ -182,6 +182,16 @@
           "type": "boolean",
           "default": false,
           "description": "Open the terminal when the server starts"
+        },
+        "marimo.debug": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable debug mode"
+        },
+        "marimo.pythonPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to python executable"
         }
       }
     }

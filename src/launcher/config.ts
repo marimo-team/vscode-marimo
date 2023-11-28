@@ -16,6 +16,12 @@ export const Config = {
   get showTerminal() {
     return getConfig("showTerminal", false);
   },
+  get debug() {
+    return getConfig("debug", false);
+  },
+  get pythonPath() {
+    return getConfig("pythonPath");
+  },
   get port() {
     return getConfig("port", 2718);
   },

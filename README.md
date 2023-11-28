@@ -31,3 +31,5 @@ You can configure the extension using the following settings:
 - `marimo.browserType`: Browser to open marimo app (`system` or `embedded`, default: `embedded`)
 - `marimo.port`: Default port for marimo server (default: `2718`)
 - `marimo.showTerminal`: Open the terminal when the server starts (default: `false`)
+- `marimo.debug`: Enable debug logging (default: `false`)
+- `marimo.pythonPath`: Path to python executable (default: _empty_)

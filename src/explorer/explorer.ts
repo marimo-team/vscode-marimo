@@ -36,8 +36,8 @@ export class MarimoAppProvider implements TreeDataProvider<Entry> {
     // Get all Python files in the workspace
     const pythonFiles = await workspace.findFiles(
       "**/*.py",
-      // ignore venv, node_modules, and .git
-      "{**/venv/**,**/node_modules/**,**/.git/**,**/.venv/**}",
+      // ignore venv, node_modules, .git, __pycache__
+      "{**/venv/**,**/node_modules/**,**/.git/**,**/.venv/**,**/__pycache__/**}",
     );
 
     const entries: Entry[] = [];

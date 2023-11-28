@@ -60,13 +60,20 @@ export class MarimoController implements Disposable {
     this.port = port;
     const filePath = this.terminal.relativePathFor(this.file.uri.fsPath);
 
-    await (mode === "edit"
-      ? this.terminal.executeCommand(
-          `marimo -d edit ${filePath} --port=${port} --headless`,
-        )
-      : this.terminal.executeCommand(
-          `marimo -d run ${filePath} --port=${port} --headless`,
-        ));
+    const cmd = [
+      "marimo",
+      Config.debug ? "-d" : "",
+      mode === "edit" ? "edit" : "run",
+      filePath,
+      `--port=${port}`,
+      "--headless",
+    ]
+      .filter(Boolean)
+      .join(" ");
+
+    await (Config.pythonPath
+      ? this.terminal.executeCommand(`${Config.pythonPath} -m ${cmd}`)
+      : this.terminal.executeCommand(cmd));
 
     this.active = true;
     this.onUpdate();
