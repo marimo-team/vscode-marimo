@@ -4,7 +4,7 @@
   "author": "marimo team",
   "publisher": "marimo-team",
   "description": "Run marimo in VSCode",
-  "packageManager": "pnpm@8.10.0",
+  "packageManager": "pnpm@8.12.1",
   "version": "0.1.11",
   "engines": {
     "vscode": "^1.80.0"
@@ -210,15 +210,15 @@
     "vscode:prepublish": "pnpm run build"
   },
   "devDependencies": {
-    "@types/node": "20.8.9",
+    "@types/node": "20.10.4",
     "@types/vscode": "^1.80.0",
     "@typescript-eslint/eslint-plugin": "^6.9.1",
     "@typescript-eslint/parser": "^6.9.1",
-    "@vscode/test-electron": "^2.3.6",
+    "@vscode/test-electron": "^2.3.8",
     "eslint": "^8.53.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-unicorn": "^48.0.1",
-    "prettier": "^3.0.3",
+    "prettier": "^3.1.1",
     "tsup": "^7.2.0",
     "typescript": "^5.2.2"
   }
