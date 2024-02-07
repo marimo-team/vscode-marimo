@@ -7,7 +7,7 @@
   "packageManager": "pnpm@8.15.1",
   "version": "0.1.11",
   "engines": {
-    "vscode": "^1.80.0"
+    "vscode": "^1.86.0"
   },
   "private": true,
   "categories": [
@@ -211,7 +211,7 @@
   },
   "devDependencies": {
     "@types/node": "20.11.16",
-    "@types/vscode": "^1.80.0",
+    "@types/vscode": "^1.86.0",
     "@typescript-eslint/eslint-plugin": "^6.9.1",
     "@typescript-eslint/parser": "^6.9.1",
     "@vscode/test-electron": "^2.3.9",
