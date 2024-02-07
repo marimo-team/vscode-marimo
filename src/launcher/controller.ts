@@ -60,11 +60,13 @@ export class MarimoController implements Disposable {
     this.port = port;
     const filePath = this.terminal.relativePathFor(this.file.uri.fsPath);
 
+    const hasSpace = filePath.includes(" ");
+
     const cmd = [
       "marimo",
       Config.debug ? "-d" : "",
       mode === "edit" ? "edit" : "run",
-      `'${filePath}'`, // quotes to handle spaces in file path
+      hasSpace ? `"${filePath}"` : filePath, // quotes to handle spaces in file path
       `--port=${port}`,
       "--headless",
     ]
