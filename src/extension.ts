@@ -7,6 +7,7 @@ import { logger } from "./logger";
 import { MarimoExplorer } from "./explorer/explorer";
 import { DOCUMENTATION_URL } from "./constants";
 import { convertNotebook } from "./convert/convert";
+import { createNewMarimoFile } from "./launcher/new-file";
 
 export async function activate(extension: ExtensionContext) {
   logger.log("marimo extension is now active!");
@@ -49,6 +50,15 @@ export async function activate(extension: ExtensionContext) {
   });
   commands.registerCommand("vscode-marimo.openDocumentation", () => {
     env.openExternal(Uri.parse(DOCUMENTATION_URL));
+  });
+  commands.registerCommand("vscode-marimo.newMarimoFile", async () => {
+    // create
+    await createNewMarimoFile();
+    // edit
+    withController(extension, async (controller) => {
+      await start({ controller, mode: "edit" });
+      controller.open();
+    });
   });
   commands.registerCommand("vscode-marimo.reloadBrowser", () => {
     withController(extension, async (controller) => {

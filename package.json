@@ -21,6 +21,7 @@
     "onCommand:vscode-marimo.stop",
     "onCommand:vscode-marimo.edit",
     "onCommand:vscode-marimo.run",
+    "onCommand:vscode-marimo.newMarimoFile",
     "onCommand:vscode-marimo.openDocumentation",
     "onCommand:vscode-marimo.openInBrowser",
     "onCommand:vscode-marimo.showCommands"
@@ -65,10 +66,16 @@
         "icon": "$(symbol-boolean)"
       },
       {
+        "command": "vscode-marimo.newMarimoFile",
+        "category": "marimo",
+        "title": "Create new marimo file",
+        "icon": "$(new-file)"
+      },
+      {
         "command": "vscode-marimo.openDocumentation",
         "category": "marimo",
         "title": "Show documentation",
-        "icon": "$(question)"
+        "icon": "$(remote-explorer-documentation)"
       },
       {
         "command": "vscode-marimo.openInBrowser",
@@ -155,6 +162,16 @@
       "view/title": [
         {
           "command": "marimo-explorer.refresh",
+          "when": "view == marimo-explorer-applications",
+          "group": "navigation"
+        },
+        {
+          "command": "vscode-marimo.openDocumentation",
+          "when": "view == marimo-explorer-applications",
+          "group": "navigation"
+        },
+        {
+          "command": "vscode-marimo.newMarimoFile",
           "when": "view == marimo-explorer-applications",
           "group": "navigation"
         }

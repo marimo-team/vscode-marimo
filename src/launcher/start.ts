@@ -35,6 +35,10 @@ export async function start({
     controller.dispose();
   }
 
+  window.showInformationMessage(
+    `Starting ${controller.appName} in ${mode} mode`,
+  );
+
   // Start with the current port if available
   // Make sure the port is free, otherwise try the next one
   const port = await tryPort(controller.port || Config.port);

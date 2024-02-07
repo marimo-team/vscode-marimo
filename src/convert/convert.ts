@@ -9,7 +9,7 @@ export async function convertNotebook(filePath: string) {
   try {
     // convert
     const directory = path.dirname(filePath);
-    const response = execSync(`marimo convert ${filePath}`);
+    const response = execSync(`marimo convert '${filePath}'`);
     const appCode = response.toString();
 
     try {

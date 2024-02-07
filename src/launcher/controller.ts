@@ -64,7 +64,7 @@ export class MarimoController implements Disposable {
       "marimo",
       Config.debug ? "-d" : "",
       mode === "edit" ? "edit" : "run",
-      filePath,
+      `'${filePath}'`, // quotes to handle spaces in file path
       `--port=${port}`,
       "--headless",
     ]
