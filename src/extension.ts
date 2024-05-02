@@ -1,4 +1,4 @@
-import { commands, env, ExtensionContext, Uri, window } from "vscode";
+import { commands, env, ExtensionContext, Uri, window, workspace } from "vscode";
 import { start, stop } from "./launcher/start";
 import { updateStatusBar } from "./launcher/status-bar";
 import { showCommands } from "./launcher/show-commands";
@@ -78,8 +78,12 @@ export async function activate(extension: ExtensionContext) {
       window.showErrorMessage("Not a notebook file");
       return;
     }
-
-    await convertNotebook(filePath);
+    const marimoPath = workspace.getConfiguration("marimo").get("marimoPath") as string;
+    if (!marimoPath) {
+      window.showErrorMessage("Marimo path is not set");
+      return;
+    }
+    await convertNotebook(filePath, marimoPath);
   });
 
   window.onDidCloseTerminal((error) => {

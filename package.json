@@ -209,6 +209,11 @@
           "type": "string",
           "default": "",
           "description": "Path to python executable"
+        },
+        "marimo.marimoPath": {
+          "type": "string",
+          "default": "marimo",
+          "description": "Path to marimo executable"
         }
       }
     }

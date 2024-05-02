@@ -5,11 +5,11 @@ import { Uri, window, workspace } from "vscode";
 import { logger } from "../logger";
 import { printError } from "../utils/errors";
 
-export async function convertNotebook(filePath: string) {
+export async function convertNotebook(filePath: string, marimoPath: string) {
   try {
     // convert
     const directory = path.dirname(filePath);
-    const response = execSync(`marimo convert '${filePath}'`);
+    const response = execSync(`${marimoPath} convert '${filePath}'`);
     const appCode = response.toString();
 
     try {
