@@ -28,7 +28,7 @@ export class MarimoController implements Disposable {
   private logger = logger.createLogger(this.appName);
 
   constructor(
-    private file: TextDocument,
+    public file: TextDocument,
     private extension: ExtensionContext,
     private onUpdate: () => void,
   ) {
@@ -176,10 +176,11 @@ export const Controllers = {
     extension: ExtensionContext,
   ): MarimoController {
     const key = file.uri.fsPath;
-    if (all.has(key)) {
-      return all.get(key)!;
+    let controller = all.get(key);
+    if (controller) {
+      return controller;
     }
-    const controller = new MarimoController(file, extension, () =>
+    controller = new MarimoController(file, extension, () =>
       updateStatusBar(extension),
     );
     all.set(key, controller);

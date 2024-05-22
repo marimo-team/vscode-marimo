@@ -1,6 +1,7 @@
 import { type QuickPickItem, Uri, env, window } from "vscode";
 import { DOCUMENTATION_URL } from "../constants";
 import type { MarimoController } from "./controller";
+import { exportAsCommands } from "./export-as-commands";
 import { start, stop } from "./start";
 
 interface CommandPickItem extends QuickPickItem {
@@ -85,6 +86,13 @@ export async function showCommands(controller: MarimoController) {
         stop(controller);
       },
       if: controller.active,
+    },
+    {
+      label: "$(export) Export notebook as...",
+      handler() {
+        exportAsCommands(controller.file.uri);
+      },
+      if: true,
     },
   ];
 

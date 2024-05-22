@@ -37,7 +37,9 @@ export async function convertNotebook(
 
       // open file
       workspace.openTextDocument(newFilePath).then(() => {
-        window.showInformationMessage(`Saved to ${newFilePath.path}`);
+        // Get relative path if possible
+        const relativePath = workspace.asRelativePath(newFilePath);
+        window.showInformationMessage(`Saved to ${relativePath}`);
       });
     } catch {
       // if fails to save to file system, open in new tab

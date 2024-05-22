@@ -9,7 +9,7 @@ import {
 import { Controllers } from "./controller";
 import { getCurrentFile, isMarimoApp } from "./utils";
 
-let statusBar: StatusBarItem;
+let statusBar: StatusBarItem | undefined;
 
 export function ensureStatusBar() {
   if (!statusBar) {
@@ -17,15 +17,16 @@ export function ensureStatusBar() {
     statusBar.command = "vscode-marimo.showCommands";
     statusBar.show();
   }
+  return statusBar;
 }
 
 export function disposeStatusBar() {
   statusBar?.dispose();
-  statusBar = undefined!;
+  statusBar = undefined;
 }
 
 export function updateStatusBar(extension: ExtensionContext) {
-  ensureStatusBar();
+  const statusBar = ensureStatusBar();
 
   const file = getCurrentFile(false);
   commands.executeCommand(

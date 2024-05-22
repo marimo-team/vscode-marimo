@@ -48,7 +48,7 @@ export class MarimoTerminal implements Disposable {
     this.logger.log("killing terminal");
     this.endProcess();
     this.terminal?.dispose();
-    this.terminal = undefined!;
+    this.terminal = undefined;
     this.logger.log("terminal disposed");
   }
 

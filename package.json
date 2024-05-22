@@ -10,11 +10,7 @@
     "vscode": "^1.86.0"
   },
   "private": true,
-  "categories": [
-    "Notebooks",
-    "Machine Learning",
-    "Data Science"
-  ],
+  "categories": ["Notebooks", "Machine Learning", "Data Science"],
   "icon": "resources/marimo.png",
   "activationEvents": [
     "onLanguage:python",
@@ -24,7 +20,8 @@
     "onCommand:vscode-marimo.newMarimoFile",
     "onCommand:vscode-marimo.openDocumentation",
     "onCommand:vscode-marimo.openInBrowser",
-    "onCommand:vscode-marimo.showCommands"
+    "onCommand:vscode-marimo.showCommands",
+    "onCommand:vscode-marimo.exportAsCommands"
   ],
   "repository": {
     "type": "git",
@@ -33,10 +30,7 @@
   "bugs": {
     "url": "https://github.com/marimo-team/vscode-marimo/issues"
   },
-  "files": [
-    "dist",
-    "resources"
-  ],
+  "files": ["dist", "resources"],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
@@ -98,6 +92,13 @@
         "icon": "$(symbol-event)"
       },
       {
+        "command": "vscode-marimo.exportAsCommands",
+        "enablement": "resourceLangId == python && marimo.isMarimoApp",
+        "category": "marimo",
+        "title": "Export notebook as...",
+        "icon": "$(export)"
+      },
+      {
         "command": "marimo-explorer.refresh",
         "enablement": "view == marimo-explorer-applications",
         "category": "marimo",
@@ -138,6 +139,11 @@
         {
           "when": "resourceLangId == python && marimo.isMarimoApp",
           "command": "vscode-marimo.showCommands",
+          "group": "navigation"
+        },
+        {
+          "when": "resourceLangId == python && marimo.isMarimoApp",
+          "command": "vscode-marimo.exportAsCommands",
           "group": "navigation"
         },
         {
@@ -183,10 +189,7 @@
       "properties": {
         "marimo.browserType": {
           "type": "string",
-          "enum": [
-            "embedded",
-            "system"
-          ],
+          "enum": ["embedded", "system"],
           "default": "embedded",
           "description": "Browser to open marimo app"
         },

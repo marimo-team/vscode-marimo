@@ -11,6 +11,7 @@ import { convertIPyNotebook, convertMarkdownNotebook } from "./convert/convert";
 import { MarimoExplorer } from "./explorer/explorer";
 import { Config } from "./launcher/config";
 import { Controllers, withController } from "./launcher/controller";
+import { exportAsCommands } from "./launcher/export-as-commands";
 import { createNewMarimoFile } from "./launcher/new-file";
 import { showCommands } from "./launcher/show-commands";
 import { start, stop } from "./launcher/start";
@@ -49,6 +50,11 @@ export async function activate(extension: ExtensionContext) {
   commands.registerCommand("vscode-marimo.showCommands", () => {
     withController(extension, async (controller) => {
       showCommands(controller);
+    });
+  });
+  commands.registerCommand("vscode-marimo.exportAsCommands", () => {
+    withController(extension, async (controller) => {
+      exportAsCommands(controller.file.uri);
     });
   });
   commands.registerCommand("vscode-marimo.openInBrowser", () => {
