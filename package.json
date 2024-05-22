@@ -5,12 +5,16 @@
   "publisher": "marimo-team",
   "description": "Run marimo in VSCode",
   "packageManager": "pnpm@8.15.1",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "engines": {
     "vscode": "^1.86.0"
   },
   "private": true,
-  "categories": ["Notebooks", "Machine Learning", "Data Science"],
+  "categories": [
+    "Notebooks",
+    "Machine Learning",
+    "Data Science"
+  ],
   "icon": "resources/marimo.png",
   "activationEvents": [
     "onLanguage:python",
@@ -29,7 +33,10 @@
   "bugs": {
     "url": "https://github.com/marimo-team/vscode-marimo/issues"
   },
-  "files": ["dist", "resources"],
+  "files": [
+    "dist",
+    "resources"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
@@ -176,7 +183,10 @@
       "properties": {
         "marimo.browserType": {
           "type": "string",
-          "enum": ["embedded", "system"],
+          "enum": [
+            "embedded",
+            "system"
+          ],
           "default": "embedded",
           "description": "Browser to open marimo app"
         },
