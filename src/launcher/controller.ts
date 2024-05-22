@@ -1,20 +1,20 @@
+import path from "node:path";
 import {
-  Disposable,
-  ExtensionContext,
-  Terminal,
-  TextDocument,
+  type Disposable,
+  type ExtensionContext,
+  type Terminal,
+  type TextDocument,
   Uri,
   env,
   window,
   workspace,
 } from "vscode";
-import { Config, composeUrl } from "./config";
-import { getCurrentFile, isMarimoApp, ping } from "./utils";
-import path from "node:path";
-import { MarimoTerminal } from "./terminal";
-import { MarimoPanelManager } from "./panel";
 import { logger } from "../logger";
+import { Config, composeUrl } from "./config";
+import { MarimoPanelManager } from "./panel";
 import { updateStatusBar } from "./status-bar";
+import { MarimoTerminal } from "./terminal";
+import { getCurrentFile, isMarimoApp, ping } from "./utils";
 
 export type AppMode = "edit" | "run";
 
@@ -23,7 +23,7 @@ export class MarimoController implements Disposable {
   private panel: MarimoPanelManager;
 
   public currentMode: AppMode | undefined;
-  public active: boolean = false;
+  public active = false;
   public port: number | undefined;
   private logger = logger.createLogger(this.appName);
 

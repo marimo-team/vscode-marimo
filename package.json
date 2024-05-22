@@ -221,8 +221,7 @@
   "scripts": {
     "build": "tsup src/extension.ts --external=vscode",
     "dev": "pnpm run build --watch",
-    "lint": "eslint src --ext ts",
-    "format": "prettier --write .",
+    "lint": "biome check --apply .",
     "pack": "vsce package --no-dependencies",
     "pretest": "pnpm run build && pnpm run lint",
     "publish": "vsce publish --no-dependencies",
@@ -232,16 +231,11 @@
     "vscode:prepublish": "pnpm run build"
   },
   "devDependencies": {
-    "@types/node": "20.11.16",
-    "@types/vscode": "^1.86.0",
-    "@typescript-eslint/eslint-plugin": "^6.21.0",
-    "@typescript-eslint/parser": "^6.21.0",
-    "@vscode/test-electron": "^2.3.9",
-    "eslint": "^8.56.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-unicorn": "^51.0.1",
-    "prettier": "^3.2.5",
-    "tsup": "^8.0.1",
+    "@biomejs/biome": "^1.7.3",
+    "@types/node": "20.12.12",
+    "@types/vscode": "^1.89.0",
+    "@vscode/test-electron": "^2.3.10",
+    "tsup": "^8.0.2",
     "typescript": "^5.4.5"
   }
 }

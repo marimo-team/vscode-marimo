@@ -1,8 +1,13 @@
-import { Disposable, ExtensionContext, Terminal, window } from "vscode";
+import path from "node:path";
+import {
+  type Disposable,
+  type ExtensionContext,
+  type Terminal,
+  window,
+} from "vscode";
+import { logger } from "../logger";
 import { Config } from "./config";
 import { wait } from "./utils";
-import { logger } from "../logger";
-import path from "node:path";
 
 export class MarimoTerminal implements Disposable {
   private terminal: Terminal | undefined;

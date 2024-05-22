@@ -1,5 +1,5 @@
 import path from "node:path";
-import { window, Uri, workspace } from "vscode";
+import { Uri, window, workspace } from "vscode";
 
 export async function createNewMarimoFile() {
   const editor = window.activeTextEditor;

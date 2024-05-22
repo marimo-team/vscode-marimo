@@ -1,8 +1,8 @@
 import { window } from "vscode";
 import { Config } from "./config";
-import { tryPort } from "./utils";
+import type { AppMode, MarimoController } from "./controller";
 import { disposeStatusBar } from "./status-bar";
-import { MarimoController, AppMode } from "./controller";
+import { tryPort } from "./utils";
 
 export async function start({
   controller,

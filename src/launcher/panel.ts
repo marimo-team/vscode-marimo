@@ -1,4 +1,4 @@
-import { Uri, ViewColumn, WebviewPanel, env, window } from "vscode";
+import { Uri, ViewColumn, type WebviewPanel, env, window } from "vscode";
 import { logger } from "../logger";
 
 export class MarimoPanelManager {

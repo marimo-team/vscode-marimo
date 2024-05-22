@@ -1,7 +1,7 @@
 import {
-  ExtensionContext,
+  type ExtensionContext,
   StatusBarAlignment,
-  StatusBarItem,
+  type StatusBarItem,
   ThemeColor,
   commands,
   window,

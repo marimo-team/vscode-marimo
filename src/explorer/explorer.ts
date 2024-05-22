@@ -1,19 +1,19 @@
 import path from "node:path";
-import { logger } from "../logger";
 import {
-  Uri,
-  FileType,
-  TreeDataProvider,
+  type Event,
   EventEmitter,
-  Event,
-  workspace,
+  type ExtensionContext,
+  FileType,
+  ThemeIcon,
+  type TreeDataProvider,
   TreeItem,
   TreeItemCollapsibleState,
-  ThemeIcon,
-  ExtensionContext,
-  window,
+  type Uri,
   commands,
+  window,
+  workspace,
 } from "vscode";
+import { logger } from "../logger";
 
 interface Entry {
   uri: Uri;
@@ -25,8 +25,6 @@ export class MarimoAppProvider implements TreeDataProvider<Entry> {
   private _onDidChangeTreeData = new EventEmitter<Entry | undefined>();
   readonly onDidChangeTreeData: Event<Entry | undefined> =
     this._onDidChangeTreeData.event;
-
-  constructor() {}
 
   refresh(): void {
     this._onDidChangeTreeData.fire(undefined);

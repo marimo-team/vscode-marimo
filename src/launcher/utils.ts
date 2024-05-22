@@ -1,6 +1,6 @@
 import http from "node:http";
 import https from "node:https";
-import { TextDocument, window } from "vscode";
+import { type TextDocument, window } from "vscode";
 
 function isPortFree(port: number) {
   return new Promise((resolve) => {
@@ -70,7 +70,7 @@ export function isMarimoApp(
   return document.getText().includes("app = marimo.App(");
 }
 
-export function getCurrentFile(toast: boolean = true) {
+export function getCurrentFile(toast = true) {
   const file = [window.activeTextEditor, ...window.visibleTextEditors].find(
     (editor) => isMarimoApp(editor?.document, false),
   );

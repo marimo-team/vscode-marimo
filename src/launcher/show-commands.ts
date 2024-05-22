@@ -1,7 +1,7 @@
-import { QuickPickItem, Uri, env, window } from "vscode";
-import { start, stop } from "./start";
-import { MarimoController } from "./controller";
+import { type QuickPickItem, Uri, env, window } from "vscode";
 import { DOCUMENTATION_URL } from "../constants";
+import type { MarimoController } from "./controller";
+import { start, stop } from "./start";
 
 interface CommandPickItem extends QuickPickItem {
   handler: () => void;

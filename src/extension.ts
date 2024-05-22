@@ -1,13 +1,20 @@
-import { commands, env, ExtensionContext, Uri, window, workspace } from "vscode";
-import { start, stop } from "./launcher/start";
-import { updateStatusBar } from "./launcher/status-bar";
-import { showCommands } from "./launcher/show-commands";
-import { Controllers, withController } from "./launcher/controller";
-import { logger } from "./logger";
-import { MarimoExplorer } from "./explorer/explorer";
+import {
+  type ExtensionContext,
+  Uri,
+  commands,
+  env,
+  window,
+  workspace,
+} from "vscode";
 import { DOCUMENTATION_URL } from "./constants";
 import { convertNotebook } from "./convert/convert";
+import { MarimoExplorer } from "./explorer/explorer";
+import { Controllers, withController } from "./launcher/controller";
 import { createNewMarimoFile } from "./launcher/new-file";
+import { showCommands } from "./launcher/show-commands";
+import { start, stop } from "./launcher/start";
+import { updateStatusBar } from "./launcher/status-bar";
+import { logger } from "./logger";
 
 export async function activate(extension: ExtensionContext) {
   logger.log("marimo extension is now active!");
@@ -78,7 +85,9 @@ export async function activate(extension: ExtensionContext) {
       window.showErrorMessage("Not a notebook file");
       return;
     }
-    const marimoPath = workspace.getConfiguration("marimo").get("marimoPath") as string;
+    const marimoPath = workspace
+      .getConfiguration("marimo")
+      .get("marimoPath") as string;
     if (!marimoPath) {
       window.showErrorMessage("Marimo path is not set");
       return;
