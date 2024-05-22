@@ -67,6 +67,9 @@ export class MarimoController implements Disposable {
       Config.debug ? "-d" : "",
       mode === "edit" ? "edit" : "run",
       hasSpace ? `"${filePath}"` : filePath, // quotes to handle spaces in file path
+      Config.host ? `--host=${Config.host}` : "",
+      Config.enableToken ? "" : "--no-token",
+      Config.tokenPassword ? `--token-password=${Config.tokenPassword}` : "",
       `--port=${port}`,
       "--headless",
     ]

@@ -30,6 +30,9 @@ You can configure the extension using the following settings:
 
 - `marimo.browserType`: Browser to open marimo app (`system` or `embedded`, default: `embedded`)
 - `marimo.port`: Default port for marimo server (default: `2718`)
+- `marimo.enableToken`: Enable token authentication (default: `false`)
+- `marimo.tokenPassword`: Token password (default: _empty_)
 - `marimo.showTerminal`: Open the terminal when the server starts (default: `false`)
 - `marimo.debug`: Enable debug logging (default: `false`)
 - `marimo.pythonPath`: Path to python executable (default: _empty_)
+- `marimo.marimoPath`: Path to marimo executable (default: `marimo`)

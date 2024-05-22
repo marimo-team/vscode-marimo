@@ -28,6 +28,15 @@ export const Config = {
   get host() {
     return "localhost";
   },
+  get marimoPath() {
+    return getConfig("marimoPath", "marimo");
+  },
+  get enableToken() {
+    return getConfig("enableToken", false);
+  },
+  get tokenPassword() {
+    return getConfig("tokenPassword");
+  },
   get https() {
     return false;
   },

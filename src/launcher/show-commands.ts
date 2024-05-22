@@ -43,7 +43,7 @@ export async function showCommands(controller: MarimoController) {
       if: controller.active,
     },
     {
-      label: `$(refresh) Restart marimo server`,
+      label: "$(refresh) Restart marimo server",
       async handler() {
         const mode = controller.currentMode || "edit";
         await stop(controller);

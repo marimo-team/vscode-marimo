@@ -41,7 +41,7 @@ export class MarimoTerminal implements Disposable {
   }
 
   private isTerminalActive() {
-    return this.terminal && this.terminal.exitStatus == undefined;
+    return this.terminal && this.terminal.exitStatus === undefined;
   }
 
   dispose() {

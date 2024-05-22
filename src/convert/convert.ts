@@ -5,7 +5,22 @@ import { Uri, window, workspace } from "vscode";
 import { logger } from "../logger";
 import { printError } from "../utils/errors";
 
-export async function convertNotebook(filePath: string, marimoPath: string) {
+export async function convertIPyNotebook(filePath: string, marimoPath: string) {
+  return convertNotebook(filePath, marimoPath, "ipynb");
+}
+
+export async function convertMarkdownNotebook(
+  filePath: string,
+  marimoPath: string,
+) {
+  return convertNotebook(filePath, marimoPath, "md");
+}
+
+export async function convertNotebook(
+  filePath: string,
+  marimoPath: string,
+  ext: "ipynb" | "md",
+) {
   try {
     // convert
     const directory = path.dirname(filePath);
@@ -14,7 +29,7 @@ export async function convertNotebook(filePath: string, marimoPath: string) {
 
     try {
       // try to save to file system
-      const currentFilename = path.basename(filePath, ".ipynb");
+      const currentFilename = path.basename(filePath, `.${ext}`);
       const newFilename = getUniqueFilename(directory, currentFilename);
       const newFilePath = Uri.file(path.join(directory, newFilename));
 

@@ -7,8 +7,9 @@ import {
   workspace,
 } from "vscode";
 import { DOCUMENTATION_URL } from "./constants";
-import { convertNotebook } from "./convert/convert";
+import { convertIPyNotebook, convertMarkdownNotebook } from "./convert/convert";
 import { MarimoExplorer } from "./explorer/explorer";
+import { Config } from "./launcher/config";
 import { Controllers, withController } from "./launcher/controller";
 import { createNewMarimoFile } from "./launcher/new-file";
 import { showCommands } from "./launcher/show-commands";
@@ -80,19 +81,26 @@ export async function activate(extension: ExtensionContext) {
       return;
     }
 
-    const filePath = editor.document.uri.fsPath;
-    if (!filePath.endsWith(".ipynb")) {
-      window.showErrorMessage("Not a notebook file");
-      return;
-    }
-    const marimoPath = workspace
-      .getConfiguration("marimo")
-      .get("marimoPath") as string;
+    const marimoPath = Config.marimoPath;
     if (!marimoPath) {
       window.showErrorMessage("Marimo path is not set");
       return;
     }
-    await convertNotebook(filePath, marimoPath);
+
+    const filePath = editor.document.uri.fsPath;
+    if (filePath.endsWith(".ipynb")) {
+      await convertIPyNotebook(filePath, marimoPath);
+      return;
+    }
+    if (filePath.endsWith(".md")) {
+      // Check 'marimo-version:' is in the markdown file
+      const content = editor.document.getText();
+      if (!content.includes("marimo-version:")) {
+        await convertMarkdownNotebook(filePath, marimoPath);
+      }
+    }
+
+    window.showErrorMessage("Not a notebook file");
   });
 
   window.onDidCloseTerminal((error) => {
