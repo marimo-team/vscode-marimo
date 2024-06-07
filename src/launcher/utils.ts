@@ -27,7 +27,7 @@ export async function tryPort(start: number): Promise<number> {
   return tryPort(start + 1);
 }
 
-export function ping(url: string) {
+export function ping(url: string): Promise<boolean> {
   const promise = new Promise<boolean>((resolve) => {
     const useHttps = url.indexOf("https") === 0;
     const module_ = useHttps ? https.request : http.request;

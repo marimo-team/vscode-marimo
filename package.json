@@ -111,6 +111,31 @@
         "category": "marimo",
         "title": "Refresh marimo explorer",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "vscode-marimo.openAsVSCodeNotebook",
+        "category": "marimo",
+        "enablement": "resourceLangId == python && marimo.isMarimoApp",
+        "title": "Open as VSCode notebook",
+        "icon": "$(notebook)"
+      },
+      {
+        "command": "vscode-marimo.createVSCodeNotebook",
+        "category": "marimo",
+        "title": "Create VSCode notebook",
+        "icon": "$(notebook)"
+      }
+    ],
+    "notebooks": [
+      {
+        "type": "marimo-notebook",
+        "displayName": "Marimo Notebook",
+        "priority": "option",
+        "selector": [
+          {
+            "filenamePattern": "*.py"
+          }
+        ]
       }
     ],
     "views": {
@@ -169,6 +194,12 @@
         {
           "when": "resourceLangId == python && marimo.isMarimoApp",
           "command": "vscode-marimo.run",
+          "group": "navigation"
+        },
+        {
+          "when": "resourceLangId == python && marimo.isMarimoApp",
+          "command": "vscode-marimo.openAsVSCodeNotebook",
+          "icon": "$(notebook)",
           "group": "navigation"
         }
       ],
@@ -246,6 +277,7 @@
     "dev": "pnpm run build --watch",
     "lint": "biome check --apply .",
     "pack": "vsce package --no-dependencies",
+    "codegen": "npx openapi-typescript https://raw.githubusercontent.com/marimo-team/marimo/c91f441174535afe3fbe86a68955d5332f7b6e0e/openapi/api.yaml -o ./src/generated/api.ts",
     "pretest": "pnpm run build && pnpm run lint",
     "publish": "vsce publish --no-dependencies",
     "release": "npx bumpp && pnpm run publish",
@@ -255,10 +287,21 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^1.7.3",
+    "@types/jsdom": "^21.1.7",
     "@types/node": "20.12.12",
     "@types/vscode": "^1.86.0",
     "@vscode/test-electron": "^2.3.10",
+    "openapi-typescript": "^6.7.6",
     "tsup": "^8.0.2",
     "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "@jupyterlab/nbformat": "^4.2.1",
+    "@types/ws": "^8.5.10",
+    "jsdom": "^24.1.0",
+    "node-fetch": "^3.3.2",
+    "openapi-fetch": "^0.9.7",
+    "tempy": "^3.1.0",
+    "ws": "^8.17.0"
   }
 }

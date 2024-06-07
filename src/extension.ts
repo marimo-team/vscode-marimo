@@ -17,8 +17,10 @@ import { showCommands } from "./launcher/show-commands";
 import { start, stop } from "./launcher/start";
 import { updateStatusBar } from "./launcher/status-bar";
 import { logger } from "./logger";
+import { activate as activateNotebook } from "./notebook/extension";
 
 export async function activate(extension: ExtensionContext) {
+  activateNotebook(extension);
   logger.log("marimo extension is now active!");
 
   // These commands all operate on the current file
@@ -89,7 +91,7 @@ export async function activate(extension: ExtensionContext) {
 
     const marimoPath = Config.marimoPath;
     if (!marimoPath) {
-      window.showErrorMessage("Marimo path is not set");
+      window.showErrorMessage("marimo path is not set");
       return;
     }
 
