@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-redeclare */
 
-import { TypedString } from "../marimo/types";
+import type { TypedString } from "../marimo/types";
 import { Deferred } from "./deferred";
 
 export type RequestId = TypedString<"RequestId">;

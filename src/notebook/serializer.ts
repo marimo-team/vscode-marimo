@@ -78,8 +78,13 @@
 // }
 
 import * as vscode from "vscode";
+import { KernelManager } from "./kernel-manager";
+import { getNotebookMetadata } from "./common/metadata";
+import { logger } from "../logger";
 
 export class MarimoNotebookSerializer implements vscode.NotebookSerializer {
+  constructor(private kernelManager: KernelManager) {}
+
   public async deserializeNotebook(
     _data: Uint8Array,
     _token: vscode.CancellationToken,
@@ -109,21 +114,22 @@ export class MarimoNotebookSerializer implements vscode.NotebookSerializer {
   }
 
   public async serializeNotebook(
-    _data: vscode.NotebookData,
+    data: vscode.NotebookData,
     _token: vscode.CancellationToken,
   ): Promise<Uint8Array> {
-    console.error("Not implemented");
-    // TODO: exec(marimo serialize <file>)
-    return new Uint8Array([]);
+    const metadata = getNotebookMetadata(data);
+    const key = metadata.key;
+    const kernel = this.kernelManager.getKernel(key);
+    if (!kernel) {
+      logger.error("No kernel found for key", key);
+      throw new Error("No kernel found for key: " + key);
+    }
+
+    const code = await kernel.save();
+    if (!code) {
+      logger.error("No code found for kernel", key);
+      throw new Error("No code found for kernel: " + key);
+    }
+    return Buffer.from(code);
   }
-}
-
-function getCellContents(fileContent: string): string[] {
-  const cellContentRegex =
-    /@app\.cell\s*def\s*__\(.*?\):\s*([\s\S]*?)(?=@app\.cell|$)/g;
-  const matches = [...fileContent.matchAll(cellContentRegex)];
-
-  const cellContents = matches.map((match) => match[1].trim());
-
-  return cellContents;
 }

@@ -36,7 +36,6 @@ export const SessionId = {
 
 export type SkewToken = TypedString<"SkewToken">;
 
-
 type schemas = components["schemas"];
 
 export type MessageOperationType = schemas["MessageOperation"]["name"];
@@ -54,13 +53,17 @@ export type MessageOperationData<T extends MessageOperationType> = Omit<
 export type CellStatus = schemas["CellStatus"];
 export type Operation = schemas["MessageOperation"];
 export type InstantiateRequest = schemas["InstantiateRequest"];
-export type InstallMissingPackagesRequest = schemas["InstallMissingPackagesRequest"];
+export type InstallMissingPackagesRequest =
+  schemas["InstallMissingPackagesRequest"];
 export type RunRequest = schemas["RunRequest"];
 export type DeleteRequest = schemas["DeleteRequest"];
-export type CellChannel = schemas['CellChannel'];
-export type FunctionCallRequest = schemas['FunctionCallRequest'];
-export type MarimoConfig = schemas['MarimoConfig'];
+export type SaveNotebookRequest = schemas["SaveNotebookRequest"];
+export type CellChannel = schemas["CellChannel"];
+export type FunctionCallRequest = schemas["FunctionCallRequest"];
+export type CellConfig = schemas["CellConfig"];
+export type CellOutput = schemas["CellOutput"];
+export type MarimoConfig = schemas["MarimoConfig"];
 
-export type CellOp = MessageOperationData<"cell-op">;;
-export type KernelReady = MessageOperationData<'kernel-ready'>;;
-export type FunctionCallResult = MessageOperationData<'function-call-result'>;;
+export type CellOp = MessageOperationData<"cell-op">;
+export type KernelReady = MessageOperationData<"kernel-ready">;
+export type FunctionCallResult = MessageOperationData<"function-call-result">;

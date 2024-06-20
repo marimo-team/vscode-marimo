@@ -1,12 +1,12 @@
+import { JSDOM } from "jsdom";
 import type * as vscode from "vscode";
 import { Config, composeUrl } from "../launcher/config";
 import { ping, tryPort } from "../launcher/utils";
 import { logger } from "../logger";
 import { Kernel } from "./kernel";
 import { marimoEdit } from "./marimo/exec";
-import {JSDOM} from "jsdom";
+import type { MarimoConfig, SkewToken } from "./marimo/types";
 import { Deferred } from "./utils/deferred";
-import { MarimoConfig, SkewToken } from "./marimo/types";
 
 /**
  * Manages a single instance of a marimo server
@@ -15,12 +15,11 @@ export class ServerManager implements vscode.Disposable {
   private otherDisposables: vscode.Disposable[] = [];
   private state: "stopped" | "starting" | "started" = "stopped";
   private port: number | undefined;
-  // private skewToken: string | undefined;
-  // private userConfig: string | undefined;
   private server: vscode.Disposable | undefined;
   private startedPromise: Deferred<{
     port: number;
     skewToken: SkewToken;
+    version: string;
     userConfig: MarimoConfig;
   }> = new Deferred();
 
@@ -33,24 +32,52 @@ export class ServerManager implements vscode.Disposable {
     }
   }
 
-  private async fetchskewTokenAndConfig(port: number): Promise<{
+  private async fetchMarimoStartupValues(port: number): Promise<{
     skewToken: SkewToken;
+    version: string;
     userConfig: MarimoConfig;
   }> {
     const response = await fetch(`${composeUrl(port)}`);
     const html = await response.text();
     const doc = new JSDOM(html).window.document;
-    const skewToken = Array.from(doc.getElementsByTagName("marimo-server-token"))[0] as HTMLElement;
-    const userConfig = Array.from(doc.getElementsByTagName("marimo-user-config"))[0] as HTMLElement;
-    return {
-      skewToken: skewToken?.dataset.token as SkewToken,
-      userConfig: userConfig ? JSON.parse(userConfig.dataset.config || "") : {},
+    const skewToken = Array.from(
+      doc.getElementsByTagName("marimo-server-token"),
+    )[0] as HTMLElement;
+    const userConfig = Array.from(
+      doc.getElementsByTagName("marimo-user-config"),
+    )[0] as HTMLElement;
+    const marimoVersion = Array.from(
+      doc.getElementsByTagName("marimo-version"),
+    )[0] as HTMLElement;
+    if (!skewToken) {
+      throw new Error("Could not find skew token");
     }
+    if (skewToken.dataset.token === undefined) {
+      throw new Error("Skew token is undefined");
+    }
+    if (!userConfig) {
+      throw new Error("Could not find user config");
+    }
+    if (userConfig.dataset.config === undefined) {
+      throw new Error("User config is undefined");
+    }
+    if (!marimoVersion) {
+      throw new Error("Could not find marimo version");
+    }
+    if (marimoVersion.dataset.version === undefined) {
+      throw new Error("Marimo version is undefined");
+    }
+    return {
+      skewToken: skewToken.dataset.token as SkewToken,
+      version: marimoVersion.dataset.version,
+      userConfig: JSON.parse(userConfig.dataset.config),
+    };
   }
 
   async start(): Promise<{
     port: number;
     skewToken: SkewToken;
+    version: string;
     userConfig: MarimoConfig;
   }> {
     if (this.state === "starting") {
@@ -65,11 +92,10 @@ export class ServerManager implements vscode.Disposable {
         this.startedPromise = new Deferred();
         await this.stopServer();
         const port = await this.startServer();
-        const { skewToken, userConfig } = await this.fetchskewTokenAndConfig(port);
+        const domValues = await this.fetchMarimoStartupValues(port);
         this.startedPromise.resolve({
           port,
-          skewToken,
-          userConfig,
+          ...domValues,
         });
         return this.startedPromise.promise;
       }
@@ -81,11 +107,10 @@ export class ServerManager implements vscode.Disposable {
         this.startedPromise = new Deferred();
         await this.stopServer();
         const port = await this.startServer();
-        const { skewToken, userConfig } = await this.fetchskewTokenAndConfig(port);
+        const domValues = await this.fetchMarimoStartupValues(port);
         this.startedPromise.resolve({
           port,
-          skewToken,
-          userConfig,
+          ...domValues,
         });
         return this.startedPromise.promise;
       }
@@ -99,11 +124,10 @@ export class ServerManager implements vscode.Disposable {
       logger.log("Starting server...");
       this.startedPromise = new Deferred();
       const port = await this.startServer();
-      const { skewToken, userConfig } = await this.fetchskewTokenAndConfig(port);
+      const domValues = await this.fetchMarimoStartupValues(port);
       this.startedPromise.resolve({
         port,
-        skewToken,
-        userConfig,
+        ...domValues,
       });
       return this.startedPromise.promise;
     }

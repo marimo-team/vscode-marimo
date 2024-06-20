@@ -10,8 +10,6 @@ import { MarimoNotebookSerializer } from "./serializer";
 import { ServerManager } from "./server-manager";
 
 const PYTHON_LANGUAGE = "python";
-const defaultImport = "import marimo as mo";
-const defaultName = "__";
 
 const Commands = {
   createNotebook: "vscode-marimo.createVSCodeNotebook",
@@ -22,7 +20,15 @@ export function activate(context: vscode.ExtensionContext) {
   const addDisposable = (...disposable: vscode.Disposable[]) =>
     context.subscriptions.push(...disposable);
 
-  const kernelManager = new KernelManager();
+  logger.log("Creating notebook controller");
+  const nbController = vscode.notebooks.createNotebookController(
+    "marimo-kernel",
+    NOTEBOOK_TYPE,
+    "marimo kernel",
+  );
+  addDisposable(nbController);
+
+  const kernelManager = new KernelManager(nbController);
   const serverManager = new ServerManager();
   addDisposable(kernelManager, serverManager);
 
@@ -117,35 +123,43 @@ export function activate(context: vscode.ExtensionContext) {
       } catch {
         // Do nothing
       }
-      vscode.window.showInformationMessage("Initializing notebook...");
 
-      // Start Marimo server
-      logger.log("Checking server...");
-      const { port, skewToken, userConfig } = await serverManager.start();
-      // Create Kernel
-      const kernel = kernelManager.createKernel(
-        port,
-        metadata.isNew ? "__new__" : doc.uri,
-        skewToken,
-        userConfig,
-        doc,
-      );
-      addDisposable(kernel);
+      vscode.window.withProgress({
+        location: vscode.ProgressLocation.Notification,
+        title: "Starting marimo server...",
+        cancellable: false,
+      }, async (progress) => {
+        // Start Marimo server
+        logger.log("Checking server...");
+        const { port, skewToken, userConfig, version } =
+          await serverManager.start();
+        // Create Kernel
+        const kernel = kernelManager.createKernel({
+          port,
+          uri: metadata.isNew ? "__new__" : doc.uri,
+          skewToken,
+          version,
+          userConfig,
+          notebookDoc: doc,
+        });
+        addDisposable(kernel);
 
-      // Edit metadata
-      const nextMetadata: NotebookMetadata = {
-        ...metadata,
-        port: port,
-        key: kernel.kernelKey,
-        loaded: true,
-      };
-      const nbEdit = vscode.NotebookEdit.updateNotebookMetadata(nextMetadata);
-      const edit2 = new vscode.WorkspaceEdit();
-      edit2.set(doc.uri, [nbEdit]);
-      await vscode.workspace.applyEdit(edit2);
+        // Edit metadata
+        const nextMetadata: NotebookMetadata = {
+          ...metadata,
+          port: port,
+          key: kernel.kernelKey,
+          loaded: true,
+        };
+        const nbEdit = vscode.NotebookEdit.updateNotebookMetadata(nextMetadata);
+        const edit2 = new vscode.WorkspaceEdit();
+        edit2.set(doc.uri, [nbEdit]);
+        await vscode.workspace.applyEdit(edit2);
 
-      // Start the kernel
-      await kernel.start();
+        progress.report({ message: "Initializing kernel..." });
+        // Start the kernel
+        await kernel.start();
+      });
     }),
   );
 
@@ -153,7 +167,7 @@ export function activate(context: vscode.ExtensionContext) {
   addDisposable(
     vscode.workspace.registerNotebookSerializer(
       NOTEBOOK_TYPE,
-      new MarimoNotebookSerializer(),
+      new MarimoNotebookSerializer(kernelManager),
       {
         transientOutputs: true,
       },

@@ -3,7 +3,7 @@ import { logger } from "../logger";
 import { type KernelKey, toKernelKey } from "./common/key";
 import { getNotebookMetadata } from "./common/metadata";
 import { Kernel } from "./kernel";
-import { MarimoConfig, SkewToken } from "./marimo/types";
+import type { MarimoConfig, SkewToken } from "./marimo/types";
 
 export const NOTEBOOK_TYPE = "marimo-notebook";
 
@@ -17,17 +17,13 @@ export const NOTEBOOK_TYPE = "marimo-notebook";
 export class KernelManager implements vscode.Disposable {
   private readonly supportedLanguages = ["python"];
 
-  private readonly controller: vscode.NotebookController;
+  private controller: vscode.NotebookController;
   private readonly kernelMap = new Map<KernelKey, Kernel>();
 
   private otherDisposables: vscode.Disposable[] = [];
 
-  constructor() {
-    this.controller = vscode.notebooks.createNotebookController(
-      "marimo-kernel",
-      NOTEBOOK_TYPE,
-      "marimo kernel",
-    );
+  constructor(controller: vscode.NotebookController) {
+    this.controller = controller;
 
     this.controller.supportedLanguages = this.supportedLanguages;
     this.controller.supportsExecutionOrder = false;
@@ -43,17 +39,31 @@ export class KernelManager implements vscode.Disposable {
     this.listenForNotebookChanges();
   }
 
-  createKernel(
-    port: number,
-    uri: vscode.Uri | "__new__",
-    skewToken: SkewToken,
-    userConfig: MarimoConfig,
-    notebookDoc: vscode.NotebookDocument,
-  ): Kernel {
+  createKernel({
+    port,
+    uri,
+    skewToken,
+    version,
+    userConfig,
+    notebookDoc,
+  }: {
+    port: number;
+    uri: vscode.Uri | "__new__";
+    skewToken: SkewToken;
+    version: string;
+    userConfig: MarimoConfig;
+    notebookDoc: vscode.NotebookDocument;
+  }): Kernel {
     const key = toKernelKey(uri);
-    const kernel = new Kernel(port, key,
-      skewToken, userConfig,
-      this.controller, notebookDoc);
+    const kernel = new Kernel(
+      port,
+      key,
+      skewToken,
+      version,
+      userConfig,
+      this.controller,
+      notebookDoc,
+    );
     this.kernelMap.set(key, kernel);
     return kernel;
   }
@@ -76,7 +86,6 @@ export class KernelManager implements vscode.Disposable {
   }
 
   dispose(): void {
-    this.controller.dispose();
     this.kernelMap.forEach((kernel) => kernel.dispose());
     this.otherDisposables.forEach((d) => d.dispose());
   }
@@ -125,16 +134,12 @@ export class KernelManager implements vscode.Disposable {
         }
         const key = getNotebookMetadata(e.notebook).key;
         if (!key) {
-          return logger.error("No key found in notebook metadata");
+          throw Error("No key found in notebook metadata");
         }
         const kernel = this.getKernel(key);
         if (!kernel) {
-          return logger.error("No kernel found for key", key);
+          throw Error("No kernel found for key: " + key);
         }
-        vscode.window.showInformationMessage("Notebook saved!");
-
-        // Cancel save
-        e.waitUntil(Promise.reject());
       }),
     );
   }
@@ -144,6 +149,7 @@ export class KernelManager implements vscode.Disposable {
     notebook: vscode.NotebookDocument,
     controller: vscode.NotebookController,
   ): void {
+    this.controller = controller;
     const key = getNotebookMetadata(notebook).key;
     const kernel = this.getKernel(key);
     if (!kernel) {

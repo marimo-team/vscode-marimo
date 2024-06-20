@@ -7,25 +7,28 @@ import { Config } from "../../launcher/config";
 import { logger as l } from "../../logger";
 import type { KernelKey } from "../common/key";
 import {
-  CellOp,
-  DeleteRequest,
-  FunctionCallRequest,
-  FunctionCallResult,
-  InstallMissingPackagesRequest,
-  InstantiateRequest,
-  KernelReady,
-  MarimoConfig,
-  MessageOperation,
-  RunRequest,
-  SessionId,
-  SkewToken,
-} from "./types";
-import { logNever } from "../utils/invariant";
-import { DeferredRequestRegistry, RequestId } from "../utils/DeferredRequestRegistry";
+  DeferredRequestRegistry,
+  type RequestId,
+} from "../utils/DeferredRequestRegistry";
 import { Deferred } from "../utils/deferred";
+import { logNever } from "../utils/invariant";
+import {
+  type CellOp,
+  type DeleteRequest,
+  type FunctionCallRequest,
+  type FunctionCallResult,
+  type InstallMissingPackagesRequest,
+  type InstantiateRequest,
+  type KernelReady,
+  type MarimoConfig,
+  type MessageOperation,
+  type RunRequest,
+  SessionId,
+  type SkewToken,
+  SaveNotebookRequest,
+} from "./types";
 
-
-const logger = l.createLogger('marimo-bridge');
+const logger = l.createLogger("marimo-bridge");
 
 /**
  * Bridge between VS Code and Marimo kernel.
@@ -37,20 +40,21 @@ export class MarimoBridge implements Disposable {
   private socket: WebSocket;
   private sessionId: SessionId;
   private client: ReturnType<typeof createClient<paths>>;
-  private progress: vscode.Progress<{ message?: string; increment?: number }> | undefined;
+  private progress:
+    | vscode.Progress<{ message?: string; increment?: number }>
+    | undefined;
   private progressCompletedDeferred: Deferred<void> | undefined;
 
   private FUNCTIONS_REGISTRY = new DeferredRequestRegistry<
-      Omit<FunctionCallRequest, "functionCallId">,
-      FunctionCallResult
-    >("function-call-result", async (requestId, req) => {
-      // RPC counts as a kernel invocation
-      await this.functionRequest({
-        functionCallId: requestId,
-        ...req,
-      });
+    Omit<FunctionCallRequest, "functionCallId">,
+    FunctionCallResult
+  >("function-call-result", async (requestId, req) => {
+    // RPC counts as a kernel invocation
+    await this.functionRequest({
+      functionCallId: requestId,
+      ...req,
     });
-
+  });
 
   constructor(
     readonly port: number,
@@ -93,8 +97,6 @@ export class MarimoBridge implements Disposable {
     this.client.use({
       onRequest: async (req) => {
         req.headers.set("Marimo-Session-Id", this.sessionId);
-        logger.log("request", req.url);
-        logger.log("skew token", this.skewToken);
         req.headers.set("Marimo-Server-Token", this.skewToken);
         return req;
       },
@@ -120,9 +122,18 @@ export class MarimoBridge implements Disposable {
     });
   }
 
+  public async save(request: SaveNotebookRequest): Promise<string> {
+    logger.log("save");
+    const response = await this.client.POST("/api/kernel/save", {
+      body: request,
+      parseAs: "text",
+    });
+    return response.data ?? "";
+  }
+
   public async functionRequest(request: FunctionCallRequest): Promise<void> {
     logger.log("function request");
-    await this.client.POST('/api/kernel/function_call', {
+    await this.client.POST("/api/kernel/function_call", {
       body: request,
     });
   }
@@ -134,7 +145,9 @@ export class MarimoBridge implements Disposable {
     });
   }
 
-  public async installMissingPackages(request: InstallMissingPackagesRequest): Promise<void> {
+  public async installMissingPackages(
+    request: InstallMissingPackagesRequest,
+  ): Promise<void> {
     logger.log("install missing packages");
     await this.client.POST("/api/kernel/install_missing_packages", {
       body: request,
@@ -144,6 +157,12 @@ export class MarimoBridge implements Disposable {
   public async interrupt(): Promise<void> {
     logger.log("interrupt");
     await this.client.POST("/api/kernel/interrupt", {});
+  }
+
+  public async readCode(): Promise<string> {
+    logger.log("read code");
+    const response = await this.client.POST("/api/kernel/read_code");
+    return response.data?.contents ?? "";
   }
 
   private async handleMessage(message: MessageOperation): Promise<void> {
@@ -156,7 +175,7 @@ export class MarimoBridge implements Disposable {
         this.callbacks.onCellMessage(message.data);
         return;
       case "alert":
-        if (message.data.variant === 'danger') {
+        if (message.data.variant === "danger") {
           vscode.window.showErrorMessage(message.data.title, {
             modal: true,
             detail: message.data.description,
@@ -167,8 +186,8 @@ export class MarimoBridge implements Disposable {
           detail: message.data.description,
         });
         return;
-      case 'banner':
-        if (message.data.variant === 'danger') {
+      case "banner":
+        if (message.data.variant === "danger") {
           vscode.window.showInformationMessage(message.data.title, {
             detail: message.data.description,
           });
@@ -183,68 +202,94 @@ export class MarimoBridge implements Disposable {
       case "query-params-set":
         logger.warn("query params not supported");
         return;
-      case 'interrupted':
+      case "interrupted":
         await this.interrupt();
         return;
-      case 'completed-run':
+      case "completed-run":
         return;
-      case 'reconnected':
+      case "reconnected":
         vscode.window.showInformationMessage("Reconnected to Marimo server");
         return;
-      case 'function-call-result':
-        this.FUNCTIONS_REGISTRY.resolve(message.data.function_call_id as RequestId, message.data);
+      case "function-call-result":
+        this.FUNCTIONS_REGISTRY.resolve(
+          message.data.function_call_id as RequestId,
+          message.data,
+        );
         return;
-      case 'reload':
-        vscode.commands.executeCommand('workbench.action.reloadWindow');
+      case "reload":
+        vscode.commands.executeCommand("workbench.action.reloadWindow");
         return;
-      case 'missing-package-alert':
-        const response =await vscode.window.showInformationMessage("Missing packages:", {
-          detail: message.data.packages.join(', '),
-        }, {
-          title: "Install",
-        });
+      case "missing-package-alert":
+        const response = await vscode.window.showInformationMessage(
+          "Missing packages:",
+          {
+            detail: message.data.packages.join(", "),
+          },
+          {
+            title: "Install",
+          },
+        );
         if (response?.title !== "Install") {
           return;
         }
-        const manager = await vscode.window.showQuickPick(["pip", "rye", "uv", "poetry", "pixi"], {
-          placeHolder: "Select package manager",
-        });
+        const manager = await vscode.window.showQuickPick(
+          ["pip", "rye", "uv", "poetry", "pixi"],
+          {
+            placeHolder: "Select package manager",
+          },
+        );
         if (!manager) {
-          return
+          return;
         }
         await this.installMissingPackages({
           manager: manager,
         });
         this.progressCompletedDeferred = new Deferred();
-        await vscode.window.withProgress({
-          location: vscode.ProgressLocation.Notification,
-          title: "Installing packages...",
-          cancellable: true,
-        }, async (progress, token) => {
-          this.progress = progress;
-          token.onCancellationRequested(() => {
-            vscode.window.showInformationMessage("Installation cancelled");
-            // this.interrupt();
-          });
-          progress.report({ message: "Installing packages" });
-          await this.progressCompletedDeferred?.promise;
-        });
+        await vscode.window.withProgress(
+          {
+            location: vscode.ProgressLocation.Notification,
+            title: "Installing packages...",
+            cancellable: true,
+          },
+          async (progress, token) => {
+            this.progress = progress;
+            token.onCancellationRequested(() => {
+              vscode.window.showInformationMessage("Installation cancelled");
+              // this.interrupt();
+            });
+            progress.report({ message: "Installing packages" });
+            await this.progressCompletedDeferred?.promise;
+          },
+        );
         return;
-      case 'installing-package-alert':
+      case "installing-package-alert":
         if (!this.progress) {
           return;
         }
-        const installed = Object.entries(message.data.packages).filter(([_, value]) => value === "installed");
-        const queued = Object.entries(message.data.packages).filter(([_, value]) => value === "queued");
-        const failed = Object.entries(message.data.packages).filter(([_, value]) => value === "failed");
-        const installing = Object.entries(message.data.packages).filter(([_, value]) => value === "installing");
-        const messages = ([
-          ["Installed", installed.length],
-          ["Queued", queued.length],
-          ["Failed", failed.length],
-          ["Installing", installing.length],
-        ] as const).filter(([_, count]) => count > 0).map(([name, count]) => `${name}: ${count}`).join(", ");
-        this.progress.report({message: messages });
+        const installed = Object.entries(message.data.packages).filter(
+          ([_, value]) => value === "installed",
+        );
+        const queued = Object.entries(message.data.packages).filter(
+          ([_, value]) => value === "queued",
+        );
+        const failed = Object.entries(message.data.packages).filter(
+          ([_, value]) => value === "failed",
+        );
+        const installing = Object.entries(message.data.packages).filter(
+          ([_, value]) => value === "installing",
+        );
+        const messages = (
+          [
+            ["Installed", installed.length],
+            ["Queued", queued.length],
+            ["Failed", failed.length],
+            ["Installing", installing.length],
+          ] as const
+        )
+          .filter(([_, count]) => count > 0)
+          .map(([name, count]) => `${name}: ${count}`)
+          .join(", ");
+        this.progress.report({ message: messages });
         if (queued.length === 0 && installing.length === 0) {
           this.progressCompletedDeferred?.resolve();
           this.progress = undefined;
@@ -252,12 +297,12 @@ export class MarimoBridge implements Disposable {
         }
         return;
       // Unused features
-      case 'data-column-preview':
+      case "data-column-preview":
       case "datasets":
-      case 'variables':
-      case 'variable-values':
-      case 'completion-result':
-          return;
+      case "variables":
+      case "variable-values":
+      case "completion-result":
+        return;
       default:
         logNever(message);
         return;
