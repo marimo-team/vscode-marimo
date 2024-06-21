@@ -248,6 +248,7 @@
     "pack": "vsce package --no-dependencies",
     "pretest": "pnpm run build && pnpm run lint",
     "publish": "vsce publish --no-dependencies",
+    "openvsx:publish": "npx ovsx publish --pat",
     "release": "npx bumpp && pnpm run publish",
     "test": "echo 'No tests yet...'",
     "typecheck": "tsc --noEmit",

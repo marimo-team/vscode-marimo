@@ -15,3 +15,5 @@
 
 - Run `pnpm run release` to create a new release.
   - This requires a valid vsce token
+- Run `pnpm run openvsx:publish <token>` to publish the release to OpenVSX.
+  - This requires a valid OpenVSX token
