@@ -35,7 +35,7 @@ export const Config = {
     return getConfig("enableToken", false);
   },
   get tokenPassword() {
-    return getConfig("tokenPassword");
+    return getConfig<string>("tokenPassword");
   },
   get https() {
     return false;

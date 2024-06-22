@@ -1,5 +1,6 @@
 import type { Uri } from "vscode";
-import { SessionId, type TypedString } from "../marimo/types";
+import type { TypedString } from "../../utils/TypedString";
+import { SessionId } from "../marimo/types";
 
 export type KernelKey = TypedString<"KernelKey">;
 

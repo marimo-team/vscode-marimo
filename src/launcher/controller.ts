@@ -9,15 +9,33 @@ import {
   window,
   workspace,
 } from "vscode";
+import { MarimoPanelManager } from "../browser/panel";
+import { Config, composeUrl } from "../config";
 import { logger } from "../logger";
-import { Config, composeUrl } from "./config";
-import { MarimoPanelManager } from "./panel";
-import { updateStatusBar } from "./status-bar";
+import { updateStatusBar } from "../ui/status-bar";
+import { ping } from "../utils/network";
 import { MarimoTerminal } from "./terminal";
-import { getCurrentFile, isMarimoApp, ping } from "./utils";
+import { getFocusedMarimoTextEditor, isMarimoApp } from "../utils/query";
+import { ServerManager } from "./server-manager";
+import { MarimoCmdBuilder } from "../utils/cmd";
 
 export type AppMode = "edit" | "run";
 
+export interface IMarimoController {
+  currentMode: AppMode | undefined;
+  active: boolean;
+  port: number | undefined;
+  terminal: MarimoTerminal;
+  start(mode: AppMode, port: number): Promise<void>;
+  open(browser?: "embedded" | "system"): Promise<void>;
+  reloadPanel(): void;
+  dispose(): void;
+}
+
+/**
+ * Controller for a marimo app.
+ * Manages a running marimo server, the terminal, and the webview panel.
+ */
 export class MarimoController implements Disposable {
   public terminal: MarimoTerminal;
   private panel: MarimoPanelManager;
@@ -60,21 +78,16 @@ export class MarimoController implements Disposable {
     this.port = port;
     const filePath = this.terminal.relativePathFor(this.file.uri.fsPath);
 
-    const hasSpace = filePath.includes(" ");
-
-    const cmd = [
-      "marimo",
-      Config.debug ? "-d" : "",
-      mode === "edit" ? "edit" : "run",
-      hasSpace ? `"${filePath}"` : filePath, // quotes to handle spaces in file path
-      Config.host ? `--host=${Config.host}` : "",
-      Config.enableToken ? "" : "--no-token",
-      Config.tokenPassword ? `--token-password=${Config.tokenPassword}` : "",
-      `--port=${port}`,
-      "--headless",
-    ]
-      .filter(Boolean)
-      .join(" ");
+    const cmd = new MarimoCmdBuilder()
+      .debug(Config.debug)
+      .mode(mode)
+      .fileOrDir(filePath)
+      .host(Config.host)
+      .port(port)
+      .headless(true)
+      .enableToken(Config.enableToken)
+      .tokenPassword(Config.tokenPassword)
+      .build();
 
     await (Config.pythonPath
       ? this.terminal.executeCommand(`${Config.pythonPath} -m ${cmd}`)
@@ -210,14 +223,14 @@ export function withController<T>(
     return fn(activePanelController);
   }
 
-  const file = getCurrentFile();
+  const file = getFocusedMarimoTextEditor({toast: true});
   if (!file) {
     return;
   }
-  if (!isMarimoApp(file)) {
+  if (!isMarimoApp(file.document)) {
     window.showInformationMessage("This is not a marimo app.");
     return;
   }
-  const controller = Controllers.getOrCreate(file, extension);
+  const controller = Controllers.getOrCreate(file.document, extension);
   return fn(controller);
 }

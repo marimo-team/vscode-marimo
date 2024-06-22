@@ -1,6 +1,6 @@
-import type { components, paths } from "../../generated/api";
-
-export type TypedString<T> = string & { __type__: T };
+import type { components } from "../../generated/api";
+import type { TypedString } from "../../utils/TypedString";
+import type { DeepPartial } from "../../utils/types";
 
 const lowercase = "abcdefghijklmnopqrstuvwxyz";
 const uppercase = lowercase.toUpperCase();
@@ -55,14 +55,16 @@ export type Operation = schemas["MessageOperation"];
 export type InstantiateRequest = schemas["InstantiateRequest"];
 export type InstallMissingPackagesRequest =
   schemas["InstallMissingPackagesRequest"];
+export type UpdateCellIdsRequest = schemas["UpdateCellIdsRequest"];
 export type RunRequest = schemas["RunRequest"];
-export type DeleteRequest = schemas["DeleteRequest"];
+export type WorkspaceFilesResponse = schemas["WorkspaceFilesResponse"];
+export type DeleteCellRequest = schemas["DeleteCellRequest"];
 export type SaveNotebookRequest = schemas["SaveNotebookRequest"];
 export type CellChannel = schemas["CellChannel"];
 export type FunctionCallRequest = schemas["FunctionCallRequest"];
 export type CellConfig = schemas["CellConfig"];
 export type CellOutput = schemas["CellOutput"];
-export type MarimoConfig = schemas["MarimoConfig"];
+export type MarimoConfig = DeepPartial<schemas["MarimoConfig"]>;
 
 export type CellOp = MessageOperationData<"cell-op">;
 export type KernelReady = MessageOperationData<"kernel-ready">;

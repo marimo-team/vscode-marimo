@@ -2,19 +2,19 @@ import createClient from "openapi-fetch";
 import * as vscode from "vscode";
 import type { Disposable } from "vscode";
 import { WebSocket } from "ws";
+import { Config } from "../../config";
 import type { paths } from "../../generated/api";
-import { Config } from "../../launcher/config";
 import { logger as l } from "../../logger";
-import type { KernelKey } from "../common/key";
 import {
   DeferredRequestRegistry,
   type RequestId,
-} from "../utils/DeferredRequestRegistry";
-import { Deferred } from "../utils/deferred";
-import { logNever } from "../utils/invariant";
+} from "../../utils/DeferredRequestRegistry";
+import { Deferred } from "../../utils/deferred";
+import { logNever } from "../../utils/invariant";
+import type { KernelKey } from "../common/key";
 import {
   type CellOp,
-  type DeleteRequest,
+  type DeleteCellRequest,
   type FunctionCallRequest,
   type FunctionCallResult,
   type InstallMissingPackagesRequest,
@@ -23,9 +23,11 @@ import {
   type MarimoConfig,
   type MessageOperation,
   type RunRequest,
+  type SaveNotebookRequest,
   SessionId,
   type SkewToken,
-  SaveNotebookRequest,
+  type UpdateCellIdsRequest,
+  WorkspaceFilesResponse,
 } from "./types";
 
 const logger = l.createLogger("marimo-bridge");
@@ -37,9 +39,9 @@ const logger = l.createLogger("marimo-bridge");
  * Tries to connect to the WebSocket on construction.
  */
 export class MarimoBridge implements Disposable {
-  private socket: WebSocket;
-  private sessionId: SessionId;
-  private client: ReturnType<typeof createClient<paths>>;
+  private socket!: WebSocket;
+  private sessionId!: SessionId;
+  private client!: ReturnType<typeof createClient<paths>>;
   private progress:
     | vscode.Progress<{ message?: string; increment?: number }>
     | undefined;
@@ -57,39 +59,45 @@ export class MarimoBridge implements Disposable {
   });
 
   constructor(
-    readonly port: number,
-    readonly kernelKey: KernelKey,
-    readonly skewToken: SkewToken,
-    readonly userConfig: MarimoConfig,
+    private readonly port: number,
+    private readonly kernelKey: KernelKey,
+    private readonly skewToken: SkewToken,
+    private readonly userConfig: MarimoConfig,
     private readonly callbacks: {
       onCellMessage: (message: CellOp) => void;
       onKernelReady: (payload: KernelReady) => void;
     },
   ) {
+
+  }
+
+  start(): void {
+    logger.log("start bridge");
     // Create URLs
     const host = Config.host;
     const https = Config.https;
     this.sessionId = SessionId.create();
     const wsProtocol = https ? "wss" : "ws";
-    const httpProtocol = https ? "https" : "http";
-    const wsURL = new URL(`${wsProtocol}://${host}:${port}/ws`);
+    const wsURL = new URL(`${wsProtocol}://${host}:${this.port}/ws`);
     wsURL.searchParams.set("session_id", this.sessionId);
-    wsURL.searchParams.set("file", kernelKey);
-    const httpURL = new URL(`${httpProtocol}://${host}:${port}`);
+    wsURL.searchParams.set("file", this.kernelKey);
+    const httpURL = MarimoBridge.createHttpURL(this.port);
 
     // Create WebSocket
     this.socket = new WebSocket(wsURL);
     this.socket.onopen = () => {
       logger.log("connected");
     };
-    this.socket.onclose = () => {
-      logger.log("disconnected");
+    this.socket.onclose = (evt) => {
+      logger.log("disconnected", evt.code, evt.reason);
     };
     this.socket.onerror = (error) => {
       logger.log("error", error);
     };
     this.socket.onmessage = (message) => {
-      this.handleMessage(JSON.parse(message.data.toString()));
+      this.handleMessage(
+        JSON.parse(message.data.toString()) as MessageOperation,
+      );
     };
 
     // Create HTTP client
@@ -101,6 +109,20 @@ export class MarimoBridge implements Disposable {
         return req;
       },
     });
+  }
+
+  private static createHttpURL(port: number): URL {
+    const host = Config.host;
+    const https = Config.https;
+    const httpProtocol = https ? "https" : "http";
+    return new URL(`${httpProtocol}://${host}:${port}`);
+  }
+
+  public static getRunningNotebooks(port: number) {
+    const client = createClient<paths>({
+      baseUrl: MarimoBridge.createHttpURL(port).toString(),
+    });
+    return client.POST("/api/home/running_notebooks");
   }
 
   public async dispose(): Promise<void> {
@@ -115,7 +137,7 @@ export class MarimoBridge implements Disposable {
     });
   }
 
-  public async delete(request: DeleteRequest): Promise<void> {
+  public async delete(request: DeleteCellRequest): Promise<void> {
     logger.log("delete");
     await this.client.POST("/api/kernel/delete", {
       body: request,
@@ -129,6 +151,13 @@ export class MarimoBridge implements Disposable {
       parseAs: "text",
     });
     return response.data ?? "";
+  }
+
+  public async closeSession(): Promise<void> {
+    logger.log("restart");
+    await this.client.POST("/api/kernel/restart_session", {});
+    this.socket.close();
+    this.start();
   }
 
   public async functionRequest(request: FunctionCallRequest): Promise<void> {
@@ -165,8 +194,19 @@ export class MarimoBridge implements Disposable {
     return response.data?.contents ?? "";
   }
 
+  public async updateCellIds(request: UpdateCellIdsRequest): Promise<void> {
+    // Don't send if the socket is not open
+    if (this.socket.readyState !== WebSocket.OPEN) {
+      return;
+    }
+    logger.log("update cell ids");
+    await this.client.POST("/api/kernel/sync/cell_ids", {
+      body: request,
+    });
+  }
+
   private async handleMessage(message: MessageOperation): Promise<void> {
-    logger.log("message", message.op);
+    logger.debug("message", message.op);
     switch (message.op) {
       case "kernel-ready":
         this.callbacks.onKernelReady(message.data);
@@ -192,9 +232,6 @@ export class MarimoBridge implements Disposable {
             detail: message.data.description,
           });
         }
-        return;
-      case "remove-ui-elements":
-        // TODO:
         return;
       case "query-params-append":
       case "query-params-delete":
@@ -297,11 +334,15 @@ export class MarimoBridge implements Disposable {
         }
         return;
       // Unused features
+      case "remove-ui-elements":
       case "data-column-preview":
       case "datasets":
       case "variables":
       case "variable-values":
       case "completion-result":
+      case "focus-cell":
+      case "update-cell-codes":
+      case "update-cell-ids":
         return;
       default:
         logNever(message);

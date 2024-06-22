@@ -3,754 +3,1691 @@
  * Do not make direct changes to the file.
  */
 
-/** OneOf type helpers */
-type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never };
-type XOR<T, U> = T | U extends object
-  ? (Without<T, U> & U) | (Without<U, T> & T)
-  : T | U;
-type OneOf<T extends any[]> = T extends [infer Only]
-  ? Only
-  : T extends [infer A, infer B, ...infer Rest]
-    ? OneOf<[XOR<A, B>, ...Rest]>
-    : never;
-
 export interface paths {
-  "/@file/{filename_and_length}": {
-    get: {
-      parameters: {
-        path: {
+  readonly "/@file/{filename_and_length}": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get: {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path: {
           /** @description The filename and byte length of the virtual file */
-          filename_and_length: string;
+          readonly filename_and_length: string;
         };
+        readonly cookie?: never;
       };
-      responses: {
+      readonly requestBody?: never;
+      readonly responses: {
         /** @description Get a virtual file */
-        200: {
+        readonly 200: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
           content: {
-            "application/octet-stream": string;
+            readonly "application/octet-stream": string;
           };
         };
         /** @description Invalid byte length in virtual file request */
-        404: {
-          content: never;
+        readonly 404: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
+          content?: never;
         };
       };
     };
+    readonly put?: never;
+    readonly post?: never;
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
   };
-  "/api/ai/completion": {
-    post: {
+  readonly "/api/ai/completion": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get?: never;
+    readonly put?: never;
+    readonly post: {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
       /** @description The prompt to get AI completion for */
-      requestBody: {
-        content: {
-          "application/json": components["schemas"]["AiCompletionRequest"];
+      readonly requestBody: {
+        readonly content: {
+          readonly "application/json": components["schemas"]["AiCompletionRequest"];
         };
       };
-      responses: {
+      readonly responses: {
         /** @description Get AI completion for a prompt */
-        200: {
+        readonly 200: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
           content: {
-            "application/json": {
-              [key: string]: unknown;
+            readonly "application/json": {
+              readonly [key: string]: unknown;
             };
           };
         };
       };
     };
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
   };
-  "/api/datasources/preview_column": {
-    post: {
-      requestBody?: {
-        content: {
-          "application/json": components["schemas"]["PreviewDatasetColumnRequest"];
+  readonly "/api/datasources/preview_column": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get?: never;
+    readonly put?: never;
+    readonly post: {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly requestBody?: {
+        readonly content: {
+          readonly "application/json": components["schemas"]["PreviewDatasetColumnRequest"];
         };
       };
-      responses: {
+      readonly responses: {
         /** @description Preview a column in a dataset */
-        200: {
+        readonly 200: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
           content: {
-            "application/json": components["schemas"]["SuccessResponse"];
+            readonly "application/json": components["schemas"]["SuccessResponse"];
           };
         };
       };
     };
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
   };
-  "/api/documentation/snippets": {
-    get: {
-      responses: {
+  readonly "/api/documentation/snippets": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get: {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly requestBody?: never;
+      readonly responses: {
         /** @description Load the snippets for the documentation page */
-        200: {
+        readonly 200: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
           content: {
-            "application/json": components["schemas"]["Snippets"];
+            readonly "application/json": components["schemas"]["Snippets"];
           };
         };
       };
     };
+    readonly put?: never;
+    readonly post?: never;
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
   };
-  "/api/export/html": {
-    post: {
-      requestBody?: {
-        content: {
-          "application/json": components["schemas"]["ExportAsHTMLRequest"];
+  readonly "/api/export/html": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get?: never;
+    readonly put?: never;
+    readonly post: {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly requestBody?: {
+        readonly content: {
+          readonly "application/json": components["schemas"]["ExportAsHTMLRequest"];
         };
       };
-      responses: {
+      readonly responses: {
         /** @description Export the notebook as HTML */
-        200: {
+        readonly 200: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
           content: {
-            "text/html": string;
+            readonly "text/html": string;
           };
         };
         /** @description File must be saved before downloading */
-        400: {
-          content: never;
+        readonly 400: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
+          content?: never;
         };
       };
     };
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
   };
-  "/api/export/markdown": {
-    post: {
-      requestBody?: {
-        content: {
-          "application/json": components["schemas"]["ExportAsMarkdownRequest"];
+  readonly "/api/export/markdown": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get?: never;
+    readonly put?: never;
+    readonly post: {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly requestBody?: {
+        readonly content: {
+          readonly "application/json": components["schemas"]["ExportAsMarkdownRequest"];
         };
       };
-      responses: {
+      readonly responses: {
         /** @description Export the notebook as a markdown */
-        200: {
+        readonly 200: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
           content: {
-            "text/plain": string;
+            readonly "text/plain": string;
           };
         };
         /** @description File must be saved before downloading */
-        400: {
-          content: never;
+        readonly 400: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
+          content?: never;
         };
       };
     };
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
   };
-  "/api/export/script": {
-    post: {
-      requestBody?: {
-        content: {
-          "application/json": components["schemas"]["ExportAsScriptRequest"];
+  readonly "/api/export/script": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get?: never;
+    readonly put?: never;
+    readonly post: {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly requestBody?: {
+        readonly content: {
+          readonly "application/json": components["schemas"]["ExportAsScriptRequest"];
         };
       };
-      responses: {
+      readonly responses: {
         /** @description Export the notebook as a script */
-        200: {
+        readonly 200: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
           content: {
-            "text/plain": string;
+            readonly "text/plain": string;
           };
         };
         /** @description File must be saved before downloading */
-        400: {
-          content: never;
+        readonly 400: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
+          content?: never;
         };
       };
     };
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
   };
-  "/api/files/create": {
-    post: {
-      requestBody?: {
-        content: {
-          "application/json": components["schemas"]["FileCreateRequest"];
+  readonly "/api/files/create": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get?: never;
+    readonly put?: never;
+    readonly post: {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly requestBody?: {
+        readonly content: {
+          readonly "application/json": components["schemas"]["FileCreateRequest"];
         };
       };
-      responses: {
+      readonly responses: {
         /** @description Create a new file or directory */
-        200: {
+        readonly 200: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
           content: {
-            "application/json": components["schemas"]["FileCreateResponse"];
+            readonly "application/json": components["schemas"]["FileCreateResponse"];
           };
         };
       };
     };
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
   };
-  "/api/files/delete": {
-    post: {
-      requestBody?: {
-        content: {
-          "application/json": components["schemas"]["FileDeleteRequest"];
+  readonly "/api/files/delete": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get?: never;
+    readonly put?: never;
+    readonly post: {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly requestBody?: {
+        readonly content: {
+          readonly "application/json": components["schemas"]["FileDeleteRequest"];
         };
       };
-      responses: {
+      readonly responses: {
         /** @description Delete a file or directory */
-        200: {
+        readonly 200: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
           content: {
-            "application/json": components["schemas"]["FileDeleteResponse"];
+            readonly "application/json": components["schemas"]["FileDeleteResponse"];
           };
         };
       };
     };
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
   };
-  "/api/files/file_details": {
-    post: {
-      requestBody?: {
-        content: {
-          "application/json": components["schemas"]["FileDetailsRequest"];
+  readonly "/api/files/file_details": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get?: never;
+    readonly put?: never;
+    readonly post: {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly requestBody?: {
+        readonly content: {
+          readonly "application/json": components["schemas"]["FileDetailsRequest"];
         };
       };
-      responses: {
+      readonly responses: {
         /** @description Get details of a specific file or directory */
-        200: {
+        readonly 200: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
           content: {
-            "application/json": components["schemas"]["FileDetailsResponse"];
+            readonly "application/json": components["schemas"]["FileDetailsResponse"];
           };
         };
       };
     };
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
   };
-  "/api/files/list_files": {
-    post: {
-      requestBody?: {
-        content: {
-          "application/json": components["schemas"]["FileListRequest"];
+  readonly "/api/files/list_files": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get?: never;
+    readonly put?: never;
+    readonly post: {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly requestBody?: {
+        readonly content: {
+          readonly "application/json": components["schemas"]["FileListRequest"];
         };
       };
-      responses: {
+      readonly responses: {
         /** @description List files and directories in a given path */
-        200: {
+        readonly 200: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
           content: {
-            "application/json": components["schemas"]["FileListResponse"];
+            readonly "application/json": components["schemas"]["FileListResponse"];
           };
         };
       };
     };
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
   };
-  "/api/files/move": {
-    post: {
-      requestBody?: {
-        content: {
-          "application/json": components["schemas"]["FileMoveRequest"];
+  readonly "/api/files/move": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get?: never;
+    readonly put?: never;
+    readonly post: {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly requestBody?: {
+        readonly content: {
+          readonly "application/json": components["schemas"]["FileMoveRequest"];
         };
       };
-      responses: {
+      readonly responses: {
         /** @description Move a file or directory */
-        200: {
+        readonly 200: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
           content: {
-            "application/json": components["schemas"]["FileMoveResponse"];
+            readonly "application/json": components["schemas"]["FileMoveResponse"];
           };
         };
       };
     };
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
   };
-  "/api/files/update": {
-    post: {
-      requestBody?: {
-        content: {
-          "application/json": components["schemas"]["FileUpdateRequest"];
+  readonly "/api/files/update": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get?: never;
+    readonly put?: never;
+    readonly post: {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly requestBody?: {
+        readonly content: {
+          readonly "application/json": components["schemas"]["FileUpdateRequest"];
         };
       };
-      responses: {
+      readonly responses: {
         /** @description Update a file or directory */
-        200: {
+        readonly 200: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
           content: {
-            "application/json": components["schemas"]["FileUpdateResponse"];
+            readonly "application/json": components["schemas"]["FileUpdateResponse"];
           };
         };
       };
     };
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
   };
-  "/api/home/recent_files": {
-    post: {
-      responses: {
+  readonly "/api/home/recent_files": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get?: never;
+    readonly put?: never;
+    readonly post: {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly requestBody?: never;
+      readonly responses: {
         /** @description Get the recent files */
-        200: {
+        readonly 200: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
           content: {
-            "application/json": components["schemas"]["RecentFilesResponse"];
+            readonly "application/json": components["schemas"]["RecentFilesResponse"];
           };
         };
       };
     };
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
   };
-  "/api/home/running_notebooks": {
-    post: {
-      responses: {
+  readonly "/api/home/running_notebooks": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get?: never;
+    readonly put?: never;
+    readonly post: {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly requestBody?: never;
+      readonly responses: {
         /** @description Get the running files */
-        200: {
+        readonly 200: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
           content: {
-            "application/json": components["schemas"]["WorkspaceFilesResponse"];
+            readonly "application/json": components["schemas"]["WorkspaceFilesResponse"];
           };
         };
       };
     };
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
   };
-  "/api/home/shutdown_session": {
-    post: {
-      requestBody?: {
-        content: {
-          "application/json": components["schemas"]["ShutdownSessionRequest"];
+  readonly "/api/home/shutdown_session": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get?: never;
+    readonly put?: never;
+    readonly post: {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly requestBody?: {
+        readonly content: {
+          readonly "application/json": components["schemas"]["ShutdownSessionRequest"];
         };
       };
-      responses: {
+      readonly responses: {
         /** @description Shutdown the current session */
-        200: {
+        readonly 200: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
           content: {
-            "application/json": components["schemas"]["WorkspaceFilesResponse"];
+            readonly "application/json": components["schemas"]["WorkspaceFilesResponse"];
           };
         };
       };
     };
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
   };
-  "/api/home/workspace_files": {
-    post: {
-      requestBody?: {
-        content: {
-          "application/json": components["schemas"]["WorkspaceFilesRequest"];
+  readonly "/api/home/workspace_files": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get?: never;
+    readonly put?: never;
+    readonly post: {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly requestBody?: {
+        readonly content: {
+          readonly "application/json": components["schemas"]["WorkspaceFilesRequest"];
         };
       };
-      responses: {
+      readonly responses: {
         /** @description Get the files in the workspace */
-        200: {
+        readonly 200: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
           content: {
-            "application/json": components["schemas"]["WorkspaceFilesResponse"];
+            readonly "application/json": components["schemas"]["WorkspaceFilesResponse"];
           };
         };
       };
     };
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
   };
-  "/api/kernel/code_autocomplete": {
-    post: {
-      requestBody?: {
-        content: {
-          "application/json": components["schemas"]["CodeCompletionRequest"];
+  readonly "/api/kernel/code_autocomplete": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get?: never;
+    readonly put?: never;
+    readonly post: {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly requestBody?: {
+        readonly content: {
+          readonly "application/json": components["schemas"]["CodeCompletionRequest"];
         };
       };
-      responses: {
+      readonly responses: {
         /** @description Complete a code fragment */
-        200: {
+        readonly 200: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
           content: {
-            "application/json": components["schemas"]["SuccessResponse"];
+            readonly "application/json": components["schemas"]["SuccessResponse"];
           };
         };
       };
     };
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
   };
-  "/api/kernel/delete": {
-    post: {
-      requestBody?: {
-        content: {
-          "application/json": components["schemas"]["DeleteRequest"];
+  readonly "/api/kernel/delete": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get?: never;
+    readonly put?: never;
+    readonly post: {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly requestBody?: {
+        readonly content: {
+          readonly "application/json": components["schemas"]["DeleteCellRequest"];
         };
       };
-      responses: {
+      readonly responses: {
         /** @description Delete a cell */
-        200: {
+        readonly 200: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
           content: {
-            "application/json": components["schemas"]["SuccessResponse"];
+            readonly "application/json": components["schemas"]["SuccessResponse"];
           };
         };
       };
     };
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
   };
-  "/api/kernel/format": {
-    post: {
-      requestBody?: {
-        content: {
-          "application/json": components["schemas"]["FormatRequest"];
+  readonly "/api/kernel/format": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get?: never;
+    readonly put?: never;
+    readonly post: {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly requestBody?: {
+        readonly content: {
+          readonly "application/json": components["schemas"]["FormatRequest"];
         };
       };
-      responses: {
+      readonly responses: {
         /** @description Format code */
-        200: {
+        readonly 200: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
           content: {
-            "application/json": components["schemas"]["FormatResponse"];
+            readonly "application/json": components["schemas"]["FormatResponse"];
           };
         };
       };
     };
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
   };
-  "/api/kernel/function_call": {
-    post: {
-      requestBody?: {
-        content: {
-          "application/json": components["schemas"]["FunctionCallRequest"];
+  readonly "/api/kernel/function_call": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get?: never;
+    readonly put?: never;
+    readonly post: {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly requestBody?: {
+        readonly content: {
+          readonly "application/json": components["schemas"]["FunctionCallRequest"];
         };
       };
-      responses: {
+      readonly responses: {
         /** @description Invoke an RPC */
-        200: {
+        readonly 200: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
           content: {
-            "application/json": components["schemas"]["SuccessResponse"];
+            readonly "application/json": components["schemas"]["SuccessResponse"];
           };
         };
       };
     };
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
   };
-  "/api/kernel/install_missing_packages": {
-    post: {
-      requestBody?: {
-        content: {
-          "application/json": components["schemas"]["InstallMissingPackagesRequest"];
+  readonly "/api/kernel/install_missing_packages": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get?: never;
+    readonly put?: never;
+    readonly post: {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly requestBody?: {
+        readonly content: {
+          readonly "application/json": components["schemas"]["InstallMissingPackagesRequest"];
         };
       };
-      responses: {
+      readonly responses: {
         /** @description Install missing packages */
-        200: {
+        readonly 200: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
           content: {
-            "application/json": components["schemas"]["SuccessResponse"];
+            readonly "application/json": components["schemas"]["SuccessResponse"];
           };
         };
       };
     };
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
   };
-  "/api/kernel/instantiate": {
-    post: {
-      requestBody?: {
-        content: {
-          "application/json": components["schemas"]["InstantiateRequest"];
+  readonly "/api/kernel/instantiate": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get?: never;
+    readonly put?: never;
+    readonly post: {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly requestBody?: {
+        readonly content: {
+          readonly "application/json": components["schemas"]["InstantiateRequest"];
         };
       };
-      responses: {
+      readonly responses: {
         /** @description Instantiate a component */
-        200: {
+        readonly 200: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
           content: {
-            "application/json": components["schemas"]["SuccessResponse"];
+            readonly "application/json": components["schemas"]["SuccessResponse"];
           };
         };
       };
     };
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
   };
-  "/api/kernel/interrupt": {
-    post: {
-      responses: {
+  readonly "/api/kernel/interrupt": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get?: never;
+    readonly put?: never;
+    readonly post: {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly requestBody?: never;
+      readonly responses: {
         /** @description Interrupt the kernel's execution */
-        200: {
+        readonly 200: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
           content: {
-            "application/json": components["schemas"]["SuccessResponse"];
+            readonly "application/json": components["schemas"]["SuccessResponse"];
           };
         };
       };
     };
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
   };
-  "/api/kernel/open": {
-    post: {
-      requestBody?: {
-        content: {
-          "application/json": components["schemas"]["OpenFileRequest"];
+  readonly "/api/kernel/open": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get?: never;
+    readonly put?: never;
+    readonly post: {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly requestBody?: {
+        readonly content: {
+          readonly "application/json": components["schemas"]["OpenFileRequest"];
         };
       };
-      responses: {
+      readonly responses: {
         /** @description Open a file */
-        200: {
+        readonly 200: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
           content: {
-            "application/json": components["schemas"]["SuccessResponse"];
+            readonly "application/json": components["schemas"]["SuccessResponse"];
           };
         };
         /** @description File does not exist */
-        400: {
-          content: never;
+        readonly 400: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
+          content?: never;
         };
       };
     };
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
   };
-  "/api/kernel/read_code": {
-    post: {
-      responses: {
+  readonly "/api/kernel/read_code": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get?: never;
+    readonly put?: never;
+    readonly post: {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly requestBody?: never;
+      readonly responses: {
         /** @description Read the code from the server */
-        200: {
+        readonly 200: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
           content: {
-            "application/json": components["schemas"]["ReadCodeResponse"];
+            readonly "application/json": components["schemas"]["ReadCodeResponse"];
           };
         };
         /** @description File must be saved before downloading */
-        400: {
-          content: never;
+        readonly 400: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
+          content?: never;
         };
       };
     };
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
   };
-  "/api/kernel/rename": {
-    post: {
-      requestBody?: {
-        content: {
-          "application/json": components["schemas"]["RenameFileRequest"];
+  readonly "/api/kernel/rename": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get?: never;
+    readonly put?: never;
+    readonly post: {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly requestBody?: {
+        readonly content: {
+          readonly "application/json": components["schemas"]["RenameFileRequest"];
         };
       };
-      responses: {
+      readonly responses: {
         /** @description Rename the current app */
-        200: {
+        readonly 200: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
           content: {
-            "application/json": components["schemas"]["SuccessResponse"];
+            readonly "application/json": components["schemas"]["SuccessResponse"];
           };
         };
       };
     };
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
   };
-  "/api/kernel/restart_session": {
-    post: {
-      responses: {
+  readonly "/api/kernel/restart_session": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get?: never;
+    readonly put?: never;
+    readonly post: {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly requestBody?: never;
+      readonly responses: {
         /** @description Restart the current session without affecting other sessions. */
-        200: {
+        readonly 200: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
           content: {
-            "application/json": components["schemas"]["SuccessResponse"];
+            readonly "application/json": components["schemas"]["SuccessResponse"];
           };
         };
       };
     };
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
   };
-  "/api/kernel/run": {
-    post: {
-      requestBody?: {
-        content: {
-          "application/json": components["schemas"]["RunRequest"];
+  readonly "/api/kernel/run": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get?: never;
+    readonly put?: never;
+    readonly post: {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly requestBody?: {
+        readonly content: {
+          readonly "application/json": components["schemas"]["RunRequest"];
         };
       };
-      responses: {
+      readonly responses: {
         /** @description Run a cell. Updates cell code in the kernel if needed; registers new cells for unseen cell IDs. Only allowed in edit mode. */
-        200: {
+        readonly 200: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
           content: {
-            "application/json": components["schemas"]["SuccessResponse"];
+            readonly "application/json": components["schemas"]["SuccessResponse"];
           };
         };
       };
     };
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
   };
-  "/api/kernel/save": {
-    post: {
-      requestBody?: {
-        content: {
-          "application/json": components["schemas"]["SaveNotebookRequest"];
+  readonly "/api/kernel/save": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get?: never;
+    readonly put?: never;
+    readonly post: {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly requestBody?: {
+        readonly content: {
+          readonly "application/json": components["schemas"]["SaveNotebookRequest"];
         };
       };
-      responses: {
+      readonly responses: {
         /** @description Save the current app */
-        200: {
+        readonly 200: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
           content: {
-            "application/json": components["schemas"]["SuccessResponse"];
+            readonly "text/plain": string;
           };
         };
       };
     };
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
   };
-  "/api/kernel/save_app_config": {
-    post: {
-      requestBody?: {
-        content: {
-          "application/json": components["schemas"]["SaveAppConfigurationRequest"];
+  readonly "/api/kernel/save_app_config": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get?: never;
+    readonly put?: never;
+    readonly post: {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly requestBody?: {
+        readonly content: {
+          readonly "application/json": components["schemas"]["SaveAppConfigurationRequest"];
         };
       };
-      responses: {
+      readonly responses: {
         /** @description Save the app configuration */
-        200: {
+        readonly 200: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
           content: {
-            "application/json": components["schemas"]["SuccessResponse"];
+            readonly "text/plain": string;
           };
         };
       };
     };
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
   };
-  "/api/kernel/save_user_config": {
-    post: {
-      requestBody?: {
-        content: {
-          "application/json": components["schemas"]["SaveUserConfigurationRequest"];
+  readonly "/api/kernel/save_user_config": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get?: never;
+    readonly put?: never;
+    readonly post: {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly requestBody?: {
+        readonly content: {
+          readonly "application/json": components["schemas"]["SaveUserConfigurationRequest"];
         };
       };
-      responses: {
+      readonly responses: {
         /** @description Update the user config on disk and in the kernel. Only allowed in edit mode. */
-        200: {
+        readonly 200: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
           content: {
-            "application/json": components["schemas"]["SuccessResponse"];
+            readonly "application/json": components["schemas"]["SuccessResponse"];
           };
         };
       };
     };
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
   };
-  "/api/kernel/set_cell_config": {
-    post: {
-      requestBody?: {
-        content: {
-          "application/json": components["schemas"]["SetCellConfigRequest"];
+  readonly "/api/kernel/set_cell_config": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get?: never;
+    readonly put?: never;
+    readonly post: {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly requestBody?: {
+        readonly content: {
+          readonly "application/json": components["schemas"]["SetCellConfigRequest"];
         };
       };
-      responses: {
+      readonly responses: {
         /** @description Set the configuration of a cell */
-        200: {
+        readonly 200: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
           content: {
-            "application/json": components["schemas"]["SuccessResponse"];
+            readonly "application/json": components["schemas"]["SuccessResponse"];
           };
         };
       };
     };
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
   };
-  "/api/kernel/set_ui_element_value": {
-    post: {
-      requestBody?: {
-        content: {
-          "application/json": components["schemas"]["UpdateComponentValuesRequest"];
+  readonly "/api/kernel/set_ui_element_value": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get?: never;
+    readonly put?: never;
+    readonly post: {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly requestBody?: {
+        readonly content: {
+          readonly "application/json": components["schemas"]["UpdateComponentValuesRequest"];
         };
       };
-      responses: {
+      readonly responses: {
         /** @description Set UI element values */
-        200: {
+        readonly 200: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
           content: {
-            "application/json": components["schemas"]["SuccessResponse"];
+            readonly "application/json": components["schemas"]["SuccessResponse"];
           };
         };
       };
     };
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
   };
-  "/api/kernel/shutdown": {
-    post: {
-      responses: {
+  readonly "/api/kernel/shutdown": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get?: never;
+    readonly put?: never;
+    readonly post: {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly requestBody?: never;
+      readonly responses: {
         /** @description Shutdown the kernel */
-        200: {
+        readonly 200: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
           content: {
-            "application/json": components["schemas"]["SuccessResponse"];
+            readonly "application/json": components["schemas"]["SuccessResponse"];
           };
         };
       };
     };
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
   };
-  "/api/kernel/stdin": {
-    post: {
-      requestBody?: {
-        content: {
-          "application/json": components["schemas"]["StdinRequest"];
+  readonly "/api/kernel/stdin": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get?: never;
+    readonly put?: never;
+    readonly post: {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly requestBody?: {
+        readonly content: {
+          readonly "application/json": components["schemas"]["StdinRequest"];
         };
       };
-      responses: {
+      readonly responses: {
         /** @description Send input to the stdin stream */
-        200: {
+        readonly 200: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
           content: {
-            "application/json": components["schemas"]["SuccessResponse"];
+            readonly "application/json": components["schemas"]["SuccessResponse"];
           };
         };
       };
     };
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
   };
-  "/api/status": {
-    get: {
-      responses: {
+  readonly "/api/kernel/sync/cell_ids": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get?: never;
+    readonly put?: never;
+    readonly post: {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly requestBody?: {
+        readonly content: {
+          readonly "application/json": components["schemas"]["UpdateCellIdsRequest"];
+        };
+      };
+      readonly responses: {
+        /** @description Sync cell ids */
+        readonly 200: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
+          content: {
+            readonly "application/json": components["schemas"]["SuccessResponse"];
+          };
+        };
+      };
+    };
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
+  };
+  readonly "/api/status": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get: {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly requestBody?: never;
+      readonly responses: {
         /** @description Get the status of the application */
-        200: {
+        readonly 200: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
           content: {
-            "application/json": {
-              filenames?: string[];
-              lsp_running?: boolean;
-              mode?: string;
-              node_version?: string;
-              requirements?: string[];
-              sessions?: number;
-              status?: string;
-              version?: string;
+            readonly "application/json": {
+              readonly filenames?: readonly string[];
+              readonly lsp_running?: boolean;
+              readonly mode?: string;
+              readonly node_version?: string;
+              readonly requirements?: readonly string[];
+              readonly sessions?: number;
+              readonly status?: string;
+              readonly version?: string;
             };
           };
         };
       };
     };
+    readonly put?: never;
+    readonly post?: never;
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
   };
-  "/api/usage": {
-    get: {
-      responses: {
+  readonly "/api/usage": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get: {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly requestBody?: never;
+      readonly responses: {
         /** @description Get the current memory and CPU usage of the application */
-        200: {
+        readonly 200: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
           content: {
-            "application/json": {
-              cpu: {
-                percent: number;
+            readonly "application/json": {
+              readonly cpu: {
+                readonly percent: number;
               };
-              memory: {
-                available: number;
-                free: number;
-                percent: number;
-                total: number;
-                used: number;
+              readonly kernel?: {
+                readonly memory?: number;
+              };
+              readonly memory: {
+                readonly available: number;
+                readonly free: number;
+                readonly percent: number;
+                readonly total: number;
+                readonly used: number;
+              };
+              readonly server?: {
+                readonly memory: number;
               };
             };
           };
         };
       };
     };
+    readonly put?: never;
+    readonly post?: never;
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
   };
-  "/api/version": {
-    get: {
-      responses: {
+  readonly "/api/version": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get: {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly requestBody?: never;
+      readonly responses: {
         /** @description Get the version of the application */
-        200: {
+        readonly 200: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
           content: {
-            "text/plain": string;
+            readonly "text/plain": string;
           };
         };
       };
     };
+    readonly put?: never;
+    readonly post?: never;
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
   };
-  "/auth/login": {
+  readonly "/auth/login": {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly get?: never;
+    readonly put?: never;
     /** Submit login form */
-    post: {
-      requestBody?: {
-        content: {
-          "application/x-www-form-urlencoded": {
+    readonly post: {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly requestBody?: {
+        readonly content: {
+          readonly "application/x-www-form-urlencoded": {
             /** @description Access token or password */
-            password?: string;
+            readonly password?: string;
           };
         };
       };
-      responses: {
+      readonly responses: {
         /** @description Login page */
-        200: {
+        readonly 200: {
+          headers: {
+            readonly [name: string]: unknown;
+          };
           content: {
-            "text/html": string;
+            readonly "text/html": string;
           };
         };
         /** @description Redirect to the next URL */
-        302: {
+        readonly 302: {
           headers: {
-            Location?: string;
+            readonly Location?: string;
+            readonly [name: string]: unknown;
           };
-          content: never;
+          content?: never;
         };
       };
     };
+    readonly delete?: never;
+    readonly options?: never;
+    readonly head?: never;
+    readonly patch?: never;
+    readonly trace?: never;
   };
 }
-
 export type webhooks = Record<string, never>;
-
 export interface components {
   schemas: {
-    AiCompletionRequest: {
-      code: string;
-      includeOtherCode: string;
-      prompt: string;
+    readonly AiCompletionRequest: {
+      readonly code: string;
+      readonly includeOtherCode: string;
+      readonly prompt: string;
     };
-    Alert: {
-      description: string;
+    readonly Alert: {
+      readonly description: string;
       /** @enum {string} */
-      name: "alert";
-      title: string;
+      readonly name: "alert";
+      readonly title: string;
       /** @enum {string|null} */
-      variant?: "danger" | null;
+      readonly variant?: "danger" | null;
     };
-    AppMetadata: {
-      cliArgs: {
-        [key: string]:
-          | string
-          | boolean
-          | number
-          | (string | boolean | number)[];
+    readonly AppMetadata: {
+      readonly cliArgs: {
+        readonly [key: string]:
+          | (string | boolean | number | readonly (string | boolean | number)[])
+          | undefined;
       };
-      filename?: string | null;
-      queryParams: {
-        [key: string]: string | string[];
+      readonly filename?: string | null;
+      readonly queryParams: {
+        readonly [key: string]: (string | readonly string[]) | undefined;
       };
     };
-    Banner: {
+    readonly Banner: {
       /** @enum {string|null} */
-      action?: "restart" | null;
-      description: string;
+      readonly action?: "restart" | null;
+      readonly description: string;
       /** @enum {string} */
-      name: "banner";
-      title: string;
+      readonly name: "banner";
+      readonly title: string;
       /** @enum {string|null} */
-      variant?: "danger" | null;
+      readonly variant?: "danger" | null;
     };
-    BaseResponse: {
-      success: boolean;
+    readonly BaseResponse: {
+      readonly success: boolean;
     };
     /** @enum {string} */
-    CellChannel:
+    readonly CellChannel:
       | "stdout"
       | "stderr"
       | "stdin"
@@ -758,396 +1695,440 @@ export interface components {
       | "output"
       | "marimo-error"
       | "media";
-    CellConfig: {
-      disabled: boolean;
-      hide_code: boolean;
+    readonly CellConfig: {
+      readonly disabled: boolean;
+      readonly hide_code: boolean;
     };
-    CellOp: {
-      cell_id: string;
-      console?:
-        | components["schemas"]["CellOutput"]
-        | components["schemas"]["CellOutput"][]
+    readonly CellOp: {
+      readonly cell_id: string;
+      readonly console?:
+        | (
+            | components["schemas"]["CellOutput"]
+            | readonly components["schemas"]["CellOutput"][]
+          )
         | null;
       /** @enum {string} */
-      name: "cell-op";
-      output?: components["schemas"]["CellOutput"];
-      stale_inputs?: boolean | null;
-      status?: components["schemas"]["CellStatus"];
-      timestamp: number;
+      readonly name: "cell-op";
+      readonly output?: components["schemas"]["CellOutput"];
+      readonly stale_inputs?: boolean | null;
+      readonly status?: components["schemas"]["CellStatus"];
+      readonly timestamp: number;
     };
-    CellOutput: {
-      channel: components["schemas"]["CellChannel"];
-      data: OneOf<
-        [
-          string,
-          components["schemas"]["Error"][],
-          {
-            [key: string]: unknown;
-          },
-        ]
-      >;
-      mimetype: components["schemas"]["MimeType"];
-      timestamp: number;
+    readonly CellOutput: {
+      readonly channel: components["schemas"]["CellChannel"];
+      readonly data:
+        | string
+        | readonly components["schemas"]["Error"][]
+        | {
+            readonly [key: string]: unknown;
+          };
+      readonly mimetype: components["schemas"]["MimeType"];
+      readonly timestamp: number;
     };
     /** @enum {string} */
-    CellStatus: "idle" | "queued" | "running" | "disabled-transitively";
-    CodeCompletionRequest: {
-      cellId: string;
-      document: string;
-      id: string;
+    readonly CellStatus:
+      | "idle"
+      | "queued"
+      | "running"
+      | "disabled-transitively";
+    readonly CodeCompletionRequest: {
+      readonly cellId: string;
+      readonly document: string;
+      readonly id: string;
     };
-    ColumnSummary: {
-      false?: number | null;
-      max?: components["schemas"]["NonNestedLiteral"];
-      mean?: components["schemas"]["NonNestedLiteral"];
-      median?: components["schemas"]["NonNestedLiteral"];
-      min?: components["schemas"]["NonNestedLiteral"];
-      nulls?: number | null;
-      p25?: components["schemas"]["NonNestedLiteral"];
-      p5?: components["schemas"]["NonNestedLiteral"];
-      p75?: components["schemas"]["NonNestedLiteral"];
-      p95?: components["schemas"]["NonNestedLiteral"];
-      std?: components["schemas"]["NonNestedLiteral"];
-      total?: number | null;
-      true?: number | null;
-      unique?: number | null;
+    readonly ColumnSummary: {
+      readonly false?: number | null;
+      readonly max?: components["schemas"]["NonNestedLiteral"];
+      readonly mean?: components["schemas"]["NonNestedLiteral"];
+      readonly median?: components["schemas"]["NonNestedLiteral"];
+      readonly min?: components["schemas"]["NonNestedLiteral"];
+      readonly nulls?: number | null;
+      readonly p25?: components["schemas"]["NonNestedLiteral"];
+      readonly p5?: components["schemas"]["NonNestedLiteral"];
+      readonly p75?: components["schemas"]["NonNestedLiteral"];
+      readonly p95?: components["schemas"]["NonNestedLiteral"];
+      readonly std?: components["schemas"]["NonNestedLiteral"];
+      readonly total?: number | null;
+      readonly true?: number | null;
+      readonly unique?: number | null;
     };
-    CompletedRun: {
+    readonly CompletedRun: {
       /** @enum {string} */
-      name: "completed-run";
+      readonly name: "completed-run";
     };
-    CompletionResult: {
-      completion_id: string;
+    readonly CompletionResult: {
+      readonly completion_id: string;
       /** @enum {string} */
-      name: "completion-result";
-      options: {
-        completion_info?: string | null;
-        name: string;
-        type: string;
+      readonly name: "completion-result";
+      readonly options: readonly {
+        readonly completion_info?: string | null;
+        readonly name: string;
+        readonly type: string;
       }[];
-      prefix_length: number;
+      readonly prefix_length: number;
     };
-    CreationRequest: {
-      executionRequests: components["schemas"]["ExecutionRequest"][];
-      setUiElementValueRequest: components["schemas"]["SetUIElementValueRequest"];
+    readonly CreationRequest: {
+      readonly executionRequests: readonly components["schemas"]["ExecutionRequest"][];
+      readonly setUiElementValueRequest: components["schemas"]["SetUIElementValueRequest"];
     };
-    CycleError: {
-      edges_with_vars: [string, string[], string][];
+    readonly CycleError: {
+      readonly edges_with_vars: readonly (readonly [
+        string,
+        readonly string[],
+        string,
+      ])[];
       /** @enum {string} */
-      type: "cycle";
+      readonly type: "cycle";
     };
-    DataColumnPreview: {
-      chart_code?: string | null;
-      chart_max_rows_errors: boolean;
-      chart_spec?: string | null;
-      column_name: string;
-      error?: string | null;
+    readonly DataColumnPreview: {
+      readonly chart_code?: string | null;
+      readonly chart_max_rows_errors: boolean;
+      readonly chart_spec?: string | null;
+      readonly column_name: string;
+      readonly error?: string | null;
       /** @enum {string} */
-      name: "data-column-preview";
-      summary?: components["schemas"]["ColumnSummary"];
-      table_name: string;
+      readonly name: "data-column-preview";
+      readonly summary?: components["schemas"]["ColumnSummary"];
+      readonly table_name: string;
     };
-    DataTable: {
-      columns: components["schemas"]["DataTableColumn"][];
-      name: string;
-      num_columns?: number | null;
-      num_rows?: number | null;
-      source: string;
-      variable_name?: string | null;
+    readonly DataTable: {
+      readonly columns: readonly components["schemas"]["DataTableColumn"][];
+      readonly name: string;
+      readonly num_columns?: number | null;
+      readonly num_rows?: number | null;
+      readonly source: string;
+      readonly variable_name?: string | null;
     };
-    DataTableColumn: {
-      name: string;
-      type: components["schemas"]["DataType"];
+    readonly DataTableColumn: {
+      readonly name: string;
+      readonly type: components["schemas"]["DataType"];
     };
     /** @enum {string} */
-    DataType: "string" | "boolean" | "integer" | "number" | "date" | "unknown";
-    Datasets: {
+    readonly DataType:
+      | "string"
+      | "boolean"
+      | "integer"
+      | "number"
+      | "date"
+      | "unknown";
+    readonly Datasets: {
       /** @enum {string} */
-      name: "datasets";
-      tables: components["schemas"]["DataTable"][];
+      readonly name: "datasets";
+      readonly tables: readonly components["schemas"]["DataTable"][];
     };
-    DeleteNonlocalError: {
-      cells: string[];
-      name: string;
+    readonly DeleteCellRequest: {
+      readonly cellId: string;
+    };
+    readonly DeleteNonlocalError: {
+      readonly cells: readonly string[];
+      readonly name: string;
       /** @enum {string} */
-      type: "delete-nonlocal";
+      readonly type: "delete-nonlocal";
     };
-    DeleteRequest: {
-      cellId: string;
-    };
-    Error:
+    readonly Error:
       | components["schemas"]["CycleError"]
       | components["schemas"]["MultipleDefinitionError"]
       | components["schemas"]["DeleteNonlocalError"]
       | components["schemas"]["MarimoAncestorStoppedError"]
+      | components["schemas"]["MarimoAncestorPreventedError"]
       | components["schemas"]["MarimoExceptionRaisedError"]
+      | components["schemas"]["MarimoStrictExecutionError"]
       | components["schemas"]["MarimoInterruptionError"]
       | components["schemas"]["MarimoSyntaxError"]
       | components["schemas"]["UnknownError"];
-    ExecuteMultipleRequest: {
-      cellIds: string[];
-      codes: string[];
+    readonly ExecuteMultipleRequest: {
+      readonly cellIds: readonly string[];
+      readonly codes: readonly string[];
     };
-    ExecuteStaleRequest: Record<string, never>;
-    ExecutionRequest: {
-      cellId: string;
-      code: string;
+    readonly ExecuteStaleRequest: Record<string, never>;
+    readonly ExecutionRequest: {
+      readonly cellId: string;
+      readonly code: string;
     };
-    ExportAsHTMLRequest: {
-      assetUrl?: string | null;
-      download: boolean;
-      files: string[];
-      includeCode: boolean;
+    readonly ExportAsHTMLRequest: {
+      readonly assetUrl?: string | null;
+      readonly download: boolean;
+      readonly files: readonly string[];
+      readonly includeCode: boolean;
     };
-    ExportAsMarkdownRequest: {
-      download: boolean;
+    readonly ExportAsMarkdownRequest: {
+      readonly download: boolean;
     };
-    ExportAsScriptRequest: {
-      download: boolean;
+    readonly ExportAsScriptRequest: {
+      readonly download: boolean;
     };
-    FileCreateRequest: {
-      contents?: string | null;
-      name: string;
-      path: string;
-      type: string;
+    readonly FileCreateRequest: {
+      readonly contents?: string | null;
+      readonly name: string;
+      readonly path: string;
+      readonly type: string;
     };
-    FileCreateResponse: {
-      info?: components["schemas"]["FileInfo"];
-      message?: string | null;
-      success: boolean;
+    readonly FileCreateResponse: {
+      readonly info?: components["schemas"]["FileInfo"];
+      readonly message?: string | null;
+      readonly success: boolean;
     };
-    FileDeleteRequest: {
-      path: string;
+    readonly FileDeleteRequest: {
+      readonly path: string;
     };
-    FileDeleteResponse: {
-      message?: string | null;
-      success: boolean;
+    readonly FileDeleteResponse: {
+      readonly message?: string | null;
+      readonly success: boolean;
     };
-    FileDetailsRequest: {
-      path: string;
+    readonly FileDetailsRequest: {
+      readonly path: string;
     };
-    FileDetailsResponse: {
-      contents?: string | null;
-      file: components["schemas"]["FileInfo"];
-      mimeType?: string | null;
+    readonly FileDetailsResponse: {
+      readonly contents?: string | null;
+      readonly file: components["schemas"]["FileInfo"];
+      readonly mimeType?: string | null;
     };
-    FileInfo: {
-      children: components["schemas"]["FileInfo"][];
-      id: string;
-      isDirectory: boolean;
-      isMarimoFile: boolean;
-      lastModifiedDate?: number | null;
-      name: string;
-      path: string;
+    readonly FileInfo: {
+      readonly children: readonly components["schemas"]["FileInfo"][];
+      readonly id: string;
+      readonly isDirectory: boolean;
+      readonly isMarimoFile: boolean;
+      readonly lastModifiedDate?: number | null;
+      readonly name: string;
+      readonly path: string;
     };
-    FileListRequest: {
-      path?: string | null;
+    readonly FileListRequest: {
+      readonly path?: string | null;
     };
-    FileListResponse: {
-      files: components["schemas"]["FileInfo"][];
-      root: string;
+    readonly FileListResponse: {
+      readonly files: readonly components["schemas"]["FileInfo"][];
+      readonly root: string;
     };
-    FileMoveRequest: {
-      newPath: string;
-      path: string;
+    readonly FileMoveRequest: {
+      readonly newPath: string;
+      readonly path: string;
     };
-    FileMoveResponse: {
-      info?: components["schemas"]["FileInfo"];
-      message?: string | null;
-      success: boolean;
+    readonly FileMoveResponse: {
+      readonly info?: components["schemas"]["FileInfo"];
+      readonly message?: string | null;
+      readonly success: boolean;
     };
-    FileUpdateRequest: {
-      contents: string;
-      path: string;
+    readonly FileUpdateRequest: {
+      readonly contents: string;
+      readonly path: string;
     };
-    FileUpdateResponse: {
-      info?: components["schemas"]["FileInfo"];
-      message?: string | null;
-      success: boolean;
+    readonly FileUpdateResponse: {
+      readonly info?: components["schemas"]["FileInfo"];
+      readonly message?: string | null;
+      readonly success: boolean;
     };
-    FormatRequest: {
-      codes: {
-        [key: string]: string;
-      };
-      lineLength: number;
-    };
-    FormatResponse: {
-      codes: {
-        [key: string]: string;
-      };
-    };
-    FunctionCallRequest: {
-      args: {
-        [key: string]: unknown;
-      };
-      functionCallId: string;
-      functionName: string;
-      namespace: string;
-    };
-    FunctionCallResult: {
-      function_call_id: string;
+    readonly FocusCell: {
+      readonly cell_id: string;
       /** @enum {string} */
-      name: "function-call-result";
-      return_value: components["schemas"]["JSONType"];
-      status: components["schemas"]["HumanReadableStatus"];
+      readonly name: "focus-cell";
     };
-    HumanReadableStatus: {
-      /** @enum {string} */
-      code: "ok" | "error";
-      message?: string | null;
-      title?: string | null;
+    readonly FormatRequest: {
+      readonly codes: {
+        readonly [key: string]: string | undefined;
+      };
+      readonly lineLength: number;
     };
-    InstallMissingPackagesRequest: {
-      manager: string;
-    };
-    InstallingPackageAlert: {
-      /** @enum {string} */
-      name: "installing-package-alert";
-      packages: {
-        [key: string]: "queued" | "installing" | "installed" | "failed";
+    readonly FormatResponse: {
+      readonly codes: {
+        readonly [key: string]: string | undefined;
       };
     };
-    InstantiateRequest: {
-      objectIds: string[];
-      values: unknown[];
+    readonly FunctionCallRequest: {
+      readonly args: {
+        readonly [key: string]: unknown;
+      };
+      readonly functionCallId: string;
+      readonly functionName: string;
+      readonly namespace: string;
     };
-    Interrupted: {
+    readonly FunctionCallResult: {
+      readonly function_call_id: string;
       /** @enum {string} */
-      name: "interrupted";
+      readonly name: "function-call-result";
+      readonly return_value?: components["schemas"]["JSONType"];
+      readonly status: components["schemas"]["HumanReadableStatus"];
     };
-    JSONType:
+    readonly HumanReadableStatus: {
+      /** @enum {string} */
+      readonly code: "ok" | "error";
+      readonly message?: string | null;
+      readonly title?: string | null;
+    };
+    readonly InstallMissingPackagesRequest: {
+      readonly manager: string;
+    };
+    readonly InstallingPackageAlert: {
+      /** @enum {string} */
+      readonly name: "installing-package-alert";
+      readonly packages: {
+        readonly [key: string]:
+          | ("queued" | "installing" | "installed" | "failed")
+          | undefined;
+      };
+    };
+    readonly InstantiateRequest: {
+      readonly objectIds: readonly string[];
+      readonly values: readonly unknown[];
+    };
+    readonly Interrupted: {
+      /** @enum {string} */
+      readonly name: "interrupted";
+    };
+    readonly JSONType:
       | string
       | number
       | Record<string, never>
-      | unknown[]
+      | readonly unknown[]
       | boolean
       | null;
-    KernelReady: {
-      app_config: {
-        app_title?: string | null;
-        layout_file?: string | null;
+    readonly KernelReady: {
+      readonly app_config: {
+        readonly app_title?: string | null;
+        readonly layout_file?: string | null;
         /** @enum {string} */
-        width: "normal" | "compact" | "medium" | "full";
+        readonly width: "normal" | "compact" | "medium" | "full";
       };
-      cell_ids: string[];
-      codes: string[];
-      configs: components["schemas"]["CellConfig"][];
-      last_executed_code?: {
-        [key: string]: string;
+      readonly cell_ids: readonly string[];
+      readonly codes: readonly string[];
+      readonly configs: readonly components["schemas"]["CellConfig"][];
+      readonly kiosk: boolean;
+      readonly last_executed_code?: {
+        readonly [key: string]: string | undefined;
       } | null;
-      last_execution_time?: {
-        [key: string]: number;
+      readonly last_execution_time?: {
+        readonly [key: string]: number | undefined;
       } | null;
-      layout?: {
-        data: {
-          [key: string]: unknown;
+      readonly layout?: {
+        readonly data: {
+          readonly [key: string]: unknown;
         };
-        type: string;
+        readonly type: string;
       } | null;
       /** @enum {string} */
-      name: "kernel-ready";
-      names: string[];
-      resumed: boolean;
-      ui_values?: {
-        [key: string]:
-          | {
-              [key: string]: components["schemas"]["JSONType"];
-            }
-          | components["schemas"]["JSONType"][]
-          | string
-          | number
-          | boolean
-          | components["schemas"]["MIME"]
-          | null;
+      readonly name: "kernel-ready";
+      readonly names: readonly string[];
+      readonly resumed: boolean;
+      readonly ui_values?: {
+        readonly [key: string]:
+          | (
+              | (
+                  | {
+                      readonly [key: string]:
+                        | components["schemas"]["JSONType"]
+                        | undefined;
+                    }
+                  | readonly components["schemas"]["JSONType"][]
+                  | string
+                  | number
+                  | boolean
+                  | components["schemas"]["MIME"]
+                )
+              | null
+            )
+          | undefined;
       } | null;
     };
-    MIME: Record<string, never>;
-    MarimoAncestorStoppedError: {
-      msg: string;
-      raising_cell: string;
+    readonly MIME: Record<string, never>;
+    readonly MarimoAncestorPreventedError: {
+      readonly blamed_cell: string;
+      readonly msg: string;
+      readonly raising_cell: string;
       /** @enum {string} */
-      type: "ancestor-stopped";
+      readonly type: "ancestor-prevented";
     };
-    MarimoConfig: {
-      ai: {
-        open_ai: {
-          api_key: string;
-          base_url: string;
-          model: string;
+    readonly MarimoAncestorStoppedError: {
+      readonly msg: string;
+      readonly raising_cell: string;
+      /** @enum {string} */
+      readonly type: "ancestor-stopped";
+    };
+    readonly MarimoConfig: {
+      readonly ai: {
+        readonly open_ai: {
+          readonly api_key: string;
+          readonly base_url: string;
+          readonly model: string;
         };
       };
-      completion: {
-        activate_on_typing: boolean;
-        copilot: boolean;
+      readonly completion: {
+        readonly activate_on_typing: boolean;
+        readonly copilot: boolean;
       };
-      display: {
+      readonly display: {
         /** @enum {string} */
-        cell_output: "above" | "below";
-        code_editor_font_size: number;
+        readonly cell_output: "above" | "below";
+        readonly code_editor_font_size: number;
         /** @enum {string} */
-        default_width: "normal" | "compact" | "medium" | "full";
+        readonly default_width: "normal" | "compact" | "medium" | "full";
         /** @enum {string} */
-        theme: "light" | "dark" | "system";
+        readonly theme: "light" | "dark" | "system";
       };
-      experimental: {
-        [key: string]: unknown;
+      readonly experimental: {
+        readonly [key: string]: unknown;
       };
-      formatting: {
-        line_length: number;
+      readonly formatting: {
+        readonly line_length: number;
       };
-      keymap: {
-        overrides: {
-          [key: string]: string;
+      readonly keymap: {
+        readonly overrides: {
+          readonly [key: string]: string | undefined;
         };
         /** @enum {string} */
-        preset: "default" | "vim";
+        readonly preset: "default" | "vim";
       };
-      package_management: {
+      readonly package_management: {
         /** @enum {string} */
-        manager: "pip" | "rye" | "uv" | "poetry" | "pixi";
+        readonly manager: "pip" | "rye" | "uv" | "poetry" | "pixi";
       };
-      runtime: {
-        auto_instantiate: boolean;
+      readonly runtime: {
+        readonly auto_instantiate: boolean;
         /** @enum {string} */
-        auto_reload: "off" | "lazy" | "autorun";
+        readonly auto_reload: "off" | "lazy" | "autorun";
         /** @enum {string} */
-        on_cell_change: "lazy" | "autorun";
+        readonly on_cell_change: "lazy" | "autorun";
       };
-      save: {
+      readonly save: {
         /** @enum {string} */
-        autosave: "off" | "after_delay";
-        autosave_delay: number;
-        format_on_save: boolean;
+        readonly autosave: "off" | "after_delay";
+        readonly autosave_delay: number;
+        readonly format_on_save: boolean;
       };
-      server: {
-        browser: "default" | string;
-        follow_symlink: boolean;
+      readonly server: {
+        readonly browser: "default" | string;
+        readonly follow_symlink: boolean;
       };
     };
-    MarimoExceptionRaisedError: {
-      exception_type: string;
-      msg: string;
-      raising_cell?: string | null;
+    readonly MarimoExceptionRaisedError: {
+      readonly exception_type: string;
+      readonly msg: string;
+      readonly raising_cell?: string | null;
       /** @enum {string} */
-      type: "exception";
+      readonly type: "exception";
     };
-    MarimoFile: {
-      initializationId?: string | null;
-      lastModified: number;
-      name: string;
-      path: string;
-      sessionId?: string | null;
+    readonly MarimoFile: {
+      readonly initializationId?: string | null;
+      readonly lastModified: number;
+      readonly name: string;
+      readonly path: string;
+      readonly sessionId?: string | null;
     };
-    MarimoInterruptionError: {
+    readonly MarimoInterruptionError: {
       /** @enum {string} */
-      type: "interruption";
+      readonly type: "interruption";
     };
-    MarimoSyntaxError: {
-      msg: string;
+    readonly MarimoStrictExecutionError: {
+      readonly blamed_cell: string;
+      readonly msg: string;
+      readonly ref: string;
       /** @enum {string} */
-      type: "syntax";
+      readonly type: "strict-exception";
     };
-    MessageOperation:
+    readonly MarimoSyntaxError: {
+      readonly msg: string;
+      /** @enum {string} */
+      readonly type: "syntax";
+    };
+    readonly MessageOperation:
       | components["schemas"]["CellOp"]
       | components["schemas"]["FunctionCallResult"]
       | components["schemas"]["RemoveUIElements"]
@@ -1168,9 +2149,12 @@ export interface components {
       | components["schemas"]["QueryParamsDelete"]
       | components["schemas"]["QueryParamsClear"]
       | components["schemas"]["Datasets"]
-      | components["schemas"]["DataColumnPreview"];
+      | components["schemas"]["DataColumnPreview"]
+      | components["schemas"]["FocusCell"]
+      | components["schemas"]["UpdateCellCodes"]
+      | components["schemas"]["UpdateCellIdsRequest"];
     /** @enum {string} */
-    MimeType:
+    readonly MimeType:
       | "application/json"
       | "application/vnd.marimo+error"
       | "image/png"
@@ -1186,164 +2170,178 @@ export interface components {
       | "text/plain"
       | "text/markdown"
       | "text/csv";
-    MissingPackageAlert: {
-      isolated: boolean;
+    readonly MissingPackageAlert: {
+      readonly isolated: boolean;
       /** @enum {string} */
-      name: "missing-package-alert";
-      packages: string[];
+      readonly name: "missing-package-alert";
+      readonly packages: readonly string[];
     };
-    MultipleDefinitionError: {
-      cells: string[];
-      name: string;
+    readonly MultipleDefinitionError: {
+      readonly cells: readonly string[];
+      readonly name: string;
       /** @enum {string} */
-      type: "multiple-defs";
+      readonly type: "multiple-defs";
     };
-    NonNestedLiteral: number | string | boolean;
-    OpenFileRequest: {
-      path: string;
+    readonly NonNestedLiteral: number | string | boolean;
+    readonly OpenFileRequest: {
+      readonly path: string;
     };
-    PreviewDatasetColumnRequest: {
-      columnName: string;
-      source: string;
-      tableName: string;
+    readonly PreviewDatasetColumnRequest: {
+      readonly columnName: string;
+      readonly source: string;
+      readonly tableName: string;
     };
-    QueryParamsAppend: {
-      key: string;
+    readonly QueryParamsAppend: {
+      readonly key: string;
       /** @enum {string} */
-      name: "query-params-append";
-      value: string;
+      readonly name: "query-params-append";
+      readonly value: string;
     };
-    QueryParamsClear: {
+    readonly QueryParamsClear: {
       /** @enum {string} */
-      name: "query-params-clear";
+      readonly name: "query-params-clear";
     };
-    QueryParamsDelete: {
-      key: string;
+    readonly QueryParamsDelete: {
+      readonly key: string;
       /** @enum {string} */
-      name: "query-params-delete";
-      value?: string | null;
+      readonly name: "query-params-delete";
+      readonly value?: string | null;
     };
-    QueryParamsSet: {
-      key: string;
+    readonly QueryParamsSet: {
+      readonly key: string;
       /** @enum {string} */
-      name: "query-params-set";
-      value: string | string[];
+      readonly name: "query-params-set";
+      readonly value: string | readonly string[];
     };
-    ReadCodeResponse: {
-      contents: string;
+    readonly ReadCodeResponse: {
+      readonly contents: string;
     };
-    RecentFilesResponse: {
-      files: components["schemas"]["MarimoFile"][];
+    readonly RecentFilesResponse: {
+      readonly files: readonly components["schemas"]["MarimoFile"][];
     };
-    Reconnected: {
+    readonly Reconnected: {
       /** @enum {string} */
-      name: "reconnected";
+      readonly name: "reconnected";
     };
-    Reload: {
+    readonly Reload: {
       /** @enum {string} */
-      name: "reload";
+      readonly name: "reload";
     };
-    RemoveUIElements: {
-      cell_id: string;
+    readonly RemoveUIElements: {
+      readonly cell_id: string;
       /** @enum {string} */
-      name: "remove-ui-elements";
+      readonly name: "remove-ui-elements";
     };
-    RenameFileRequest: {
-      filename: string;
+    readonly RenameFileRequest: {
+      readonly filename: string;
     };
-    RunRequest: {
-      cellIds: string[];
-      codes: string[];
+    readonly RunRequest: {
+      readonly cellIds: readonly string[];
+      readonly codes: readonly string[];
     };
-    SaveAppConfigurationRequest: {
-      config: {
-        [key: string]: unknown;
+    readonly SaveAppConfigurationRequest: {
+      readonly config: {
+        readonly [key: string]: unknown;
       };
     };
-    SaveNotebookRequest: {
-      cellIds: string[];
-      codes: string[];
-      configs: components["schemas"]["CellConfig"][];
-      filename: string;
-      layout?: {
-        [key: string]: unknown;
+    readonly SaveNotebookRequest: {
+      readonly cellIds: readonly string[];
+      readonly codes: readonly string[];
+      readonly configs: readonly components["schemas"]["CellConfig"][];
+      readonly filename: string;
+      readonly layout?: {
+        readonly [key: string]: unknown;
       } | null;
-      names: string[];
+      readonly names: readonly string[];
+      readonly persist: boolean;
     };
-    SaveUserConfigurationRequest: {
-      config: components["schemas"]["MarimoConfig"];
+    readonly SaveUserConfigurationRequest: {
+      readonly config: components["schemas"]["MarimoConfig"];
     };
-    SetCellConfigRequest: {
-      configs: {
-        [key: string]: {
-          [key: string]: unknown;
-        };
+    readonly SetCellConfigRequest: {
+      readonly configs: {
+        readonly [key: string]:
+          | {
+              readonly [key: string]: unknown;
+            }
+          | undefined;
       };
     };
-    SetUIElementValueRequest: {
-      objectIds: string[];
-      token: string;
-      values: unknown[];
+    readonly SetUIElementValueRequest: {
+      readonly objectIds: readonly string[];
+      readonly token: string;
+      readonly values: readonly unknown[];
     };
-    SetUserConfigRequest: {
-      config: components["schemas"]["MarimoConfig"];
+    readonly SetUserConfigRequest: {
+      readonly config: components["schemas"]["MarimoConfig"];
     };
-    ShutdownSessionRequest: {
-      sessionId: string;
+    readonly ShutdownSessionRequest: {
+      readonly sessionId: string;
     };
-    Snippet: {
-      sections: components["schemas"]["SnippetSection"][];
-      title: string;
+    readonly Snippet: {
+      readonly sections: readonly components["schemas"]["SnippetSection"][];
+      readonly title: string;
     };
-    SnippetSection: {
-      code?: string | null;
-      html?: string | null;
-      id: string;
+    readonly SnippetSection: {
+      readonly code?: string | null;
+      readonly html?: string | null;
+      readonly id: string;
     };
-    Snippets: {
-      snippets: components["schemas"]["Snippet"][];
+    readonly Snippets: {
+      readonly snippets: readonly components["schemas"]["Snippet"][];
     };
-    StdinRequest: {
-      text: string;
+    readonly StdinRequest: {
+      readonly text: string;
     };
-    StopRequest: Record<string, never>;
-    SuccessResponse: {
-      success: boolean;
+    readonly StopRequest: Record<string, never>;
+    readonly SuccessResponse: {
+      readonly success: boolean;
     };
-    UnknownError: {
-      msg: string;
+    readonly UnknownError: {
+      readonly msg: string;
       /** @enum {string} */
-      type: "unknown";
+      readonly type: "unknown";
     };
-    UpdateComponentValuesRequest: {
-      objectIds: string[];
-      values: unknown[];
-    };
-    VariableDeclaration: {
-      declared_by: string[];
-      name: string;
-      used_by: string[];
-    };
-    VariableValue: {
-      datatype?: string | null;
-      name: string;
-      value?: string | null;
-    };
-    VariableValues: {
+    readonly UpdateCellCodes: {
+      readonly cell_ids: readonly string[];
+      readonly codes: readonly string[];
       /** @enum {string} */
-      name: "variable-values";
-      variables: components["schemas"]["VariableValue"][];
+      readonly name: "update-cell-codes";
     };
-    Variables: {
+    readonly UpdateCellIdsRequest: {
+      readonly cell_ids: readonly string[];
       /** @enum {string} */
-      name: "variables";
-      variables: components["schemas"]["VariableDeclaration"][];
+      readonly name: "update-cell-ids";
     };
-    WorkspaceFilesRequest: {
-      includeMarkdown: boolean;
+    readonly UpdateComponentValuesRequest: {
+      readonly objectIds: readonly string[];
+      readonly values: readonly unknown[];
     };
-    WorkspaceFilesResponse: {
-      files: components["schemas"]["MarimoFile"][];
+    readonly VariableDeclaration: {
+      readonly declared_by: readonly string[];
+      readonly name: string;
+      readonly used_by: readonly string[];
+    };
+    readonly VariableValue: {
+      readonly datatype?: string | null;
+      readonly name: string;
+      readonly value?: string | null;
+    };
+    readonly VariableValues: {
+      /** @enum {string} */
+      readonly name: "variable-values";
+      readonly variables: readonly components["schemas"]["VariableValue"][];
+    };
+    readonly Variables: {
+      /** @enum {string} */
+      readonly name: "variables";
+      readonly variables: readonly components["schemas"]["VariableDeclaration"][];
+    };
+    readonly WorkspaceFilesRequest: {
+      readonly includeMarkdown: boolean;
+    };
+    readonly WorkspaceFilesResponse: {
+      readonly files: readonly components["schemas"]["MarimoFile"][];
     };
   };
   responses: never;
@@ -1352,9 +2350,5 @@ export interface components {
   headers: never;
   pathItems: never;
 }
-
 export type $defs = Record<string, never>;
-
-export type external = Record<string, never>;
-
 export type operations = Record<string, never>;

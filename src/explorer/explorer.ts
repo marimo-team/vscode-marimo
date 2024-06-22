@@ -14,6 +14,7 @@ import {
   workspace,
 } from "vscode";
 import { logger } from "../logger";
+import { ServerManager } from "../launcher/server-manager";
 
 interface Entry {
   uri: Uri;
@@ -76,6 +77,43 @@ export class MarimoAppProvider implements TreeDataProvider<Entry> {
       treeItem.label = folderName ? `${folderName}/${fileName}` : fileName;
       treeItem.iconPath = new ThemeIcon("book");
       treeItem.tooltip = filePath;
+    }
+    return treeItem;
+  }
+}
+
+export class MarimoRunningKernelProvider implements TreeDataProvider<Entry> {
+  // eslint-disable-next-line unicorn/prefer-event-target
+  private _onDidChangeTreeData = new EventEmitter<Entry | undefined>();
+  readonly onDidChangeTreeData: Event<Entry | undefined> =
+    this._onDidChangeTreeData.event;
+
+  refresh(): void {
+    this._onDidChangeTreeData.fire(undefined);
+  }
+
+  async getChildren(): Promise<Entry[]> {
+    const serverManager = ServerManager.instance;
+    return [];
+  }
+
+  getTreeItem(element: Entry): TreeItem {
+    const treeItem = new TreeItem(
+      element.uri,
+      element.type === FileType.Directory
+        ? TreeItemCollapsibleState.Collapsed
+        : TreeItemCollapsibleState.None,
+    );
+    if (element.type === FileType.File) {
+      treeItem.command = {
+        command: "marimo-explorer.openFile",
+        title: "Open File",
+        arguments: [element.uri],
+      };
+      treeItem.contextValue = "runningKernel";
+      treeItem.label = "Running Kernel";
+      treeItem.iconPath = new ThemeIcon("server-process");
+      treeItem.tooltip = "Running Kernel";
     }
     return treeItem;
   }

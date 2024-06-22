@@ -1,86 +1,9 @@
-// import { execSync } from "child_process";
-// import type { ICell, INotebookContent } from "@jupyterlab/nbformat";
-// import * as vscode from "vscode";
-// import { logger } from "../logger";
-
-// export class MarimoNotebookSerializer implements vscode.NotebookSerializer {
-//   public async deserializeNotebook(
-//     data: Uint8Array,
-//     token: vscode.CancellationToken,
-//   ): Promise<vscode.NotebookData> {
-//     // const content = Buffer.from(data).toString('utf-8');
-//     // // Create a temporary ipynb file to help convert to json
-//     // const tempy = await import('tempy');
-//     // const tempFilePath = tempy.temporaryFile({ extension: 'py' });
-//     // logger.log('Creating temporary file', tempFilePath);
-//     // await vscode.workspace.fs.writeFile(vscode.Uri.file(tempFilePath), Buffer.from(content));
-
-//     // const response = execSync(`marimo export ipynb ${tempFilePath}`);
-//     // const nbContent: INotebookContent = JSON.parse(response.toString());
-//     // // Create data and notebook
-//     // const cells = nbContent.cells.map((code) => {
-//     //   let cellData: vscode.NotebookCellData;
-//     //   if (code.cell_type === 'markdown') {
-//     //     cellData = new vscode.NotebookCellData(vscode.NotebookCellKind.Markup, flattenSource(code.source), 'markdown');
-//     //   } else {
-//     //     cellData = new vscode.NotebookCellData(vscode.NotebookCellKind.Code, flattenSource(code.source), 'python');
-//     //   }
-//     //   cellData.metadata = {
-//     //     custom: {
-//     //       id: code.id,
-//     //       name: '__',
-//     //     },
-//     //   };
-//     //   return cellData;
-//     // });
-
-//     const nbData = new vscode.NotebookData([]);
-//     nbData.metadata = {};
-
-//     return new vscode.NotebookData([]);
-//   }
-
-//   public async serializeNotebook(
-//     data: vscode.NotebookData,
-//     token: vscode.CancellationToken,
-//   ): Promise<Uint8Array> {
-//     // Convert to nbformat
-//     const cells: ICell[] = data.cells.map((cell) => {
-//       const cellMetadata = cell.metadata?.custom || {};
-//       const cellType =
-//         cell.kind === vscode.NotebookCellKind.Markup ? "markdown" : "code";
-//       return {
-//         id: cellMetadata.id,
-//         cell_type: cellType,
-//         metadata: {},
-//         source: cell.value.split("\n"),
-//       };
-//     });
-//     const nbContent: INotebookContent = {
-//       metadata: {},
-//       nbformat_minor: 5,
-//       nbformat: 4,
-//       cells,
-//     };
-//     // Create a temporary file
-//     const tempFile = "/tmp/marimo-notebook.ipynb";
-//     execSync(`echo '${JSON.stringify(nbContent)}' > ${tempFile}`);
-//     const result = execSync(`marimo convert ipynb ${tempFile}`);
-//     return Buffer.from(result);
-//   }
-// }
-
-// function flattenSource(source: string | string[]): string {
-//   if (typeof source === "string") {
-//     return source;
-//   }
-//   return source.join("\n");
-// }
-
 import * as vscode from "vscode";
-import { KernelManager } from "./kernel-manager";
-import { getNotebookMetadata } from "./common/metadata";
 import { logger } from "../logger";
+import { getNotebookMetadata } from "./common/metadata";
+import type { KernelManager } from "./kernel-manager";
+
+const LOADING_CELL_ID = "loading";
 
 export class MarimoNotebookSerializer implements vscode.NotebookSerializer {
   constructor(private kernelManager: KernelManager) {}
@@ -89,37 +12,45 @@ export class MarimoNotebookSerializer implements vscode.NotebookSerializer {
     _data: Uint8Array,
     _token: vscode.CancellationToken,
   ): Promise<vscode.NotebookData> {
-    // const content = Buffer.from(data).toString('utf-8');
-    // // TODO: exec(marimo parse <file>)
-    // const codes = getCellContents(content);
-    // console.log(`Parsed ${codes.length} cells`);
-
-    // // Create data and notebook
-    // const cells = codes.map((code, idx) => {
-    //   const id = idx.toString();
-    //   const cellData = new vscode.NotebookCellData(vscode.NotebookCellKind.Code, code, 'python');
-    //   cellData.metadata = {
-    //     custom: {
-    //       id: id,
-    //       name: '__',
-    //     },
-    //   };
-    //   return cellData;
-    // });
-
-    // const nbData = new vscode.NotebookData(cells);
-    // nbData.metadata = {};
-
-    return new vscode.NotebookData([]);
+    // Add a single markdown cell that says Loading...
+    const cell = new vscode.NotebookCellData(
+      vscode.NotebookCellKind.Markup,
+      "### Loading...",
+      "markdown",
+    );
+    cell.metadata = {
+      custom: {
+        id: LOADING_CELL_ID,
+      },
+    };
+    return new vscode.NotebookData([cell]);
   }
 
   public async serializeNotebook(
     data: vscode.NotebookData,
     _token: vscode.CancellationToken,
   ): Promise<Uint8Array> {
+    // If there are not cells, throw an error
+    // This is likely an error, and don't want to save an empty notebook
+    if (data.cells.length === 0) {
+      logger.error("No cells found in notebook");
+      throw new Error("No cells found in notebook");
+    }
+
+    // If the only cell is loading, throw an error
+    if (data.cells.length === 1) {
+      const cell = data.cells[0];
+      const metadata = cell.metadata?.custom;
+      if (metadata?.id === LOADING_CELL_ID) {
+        logger.error("No cells found in notebook");
+        throw new Error("No cells found in notebook");
+      }
+    }
+
     const metadata = getNotebookMetadata(data);
     const key = metadata.key;
     const kernel = this.kernelManager.getKernel(key);
+
     if (!kernel) {
       logger.error("No kernel found for key", key);
       throw new Error("No kernel found for key: " + key);
@@ -130,6 +61,7 @@ export class MarimoNotebookSerializer implements vscode.NotebookSerializer {
       logger.error("No code found for kernel", key);
       throw new Error("No code found for kernel: " + key);
     }
+
     return Buffer.from(code);
   }
 }

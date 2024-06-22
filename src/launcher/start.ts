@@ -1,10 +1,10 @@
 import { window } from "vscode";
-import { Config } from "./config";
+import { Config } from "../config";
+import { disposeStatusBar } from "../ui/status-bar";
+import { tryPort } from "../utils/network";
 import type { AppMode, MarimoController } from "./controller";
-import { disposeStatusBar } from "./status-bar";
-import { tryPort } from "./utils";
 
-export async function start({
+async function start({
   controller,
   mode,
 }: {
@@ -46,7 +46,12 @@ export async function start({
   await controller.start(mode, port);
 }
 
-export function stop(controller: MarimoController) {
+function stop(controller: MarimoController) {
   controller.dispose();
   disposeStatusBar();
 }
+
+export const Launcher = {
+  start,
+  stop,
+};

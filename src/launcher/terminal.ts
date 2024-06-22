@@ -5,9 +5,9 @@ import {
   type Terminal,
   window,
 } from "vscode";
+import { Config } from "../config";
 import { logger } from "../logger";
-import { Config } from "./config";
-import { wait } from "./utils";
+import { wait } from "../utils/network";
 
 export class MarimoTerminal implements Disposable {
   private terminal: Terminal | undefined;

@@ -1,8 +1,8 @@
 import { execSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import path from "node:path";
-import { Uri, window, workspace } from "vscode";
-import { Config } from "../launcher/config";
+import { Uri, ViewColumn, window, workspace } from "vscode";
+import { Config } from "../config";
 import { logger } from "../logger";
 import { printError } from "../utils/errors";
 
@@ -13,19 +13,21 @@ export type ExportType =
   | "html-without-code"
   | "script";
 
-function getExportCommand(type: ExportType) {
+export type ExportExtension = "html" | "ipynb" | "md" | "py" | "txt";
+
+function getExportCommand(type: ExportType): string {
   if (type === "html-without-code") {
     return "html";
   }
   return type;
 }
-function getExportArgs(type: ExportType) {
+function getExportArgs(type: ExportType): string {
   if (type === "html-without-code") {
     return "--no-include-code";
   }
   return "";
 }
-function getExportExtension(type: ExportType): string {
+function getExportExtension(type: ExportType): ExportExtension {
   if (type === "html-without-code") {
     return "html";
   }
@@ -70,13 +72,14 @@ export async function exportNotebookAs(
       await workspace.fs.writeFile(newFilePath, Buffer.from(appCode));
 
       // open file
-      workspace.openTextDocument(newFilePath).then(() => {
+      await workspace.openTextDocument(newFilePath).then(() => {
         const relativePath = workspace.asRelativePath(newFilePath);
         window.showInformationMessage(`Saved to ${relativePath}`);
+        window.showTextDocument(newFilePath, { viewColumn: ViewColumn.Beside });
       });
     } catch {
       // if fails to save to file system, open in new tab
-      workspace.openTextDocument({ content: appCode }).then((doc) => {
+      await workspace.openTextDocument({ content: appCode }).then((doc) => {
         window.showTextDocument(doc);
       });
     }

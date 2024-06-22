@@ -6,8 +6,10 @@ import {
   commands,
   window,
 } from "vscode";
-import { Controllers } from "./controller";
-import { getCurrentFile, isMarimoApp } from "./utils";
+import { Controllers } from "../launcher/controller";
+import { KernelManager } from "../notebook/kernel-manager";
+import { getFocusedMarimoTextEditor, isMarimoApp } from "../utils/query";
+import { extension } from "../ctx";
 
 let statusBar: StatusBarItem | undefined;
 
@@ -25,17 +27,31 @@ export function disposeStatusBar() {
   statusBar = undefined;
 }
 
-export function updateStatusBar(extension: ExtensionContext) {
+export function updateStatusBar(ext: ExtensionContext = extension) {
   const statusBar = ensureStatusBar();
 
-  const file = getCurrentFile(false);
+  // Update if looking at a NotebookEditor
+  const kernel = KernelManager.getFocusedMarimoKernel();
+  if (kernel) {
+    statusBar.show();
+    statusBar.text = "$(zap) marimo";
+    statusBar.backgroundColor = new ThemeColor(
+      "statusBarItem.warningBackground",
+    );
+    statusBar.color = new ThemeColor("statusBarItem.warningForeground");
+    commands.executeCommand("setContext", "marimo.isMarimoApp", false);
+    return;
+  }
+
+  // Update if looking at a TextEditor
+  const editor = getFocusedMarimoTextEditor({ toast: false });
   commands.executeCommand(
     "setContext",
     "marimo.isMarimoApp",
-    isMarimoApp(file),
+    isMarimoApp(editor?.document),
   );
 
-  if (!file) {
+  if (!editor?.document) {
     statusBar.hide();
     return;
   }
@@ -43,7 +59,7 @@ export function updateStatusBar(extension: ExtensionContext) {
 
   const activeController =
     Controllers.getControllerForActivePanel() ||
-    Controllers.getOrCreate(file, extension);
+    Controllers.getOrCreate(editor.document, ext);
   if (activeController.active) {
     statusBar.text =
       activeController.currentMode === "run"

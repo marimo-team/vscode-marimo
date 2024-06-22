@@ -24,6 +24,8 @@
     "onCommand:vscode-marimo.newMarimoFile",
     "onCommand:vscode-marimo.openDocumentation",
     "onCommand:vscode-marimo.openInBrowser",
+    "onCommand:vscode-marimo.openOutputsInBrowser",
+    "onCommand:vscode-marimo.openOutputsInPanel",
     "onCommand:vscode-marimo.showCommands",
     "onCommand:vscode-marimo.exportAsCommands"
   ],
@@ -42,28 +44,53 @@
   "contributes": {
     "commands": [
       {
+        "command": "vscode-marimo.openAsVSCodeNotebook",
+        "category": "marimo",
+        "enablement": "resourceLangId == python && marimo.isMarimoApp",
+        "title": "Start as a native VSCode notebook",
+        "shortTitle": "Start as VSCode notebook",
+        "icon": "$(notebook)"
+      },
+      {
+        "command": "vscode-marimo.edit",
+        "enablement": "resourceLangId == python && marimo.isMarimoApp",
+        "category": "marimo",
+        "title": "Start in marimo editor (edit)",
+        "shortTitle": "Start in marimo editor (edit)"
+      },
+      {
+        "command": "vscode-marimo.run",
+        "enablement": "resourceLangId == python && marimo.isMarimoApp",
+        "category": "marimo",
+        "title": "Start in marimo editor (run)",
+        "shortTitle": "Start in marimo editor (run)"
+      },
+      {
         "command": "vscode-marimo.stop",
         "enablement": "resourceLangId == python && marimo.isMarimoApp",
         "category": "marimo",
         "title": "Stop server"
       },
       {
-        "command": "vscode-marimo.edit",
-        "enablement": "resourceLangId == python && marimo.isMarimoApp",
+        "command": "vscode-marimo.restart",
+        "enablement": "(resourceLangId == python && marimo.isMarimoApp) || notebookType == marimo-notebook",
         "category": "marimo",
-        "title": "Start marimo server (edit)"
+        "title": "Restart kernel",
+        "icon": "$(refresh)"
       },
       {
-        "command": "vscode-marimo.run",
-        "enablement": "resourceLangId == python && marimo.isMarimoApp",
+        "command": "vscode-marimo.restartServer",
+        "enablement": "(resourceLangId == python && marimo.isMarimoApp) || notebookType == marimo-notebook",
         "category": "marimo",
-        "title": "Start marimo server (run)"
+        "title": "Restart server",
+        "icon": "$(refresh)"
       },
       {
         "command": "vscode-marimo.convertToMarimoApp",
         "enablement": "resourceExtname == .ipynb",
         "category": "marimo",
         "title": "Convert Jupyter notebook to marimo notebook",
+        "shortTitle": "Convert to marimo notebook",
         "icon": "$(symbol-boolean)"
       },
       {
@@ -73,9 +100,16 @@
         "icon": "$(new-file)"
       },
       {
+        "command": "vscode-marimo.newVSCodeNotebook",
+        "category": "marimo",
+        "title": "Create VSCode notebook",
+        "icon": "$(notebook)"
+      },
+      {
         "command": "vscode-marimo.openDocumentation",
         "category": "marimo",
-        "title": "Show documentation",
+        "title": "Show documentation doc.marimo.io",
+        "shortTitle": "Show documentation",
         "icon": "$(remote-explorer-documentation)"
       },
       {
@@ -93,14 +127,14 @@
       },
       {
         "command": "vscode-marimo.showCommands",
-        "enablement": "resourceLangId == python && marimo.isMarimoApp",
+        "enablement": "(resourceLangId == python && marimo.isMarimoApp) || notebookType == marimo-notebook",
         "category": "marimo",
         "title": "Show marimo commands",
         "icon": "$(symbol-event)"
       },
       {
         "command": "vscode-marimo.exportAsCommands",
-        "enablement": "resourceLangId == python && marimo.isMarimoApp",
+        "enablement": "(resourceLangId == python && marimo.isMarimoApp) || notebookType == marimo-notebook",
         "category": "marimo",
         "title": "Export notebook as...",
         "icon": "$(export)"
@@ -111,19 +145,6 @@
         "category": "marimo",
         "title": "Refresh marimo explorer",
         "icon": "$(refresh)"
-      },
-      {
-        "command": "vscode-marimo.openAsVSCodeNotebook",
-        "category": "marimo",
-        "enablement": "resourceLangId == python && marimo.isMarimoApp",
-        "title": "Open as VSCode notebook",
-        "icon": "$(notebook)"
-      },
-      {
-        "command": "vscode-marimo.createVSCodeNotebook",
-        "category": "marimo",
-        "title": "Create VSCode notebook",
-        "icon": "$(notebook)"
       }
     ],
     "notebooks": [
@@ -143,6 +164,11 @@
         {
           "id": "marimo-explorer-applications",
           "name": "Applications",
+          "icon": "resources/icon.svg"
+        },
+        {
+          "id": "marimo-explorer-running-applications",
+          "name": "Running Applications",
           "icon": "resources/icon.svg"
         }
       ]
@@ -200,6 +226,24 @@
           "when": "resourceLangId == python && marimo.isMarimoApp",
           "command": "vscode-marimo.openAsVSCodeNotebook",
           "icon": "$(notebook)",
+          "group": "navigation"
+        }
+      ],
+      "file/newFile": [
+        {
+          "command": "vscode-marimo.newVSCodeNotebook",
+          "group": "navigation"
+        }
+      ],
+      "notebook/toolbar": [
+        {
+          "when": "notebookType == marimo-notebook",
+          "command": "vscode-marimo.restart",
+          "group": "navigation/execute@1"
+        },
+        {
+          "when": "notebookType == marimo-notebook",
+          "command": "vscode-marimo.showCommands",
           "group": "navigation"
         }
       ],
@@ -277,7 +321,7 @@
     "dev": "pnpm run build --watch",
     "lint": "biome check --apply .",
     "pack": "vsce package --no-dependencies",
-    "codegen": "npx openapi-typescript https://raw.githubusercontent.com/marimo-team/marimo/c91f441174535afe3fbe86a68955d5332f7b6e0e/openapi/api.yaml -o ./src/generated/api.ts",
+    "codegen": "npx openapi-typescript https://raw.githubusercontent.com/marimo-team/marimo/0.6.22/openapi/api.yaml --immutable -o ./src/generated/api.ts",
     "pretest": "pnpm run build && pnpm run lint",
     "publish": "vsce publish --no-dependencies",
     "release": "npx bumpp && pnpm run publish",
@@ -291,9 +335,9 @@
     "@types/node": "20.12.12",
     "@types/vscode": "^1.86.0",
     "@vscode/test-electron": "^2.3.10",
-    "openapi-typescript": "^6.7.6",
+    "openapi-typescript": "^7.0.0",
     "tsup": "^8.0.2",
-    "typescript": "^5.4.5"
+    "typescript": "^5.5.2"
   },
   "dependencies": {
     "@jupyterlab/nbformat": "^4.2.1",

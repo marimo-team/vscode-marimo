@@ -1,4 +1,5 @@
 import { window } from "vscode";
+import { Config } from "./config";
 
 const channel = window.createOutputChannel("marimo");
 
@@ -6,6 +7,9 @@ class Logger {
   constructor(private prefix: string) {}
 
   debug(...args: unknown[]) {
+    if (!Config.debug) {
+      return;
+    }
     if (this.prefix) {
       channel.appendLine(`${this.prefix}: ${args.join(" ")}`);
     } else {

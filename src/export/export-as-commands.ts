@@ -1,5 +1,5 @@
 import { type QuickPickItem, type Uri, window } from "vscode";
-import { exportNotebookAs } from "../export/convert";
+import { exportNotebookAs } from "./convert";
 
 interface CommandPickItem extends QuickPickItem {
   handler: () => void;
