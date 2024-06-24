@@ -375,7 +375,7 @@
     }
   },
   "scripts": {
-    "build": "tsup src/extension.ts --external=vscode",
+    "build": "tsup src/extension.ts --external=vscode,jsdom",
     "dev": "pnpm run build --watch",
     "lint": "biome check --apply .",
     "pack": "vsce package --no-dependencies",
