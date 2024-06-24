@@ -5,7 +5,7 @@
   "publisher": "marimo-team",
   "description": "Run marimo in VSCode",
   "packageManager": "pnpm@8.15.1",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "engines": {
     "vscode": "^1.86.0"
   },
@@ -399,16 +399,15 @@
     "jest-mock-vscode": "^3.0.5",
     "openapi-typescript": "^7.0.0",
     "openapi-fetch": "^0.9.7",
+    "@jupyterlab/nbformat": "^4.2.1",
+    "jsdom": "^24.1.0",
+    "@types/ws": "^8.5.10",
+    "node-fetch": "^3.3.2",
+    "tempy": "^3.1.0",
+    "ws": "^8.17.0",
     "tsup": "^8.0.2",
     "typescript": "^5.5.2",
     "vitest": "^1.6.0"
   },
-  "dependencies": {
-    "@jupyterlab/nbformat": "^4.2.1",
-    "@types/ws": "^8.5.10",
-    "jsdom": "^24.1.0",
-    "node-fetch": "^3.3.2",
-    "tempy": "^3.1.0",
-    "ws": "^8.17.0"
-  }
+  "dependencies": {}
 }
