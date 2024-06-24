@@ -5,7 +5,7 @@
   "publisher": "marimo-team",
   "description": "Run marimo in VSCode",
   "packageManager": "pnpm@8.15.1",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "engines": {
     "vscode": "^1.86.0"
   },
@@ -382,8 +382,9 @@
     "codegen": "npx openapi-typescript https://raw.githubusercontent.com/marimo-team/marimo/0.6.22/openapi/api.yaml --immutable -o ./src/generated/api.ts",
     "pretest": "pnpm run build && pnpm run lint",
     "publish": "vsce publish --no-dependencies",
+    "publish:pre-release": "vsce publish --no-dependencies --pre-release",
     "release": "npx bumpp && pnpm run publish",
-    "release:pre-release": "npx bumpp && pnpm run publish --pre-release",
+    "release:pre-release": "npx bumpp && pnpm run publish:pre-release",
     "test": "vitest",
     "typecheck": "tsc --noEmit",
     "vscode:prepublish": "pnpm run build"
@@ -397,6 +398,7 @@
     "@vscode/test-electron": "^2.3.10",
     "jest-mock-vscode": "^3.0.5",
     "openapi-typescript": "^7.0.0",
+    "openapi-fetch": "^0.9.7",
     "tsup": "^8.0.2",
     "typescript": "^5.5.2",
     "vitest": "^1.6.0"
@@ -406,7 +408,6 @@
     "@types/ws": "^8.5.10",
     "jsdom": "^24.1.0",
     "node-fetch": "^3.3.2",
-    "openapi-fetch": "^0.9.7",
     "tempy": "^3.1.0",
     "ws": "^8.17.0"
   }
