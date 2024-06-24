@@ -5,7 +5,7 @@
   "publisher": "marimo-team",
   "description": "Run marimo in VSCode",
   "packageManager": "pnpm@8.15.1",
-  "version": "0.3.0-beta.1",
+  "version": "0.3.1",
   "engines": {
     "vscode": "^1.86.0"
   },
@@ -18,6 +18,8 @@
   "icon": "resources/marimo.png",
   "activationEvents": [
     "onLanguage:python",
+    "onView:marimo-explorer-running-applications",
+    "onView:marimo-explorer-applications",
     "onCommand:vscode-marimo.startServer",
     "onCommand:vscode-marimo.stopServer",
     "onCommand:vscode-marimo.stopKernel",
@@ -30,7 +32,11 @@
     "onCommand:vscode-marimo.openOutputsInBrowser",
     "onCommand:vscode-marimo.openOutputsInPanel",
     "onCommand:vscode-marimo.showCommands",
-    "onCommand:vscode-marimo.exportAsCommands"
+    "onCommand:vscode-marimo.exportAsCommands",
+    "onCommand:vscode-marimo.openAsVSCodeNotebook",
+    "onCommand:vscode-marimo.convertToMarimoApp",
+    "onCommand:vscode-marimo.reloadBrowser",
+    "onCommand:vscode-marimo.refresh"
   ],
   "repository": {
     "type": "git",
@@ -377,6 +383,7 @@
     "pretest": "pnpm run build && pnpm run lint",
     "publish": "vsce publish --no-dependencies",
     "release": "npx bumpp && pnpm run publish",
+    "release:pre-release": "npx bumpp && pnpm run publish --pre-release",
     "test": "vitest",
     "typecheck": "tsc --noEmit",
     "vscode:prepublish": "pnpm run build"
