@@ -10,15 +10,14 @@
     "vscode": "^1.86.0"
   },
   "private": true,
-  "categories": [
-    "Notebooks",
-    "Machine Learning",
-    "Data Science"
-  ],
+  "categories": ["Notebooks", "Machine Learning", "Data Science"],
   "icon": "resources/marimo.png",
   "activationEvents": [
     "onLanguage:python",
-    "onCommand:vscode-marimo.stop",
+    "onCommand:vscode-marimo.startServer",
+    "onCommand:vscode-marimo.stopServer",
+    "onCommand:vscode-marimo.stopKernel",
+    "onCommand:vscode-marimo.restartKernel",
     "onCommand:vscode-marimo.edit",
     "onCommand:vscode-marimo.run",
     "onCommand:vscode-marimo.newMarimoFile",
@@ -36,10 +35,7 @@
   "bugs": {
     "url": "https://github.com/marimo-team/vscode-marimo/issues"
   },
-  "files": [
-    "dist",
-    "resources"
-  ],
+  "files": ["dist", "resources"],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
@@ -66,24 +62,50 @@
         "shortTitle": "Start in marimo editor (run)"
       },
       {
-        "command": "vscode-marimo.stop",
-        "enablement": "resourceLangId == python && marimo.isMarimoApp",
+        "command": "vscode-marimo.stopKernel",
+        "enablement": "(resourceLangId == python && marimo.isMarimoApp)",
         "category": "marimo",
-        "title": "Stop server"
+        "title": "Stop kernel",
+        "icon": "$(stop)"
       },
       {
-        "command": "vscode-marimo.restart",
-        "enablement": "(resourceLangId == python && marimo.isMarimoApp) || notebookType == marimo-notebook",
+        "command": "vscode-marimo.restartKernel",
+        "enablement": "(resourceLangId == python && marimo.isMarimoApp) || (notebookType == marimo-notebook)",
         "category": "marimo",
         "title": "Restart kernel",
         "icon": "$(refresh)"
       },
       {
-        "command": "vscode-marimo.restartServer",
-        "enablement": "(resourceLangId == python && marimo.isMarimoApp) || notebookType == marimo-notebook",
-        "category": "marimo",
-        "title": "Restart server",
+        "command": "marimo-explorer.restartKernel",
+        "enablement": "view == marimo-explorer-running-applications",
+        "title": "Restart kernel",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "marimo-explorer.stopKernel",
+        "enablement": "view == marimo-explorer-running-applications",
+        "title": "Stop kernel",
+        "icon": "$(stop)"
+      },
+      {
+        "command": "marimo-explorer.openAsVSCodeNotebook",
+        "enablement": "view == marimo-explorer-applications",
+        "title": "Open as VSCode notebook",
+        "icon": "$(notebook)"
+      },
+      {
+        "command": "vscode-marimo.startServer",
+        "enablement": "(view == marimo-explorer-running-applications) && marimo.isMarimoServerRunning === false",
+        "category": "marimo",
+        "title": "Start server",
+        "icon": "$(play)"
+      },
+      {
+        "command": "vscode-marimo.stopServer",
+        "enablement": "(view == marimo-explorer-running-applications) && marimo.isMarimoServerRunning === true",
+        "category": "marimo",
+        "title": "Stop server",
+        "icon": "$(stop-circle)"
       },
       {
         "command": "vscode-marimo.convertToMarimoApp",
@@ -96,19 +118,13 @@
       {
         "command": "vscode-marimo.newMarimoFile",
         "category": "marimo",
-        "title": "Create new marimo file",
+        "title": "Create new marimo notebook",
         "icon": "$(new-file)"
-      },
-      {
-        "command": "vscode-marimo.newVSCodeNotebook",
-        "category": "marimo",
-        "title": "Create VSCode notebook",
-        "icon": "$(notebook)"
       },
       {
         "command": "vscode-marimo.openDocumentation",
         "category": "marimo",
-        "title": "Show documentation doc.marimo.io",
+        "title": "Show documentation: doc.marimo.io",
         "shortTitle": "Show documentation",
         "icon": "$(remote-explorer-documentation)"
       },
@@ -140,8 +156,8 @@
         "icon": "$(export)"
       },
       {
-        "command": "marimo-explorer.refresh",
-        "enablement": "view == marimo-explorer-applications",
+        "command": "vscode-marimo.refresh",
+        "enablement": "view == marimo-explorer-applications || view == marimo-explorer-running-applications",
         "category": "marimo",
         "title": "Refresh marimo explorer",
         "icon": "$(refresh)"
@@ -162,13 +178,15 @@
     "views": {
       "marimo-explorer": [
         {
-          "id": "marimo-explorer-applications",
-          "name": "Applications",
+          "id": "marimo-explorer-running-applications",
+          "name": "Running Applications",
+          "initialSize": 1,
           "icon": "resources/icon.svg"
         },
         {
-          "id": "marimo-explorer-running-applications",
-          "name": "Running Applications",
+          "id": "marimo-explorer-applications",
+          "name": "Applications",
+          "initialSize": 2,
           "icon": "resources/icon.svg"
         }
       ]
@@ -229,16 +247,10 @@
           "group": "navigation"
         }
       ],
-      "file/newFile": [
-        {
-          "command": "vscode-marimo.newVSCodeNotebook",
-          "group": "navigation"
-        }
-      ],
       "notebook/toolbar": [
         {
           "when": "notebookType == marimo-notebook",
-          "command": "vscode-marimo.restart",
+          "command": "vscode-marimo.restartKernel",
           "group": "navigation/execute@1"
         },
         {
@@ -247,10 +259,32 @@
           "group": "navigation"
         }
       ],
+      "view/item/context": [
+        {
+          "when": "view == marimo-explorer-running-applications",
+          "command": "marimo-explorer.stopKernel",
+          "group": "inline"
+        },
+        {
+          "when": "view == marimo-explorer-applications",
+          "command": "marimo-explorer.openAsVSCodeNotebook",
+          "group": "inline"
+        }
+      ],
       "view/title": [
         {
-          "command": "marimo-explorer.refresh",
-          "when": "view == marimo-explorer-applications",
+          "command": "vscode-marimo.startServer",
+          "when": "view == marimo-explorer-running-applications && marimo.isMarimoServerRunning === false",
+          "group": "navigation"
+        },
+        {
+          "command": "vscode-marimo.stopServer",
+          "when": "view == marimo-explorer-running-applications && marimo.isMarimoServerRunning === true",
+          "group": "navigation"
+        },
+        {
+          "command": "vscode-marimo.refresh",
+          "when": "view == marimo-explorer-applications || view == marimo-explorer-running-applications",
           "group": "navigation"
         },
         {
@@ -271,10 +305,7 @@
       "properties": {
         "marimo.browserType": {
           "type": "string",
-          "enum": [
-            "embedded",
-            "system"
-          ],
+          "enum": ["embedded", "system"],
           "default": "embedded",
           "description": "Browser to open marimo app"
         },
@@ -325,7 +356,7 @@
     "pretest": "pnpm run build && pnpm run lint",
     "publish": "vsce publish --no-dependencies",
     "release": "npx bumpp && pnpm run publish",
-    "test": "echo 'No tests yet...'",
+    "test": "vitest",
     "typecheck": "tsc --noEmit",
     "vscode:prepublish": "pnpm run build"
   },
@@ -334,10 +365,13 @@
     "@types/jsdom": "^21.1.7",
     "@types/node": "20.12.12",
     "@types/vscode": "^1.86.0",
+    "@vscode/test-cli": "^0.0.9",
     "@vscode/test-electron": "^2.3.10",
+    "jest-mock-vscode": "^3.0.5",
     "openapi-typescript": "^7.0.0",
     "tsup": "^8.0.2",
-    "typescript": "^5.5.2"
+    "typescript": "^5.5.2",
+    "vitest": "^1.6.0"
   },
   "dependencies": {
     "@jupyterlab/nbformat": "^4.2.1",

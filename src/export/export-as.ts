@@ -49,7 +49,7 @@ function getExportExtension(type: ExportType): ExportExtension {
 export async function exportNotebookAs(
   filePath: string,
   exportType: ExportType,
-) {
+): Promise<Uri | false> {
   try {
     const marimoPath = Config.marimoPath;
     // export
@@ -77,18 +77,19 @@ export async function exportNotebookAs(
         window.showInformationMessage(`Saved to ${relativePath}`);
         window.showTextDocument(newFilePath, { viewColumn: ViewColumn.Beside });
       });
+      return newFilePath;
     } catch {
       // if fails to save to file system, open in new tab
       await workspace.openTextDocument({ content: appCode }).then((doc) => {
         window.showTextDocument(doc);
       });
+      return false;
     }
   } catch (error) {
     logger.log(error);
     window.showErrorMessage(`Failed to export notebook: ${printError(error)}`);
     return false;
   }
-  return true;
 }
 
 function getUniqueFilename(

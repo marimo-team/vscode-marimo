@@ -2,29 +2,26 @@ import { execSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { Uri, window, workspace } from "vscode";
+import { Config } from "../config";
 import { logger } from "../logger";
 import { printError } from "../utils/errors";
 
-export async function convertIPyNotebook(filePath: string, marimoPath: string) {
-  return convertNotebook(filePath, marimoPath, "ipynb");
+export async function convertIPyNotebook(filePath: string) {
+  return convertNotebook(filePath, "ipynb");
 }
 
-export async function convertMarkdownNotebook(
-  filePath: string,
-  marimoPath: string,
-) {
-  return convertNotebook(filePath, marimoPath, "md");
+export async function convertMarkdownNotebook(filePath: string) {
+  return convertNotebook(filePath, "md");
 }
 
 export async function convertNotebook(
   filePath: string,
-  marimoPath: string,
   ext: "ipynb" | "md",
-) {
+): Promise<Uri | boolean> {
   try {
     // convert
     const directory = path.dirname(filePath);
-    const response = execSync(`${marimoPath} convert '${filePath}'`);
+    const response = execSync(`${Config.marimoPath} convert '${filePath}'`);
     const appCode = response.toString();
 
     try {
@@ -41,6 +38,7 @@ export async function convertNotebook(
         const relativePath = workspace.asRelativePath(newFilePath);
         window.showInformationMessage(`Saved to ${relativePath}`);
       });
+      return newFilePath;
     } catch {
       // if fails to save to file system, open in new tab
       workspace
@@ -48,13 +46,13 @@ export async function convertNotebook(
         .then((doc) => {
           window.showTextDocument(doc);
         });
+      return true;
     }
   } catch (error) {
     logger.log(error);
     window.showErrorMessage(`Failed to convert notebook: ${printError(error)}`);
     return false;
   }
-  return true;
 }
 
 function getUniqueFilename(

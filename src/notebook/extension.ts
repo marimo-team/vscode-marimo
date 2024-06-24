@@ -1,27 +1,14 @@
 import * as vscode from "vscode";
+import type { ServerManager } from "../launcher/server-manager";
 import { logger } from "../logger";
+import { showNotebookDocument } from "../utils/show";
 import {
   type NotebookMetadata,
   getNotebookMetadata,
   setNotebookMetadata,
 } from "./common/metadata";
-import {
-  NOTEBOOK_CONTROLLER_ID,
-  NOTEBOOK_TYPE,
-  PYTHON_LANGUAGE_ID,
-} from "./constants";
+import { NOTEBOOK_TYPE, PYTHON_LANGUAGE_ID } from "./constants";
 import { KernelManager } from "./kernel-manager";
-import { ServerManager } from "../launcher/server-manager";
-import { updateStatusBar } from "../ui/status-bar";
-
-export function createNotebookController() {
-  const controller = vscode.notebooks.createNotebookController(
-    NOTEBOOK_CONTROLLER_ID,
-    NOTEBOOK_TYPE,
-    "marimo kernel",
-  );
-  return controller;
-}
 
 export async function createNotebookDocument() {
   const data = new vscode.NotebookData([]);
@@ -31,18 +18,14 @@ export async function createNotebookDocument() {
   });
 
   // Create NotebookDocument and open it
-  const doc = await vscode.workspace.openNotebookDocument(
-    NOTEBOOK_TYPE,
-    data,
-  );
+  const doc = await vscode.workspace.openNotebookDocument(NOTEBOOK_TYPE, data);
 
   // Open Notebook
   logger.log("Opening new marimo notebook");
   await vscode.window.showNotebookDocument(doc);
-  updateStatusBar();
 }
 
-export async function openNotebookDocument() {
+export async function getActiveMarimoFile() {
   const editor = vscode.window.activeTextEditor;
   if (!editor) {
     vscode.window.showErrorMessage("No active editor!");
@@ -54,40 +37,45 @@ export async function openNotebookDocument() {
     vscode.window.showErrorMessage("Not a Python file!");
     return;
   }
+
   const containsMarimoApp = document.getText().includes("marimo.App");
   if (!containsMarimoApp) {
     vscode.window.showErrorMessage("No marimo.App found!");
     return;
   }
 
+  return document.uri;
+}
+
+export async function openMarimoNotebookDocument(uri: vscode.Uri | undefined) {
+  if (!uri) {
+    return;
+  }
   // Create data
   const data = new vscode.NotebookData([]);
   setNotebookMetadata(data, {
     isNew: false,
     loaded: false,
-    file: document.uri.fsPath,
+    file: uri.fsPath,
   });
 
   // Open notebook
   logger.log("Opening existing marimo notebook");
-  const doc = await vscode.workspace.openNotebookDocument(document.uri);
+  const doc = await vscode.workspace.openNotebookDocument(uri);
   // Show the notebook, if not shown
-  try {
-    await vscode.window.showNotebookDocument(doc);
-    updateStatusBar();
-  } catch {
-    // Do nothing
-  }
+  await showNotebookDocument(doc);
 
   // Open the panel if the kernel is still active
-  const kernel = KernelManager.instance.getKernelByUri(document.uri);
+  const kernel = KernelManager.instance.getKernelByUri(uri);
   if (kernel) {
     await kernel.openKiosk();
   }
 }
 
-export async function handleOnOpenNotebookDocument(doc: vscode.NotebookDocument,
-  serverManager: ServerManager, kernelManager: KernelManager
+export async function handleOnOpenNotebookDocument(
+  doc: vscode.NotebookDocument,
+  serverManager: ServerManager,
+  kernelManager: KernelManager,
 ) {
   logger.log("Opened notebook document", doc.notebookType);
   if (doc.notebookType !== NOTEBOOK_TYPE) {
@@ -103,12 +91,7 @@ export async function handleOnOpenNotebookDocument(doc: vscode.NotebookDocument,
   }
 
   // Show the notebook, if not shown
-  try {
-    await vscode.window.showNotebookDocument(doc);
-    updateStatusBar();
-  } catch {
-    // Do nothing
-  }
+  await showNotebookDocument(doc);
 
   await vscode.window.withProgress(
     {
@@ -116,7 +99,7 @@ export async function handleOnOpenNotebookDocument(doc: vscode.NotebookDocument,
       title: "Starting marimo server...",
       cancellable: false,
     },
-    async (progress) => {
+    async () => {
       // Start Marimo server
       logger.log("Checking server...");
       const { port, skewToken, userConfig, version } =
@@ -139,17 +122,14 @@ export async function handleOnOpenNotebookDocument(doc: vscode.NotebookDocument,
         key: kernel.kernelKey,
         loaded: true,
       };
-      const nbEdit =
-        vscode.NotebookEdit.updateNotebookMetadata(nextMetadata);
+      const nbEdit = vscode.NotebookEdit.updateNotebookMetadata(nextMetadata);
       const edit2 = new vscode.WorkspaceEdit();
       edit2.set(doc.uri, [nbEdit]);
       await vscode.workspace.applyEdit(edit2);
 
       // Start the kernel
-      progress.report({ message: "Starting the kernel..." });
       await kernel.start();
       await kernel.openKiosk();
     },
   );
 }
-

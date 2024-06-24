@@ -53,13 +53,13 @@ export class MarimoNotebookSerializer implements vscode.NotebookSerializer {
 
     if (!kernel) {
       logger.error("No kernel found for key", key);
-      throw new Error("No kernel found for key: " + key);
+      throw new Error(`No kernel found for key: ${key}`);
     }
 
-    const code = await kernel.save();
+    const code = await kernel.save(data.cells);
     if (!code) {
       logger.error("No code found for kernel", key);
-      throw new Error("No code found for kernel: " + key);
+      throw new Error(`No code found for kernel: ${key}`);
     }
 
     return Buffer.from(code);

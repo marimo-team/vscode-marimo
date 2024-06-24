@@ -1,31 +1,43 @@
-import { type ExtensionContext, Uri, commands, env, window, Disposable, workspace } from "vscode";
+import {
+  type Disposable,
+  type ExtensionContext,
+  Uri,
+  commands,
+  env,
+  window,
+  workspace,
+} from "vscode";
 import { showCommands } from "./commands/show-commands";
-import { Config } from "./config";
 import { DOCUMENTATION_URL } from "./constants";
 import { convertIPyNotebook, convertMarkdownNotebook } from "./convert/convert";
+import { setExtension } from "./ctx";
 import { MarimoExplorer } from "./explorer/explorer";
 import { exportAsCommands } from "./export/export-as-commands";
 import { Controllers, withController } from "./launcher/controller";
 import { createNewMarimoFile } from "./launcher/new-file";
+import { ServerManager } from "./launcher/server-manager";
 import { Launcher } from "./launcher/start";
 import { logger } from "./logger";
-import { createNotebookController, createNotebookDocument, handleOnOpenNotebookDocument, openNotebookDocument } from "./notebook/extension";
-import { KernelManager } from "./notebook/kernel-manager";
-import { updateStatusBar } from "./ui/status-bar";
-import { ServerManager } from "./launcher/server-manager";
-import { MarimoNotebookSerializer } from "./notebook/serializer";
 import { NOTEBOOK_TYPE } from "./notebook/constants";
-import { setExtension } from "./ctx";
+import {
+  createNotebookDocument,
+  getActiveMarimoFile,
+  handleOnOpenNotebookDocument,
+  openMarimoNotebookDocument,
+} from "./notebook/extension";
+import { KernelManager } from "./notebook/kernel-manager";
+import { MarimoNotebookSerializer } from "./notebook/serializer";
+import { statusBarManager } from "./ui/status-bar";
 
 const Commands = {
-  // Start marimo server (edit)
+  // Start marimo kernel (edit)
   edit: "vscode-marimo.edit",
-  // Start marimo server (run)
+  // Start marimo kernel (run)
   run: "vscode-marimo.run",
-  // Restart marimo server
-  restart: "vscode-marimo.restart",
-  // Stop server
-  stop: "vscode-marimo.stop",
+  // Restart marimo kernel
+  restartKernel: "vscode-marimo.restartKernel",
+  // Stop kernel
+  stopKernel: "vscode-marimo.stopKernel",
   // Show marimo commands
   showCommands: "vscode-marimo.showCommands",
   // Export notebook as...
@@ -41,7 +53,12 @@ const Commands = {
   // Convert Jupyter notebook to marimo notebook
   convertToMarimoApp: "vscode-marimo.convertToMarimoApp",
 
-  createNotebook: "vscode-marimo.newVSCodeNotebook",
+  // Start server
+  startServer: "vscode-marimo.startServer",
+  // Stop server
+  stopServer: "vscode-marimo.stopServer",
+
+  // Native vscode notebook commands
   openNotebook: "vscode-marimo.openAsVSCodeNotebook",
 };
 
@@ -56,26 +73,41 @@ export async function activate(extension: ExtensionContext) {
 
   const kernelManager = KernelManager.instance;
   const serverManager = ServerManager.instance;
-  serverManager.init(extension);
+  serverManager.init();
   addDisposable(kernelManager, serverManager);
 
   ///// Commands /////
+  // These commands are for the server
+  commands.registerCommand(Commands.startServer, async () => {
+    await serverManager.start();
+  });
+  commands.registerCommand(Commands.stopServer, async () => {
+    // Close all marimo notebook editors
+    const editors = window.visibleNotebookEditors.filter(
+      (editor) => editor.notebook.notebookType === NOTEBOOK_TYPE,
+    );
+    for (const editor of editors) {
+      await window.showTextDocument(editor.notebook.uri, { preview: false });
+      await commands.executeCommand("workbench.action.closeActiveEditor");
+    }
+    await serverManager.stopServer();
+  });
 
   // These commands all operate on a marimo .py file
   commands.registerCommand(Commands.edit, () =>
-    withController(extension, async (controller) => {
+    withController(async (controller) => {
       await Launcher.start({ controller, mode: "edit" });
       controller.open();
     }),
   );
-  commands.registerCommand(Commands.restart, async () => {
+  commands.registerCommand(Commands.restartKernel, async () => {
     const maybeKernel = KernelManager.getFocusedMarimoKernel();
     if (maybeKernel) {
       await maybeKernel.restart();
       return;
     }
 
-    withController(extension, async (controller) => {
+    withController(async (controller) => {
       const mode = controller.currentMode || "edit";
       Launcher.stop(controller);
       await Launcher.start({ controller, mode });
@@ -83,13 +115,13 @@ export async function activate(extension: ExtensionContext) {
     });
   });
   commands.registerCommand(Commands.run, () => {
-    withController(extension, async (controller) => {
+    withController(async (controller) => {
       await Launcher.start({ controller, mode: "run" });
       controller.open();
     });
   });
-  commands.registerCommand(Commands.stop, () =>
-    withController(extension, async (controller) => {
+  commands.registerCommand(Commands.stopKernel, () =>
+    withController(async (controller) => {
       Launcher.stop(controller);
     }),
   );
@@ -104,7 +136,7 @@ export async function activate(extension: ExtensionContext) {
       return;
     }
 
-    withController(extension, async (controller) => {
+    withController(async (controller) => {
       showCommands(controller);
     });
   });
@@ -115,7 +147,7 @@ export async function activate(extension: ExtensionContext) {
       return;
     }
 
-    withController(extension, async (controller) => {
+    withController(async (controller) => {
       exportAsCommands(controller.file.uri);
     });
   });
@@ -126,7 +158,7 @@ export async function activate(extension: ExtensionContext) {
       return;
     }
 
-    withController(extension, async (controller) => {
+    withController(async (controller) => {
       controller.open("system");
     });
   });
@@ -137,17 +169,14 @@ export async function activate(extension: ExtensionContext) {
       return;
     }
 
-    withController(extension, async (controller) => {
+    withController(async (controller) => {
       controller.reloadPanel();
     });
   });
 
   // These deal with native vscode notebooks
-  commands.registerCommand(Commands.createNotebook, async () => {
-    await createNotebookDocument();
-  });
   commands.registerCommand(Commands.openNotebook, async () => {
-    await openNotebookDocument();
+    await openMarimoNotebookDocument(await getActiveMarimoFile());
   });
 
   // These commands are standalone
@@ -158,10 +187,7 @@ export async function activate(extension: ExtensionContext) {
     // create
     await createNewMarimoFile();
     // edit
-    withController(extension, async (controller) => {
-      await Launcher.start({ controller, mode: "edit" });
-      controller.open();
-    });
+    await openMarimoNotebookDocument(await getActiveMarimoFile());
   });
 
   // These commands operate on an ipynb or md file
@@ -173,22 +199,16 @@ export async function activate(extension: ExtensionContext) {
       return;
     }
 
-    const marimoPath = Config.marimoPath;
-    if (!marimoPath) {
-      window.showErrorMessage("marimo path is not set");
-      return;
-    }
-
     const filePath = editor.document.uri.fsPath;
     if (filePath.endsWith(".ipynb")) {
-      await convertIPyNotebook(filePath, marimoPath);
+      await convertIPyNotebook(filePath);
       return;
     }
     if (filePath.endsWith(".md")) {
       // Check 'marimo-version:' is in the markdown file
       const content = editor.document.getText();
       if (!content.includes("marimo-version:")) {
-        await convertMarkdownNotebook(filePath, marimoPath);
+        await convertMarkdownNotebook(filePath);
       }
     }
 
@@ -197,30 +217,19 @@ export async function activate(extension: ExtensionContext) {
 
   ///// Events /////
 
-  window.onDidCloseTerminal((error) => {
-    const controller = Controllers.findWithTerminal(error);
+  window.onDidCloseTerminal((terminal) => {
+    const controller = Controllers.findWithTerminal(terminal);
     controller?.dispose();
-  });
-
-  window.onDidChangeActiveTextEditor(() => {
-    updateStatusBar(extension);
-  });
-
-  window.onDidChangeActiveNotebookEditor(() => {
-    updateStatusBar(extension);
   });
 
   workspace.onDidOpenNotebookDocument(async (doc) => {
     await handleOnOpenNotebookDocument(doc, serverManager, kernelManager);
   });
 
-  ///// UI /////
-
-  // Status bar
-  updateStatusBar(extension);
+  statusBarManager.start();
 
   // Sidebar explorer
-  new MarimoExplorer(extension);
+  const explorer = new MarimoExplorer(extension);
 
   // Serializer
   workspace.registerNotebookSerializer(

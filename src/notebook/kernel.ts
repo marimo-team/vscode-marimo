@@ -1,12 +1,15 @@
 import * as vscode from "vscode";
 import { MarimoPanelManager } from "../browser/panel";
 import { Config, composeUrl } from "../config";
-import { logger as l } from "../logger";
+import { logger as l, logger } from "../logger";
+import type { ILifecycle } from "../types";
 import { Deferred } from "../utils/deferred";
 import { invariant } from "../utils/invariant";
+import { LogMethodCalls } from "../utils/log";
+import { closeNotebookEditor } from "../utils/show";
 import type { KernelKey } from "./common/key";
 import { getCellMetadata, setCellMetadata } from "./common/metadata";
-import { PYTHON_LANGUAGE_ID } from "./constants";
+import { MARKDOWN_LANGUAGE_ID, PYTHON_LANGUAGE_ID } from "./constants";
 import { MarimoBridge } from "./marimo/bridge";
 import {
   type CellChannel,
@@ -21,16 +24,13 @@ import {
   type UpdateCellIdsRequest,
 } from "./marimo/types";
 
-const logger = l.createLogger("kernel");
-
 const DEFAULT_NAME = "__";
 
-export interface IKernel extends vscode.Disposable {
+export interface IKernel extends ILifecycle {
   waitForReady(): Promise<KernelReady>;
   handleNotebookChange(e: vscode.NotebookDocumentChangeEvent): Promise<void>;
-  start(user: MarimoConfig): Promise<void>;
+  start(): Promise<void>;
   interrupt(): Promise<void>;
-  save(): Promise<string>;
   readCode(): Promise<string>;
   openKiosk(browser?: "embedded" | "system"): Promise<void>;
   executeAll(
@@ -41,16 +41,20 @@ export interface IKernel extends vscode.Disposable {
 }
 
 export class Kernel implements IKernel {
-  private readyTimer: NodeJS.Timeout | undefined;
-  // private executingCells = new Map<CellId, Deferred<void>>();
-  private lastCellStatus = new Map<CellId, CellStatus | null | undefined>();
-  private cellStartTimes = new Map<CellId, number>();
-  private keyedMessageQueue = new Map<string, CellOp[]>();
-  private panel: MarimoPanelManager;
-
+  private readonly logger = logger.createLogger("kernel");
   private readonly bridge: MarimoBridge;
-  private ready = new Deferred<KernelReady>();
   private readonly cells = new Map<CellId, vscode.NotebookCell>();
+  private readonly cellExecutions = new Map<
+    CellId,
+    vscode.NotebookCellExecution
+  >();
+
+  private readyTimer: NodeJS.Timeout | undefined;
+  private lastCellStatus = new Map<CellId, CellStatus | null | undefined>();
+  private keyedMessageQueue = new Map<string, CellOp[]>();
+
+  private panel: MarimoPanelManager;
+  private ready = new Deferred<KernelReady>();
   private prevCellIds: CellId[] = [];
 
   constructor(
@@ -65,8 +69,8 @@ export class Kernel implements IKernel {
       readonly notebookDoc: vscode.NotebookDocument;
     },
   ) {
-    const { port, kernelKey, skewToken, userConfig, notebookDoc } = opts;
-    this.bridge = new MarimoBridge(port, kernelKey, skewToken, userConfig, {
+    const { port, kernelKey, skewToken, notebookDoc } = opts;
+    this.bridge = new MarimoBridge(port, kernelKey, skewToken, {
       onCellMessage: this.handleCellMessage.bind(this),
       onKernelReady: this.handleReady.bind(this),
     });
@@ -90,14 +94,19 @@ export class Kernel implements IKernel {
   get kernelKey(): KernelKey {
     return this.opts.kernelKey;
   }
+
   get fileUri(): vscode.Uri {
     return this.opts.fileUri;
+  }
+
+  get notebookDoc(): vscode.NotebookDocument {
+    return this.opts.notebookDoc;
   }
 
   waitForReady(): Promise<KernelReady> {
     let retries = 10;
     this.readyTimer = setInterval(() => {
-      logger.log("Waiting for marimo kernel to be ready...");
+      this.logger.log("Waiting for marimo kernel to be ready...");
       retries--;
       if (retries <= 0) {
         clearInterval(this.readyTimer);
@@ -111,6 +120,7 @@ export class Kernel implements IKernel {
     });
   }
 
+  @LogMethodCalls()
   async openKiosk(browser = Config.browser): Promise<void> {
     // If already opened, just focus
     if (browser === "embedded" && this.panel.isReady()) {
@@ -127,9 +137,9 @@ export class Kernel implements IKernel {
       try {
         await vscode.env.openExternal(vscode.Uri.parse(url.toString()));
       } catch (err) {
-        logger.error("Failed to open url", url.toString(), err);
+        this.logger.error("Failed to open url", url.toString(), err);
         vscode.window.showErrorMessage(
-          "Failed to open Marimo at " + url.toString(),
+          `Failed to open Marimo at ${url.toString()}`,
         );
       }
     } else if (browser === "embedded") {
@@ -148,7 +158,7 @@ export class Kernel implements IKernel {
 
     // Handle removed cells
     if (removedCells.length > 0) {
-      logger.log(`Removing ${removedCells.length} cells`);
+      this.logger.log(`Removing ${removedCells.length} cells`);
     }
     for (const removedCell of removedCells) {
       const metadata = getCellMetadata(removedCell);
@@ -157,12 +167,12 @@ export class Kernel implements IKernel {
       }
       this.cells.delete(metadata.id);
       this.bridge.delete({ cellId: metadata.id });
-      logger.log("Removed cell", metadata.id);
+      this.logger.log("Removed cell", metadata.id);
     }
 
     // Handle added cells
     if (removedCells.length > 0) {
-      logger.log(`Adding ${removedCells.length} cells`);
+      this.logger.log(`Adding ${removedCells.length} cells`);
     }
     for (const addedCell of addedCells) {
       const metadata = getCellMetadata(addedCell);
@@ -176,7 +186,7 @@ export class Kernel implements IKernel {
         });
       }
       this.cells.set(cellId, addedCell);
-      logger.log("Added cell", cellId);
+      this.logger.log("Added cell", cellId);
     }
 
     // Get all cell ids
@@ -196,65 +206,81 @@ export class Kernel implements IKernel {
     }
   }
 
+  @LogMethodCalls()
   async start(): Promise<void> {
-    logger.log("Starting notebook");
     await this.opts.controller.updateNotebookAffinity(
       this.opts.notebookDoc,
       vscode.NotebookControllerAffinity.Preferred,
     );
     // Wait for the kernel to be ready
     await this.waitForReady();
-    logger.log("Kernel is ready");
+    this.logger.log("Kernel is ready");
 
     // Instantiate the kernel
     if (this.opts.userConfig?.runtime?.auto_instantiate) {
-      logger.log("Instantiating kernel");
+      this.logger.log("Instantiating kernel");
       await this.bridge.instantiate({
         objectIds: [],
         values: [],
       });
     }
 
-    logger.log("Started");
+    this.logger.log("Started");
   }
 
+  @LogMethodCalls()
   async restart(): Promise<void> {
-    logger.log("Restarting notebook");
-    await this.bridge.closeSession();
+    await this.bridge.restart();
     // Clear cells
     this.ready = new Deferred<KernelReady>();
     this.cells.clear();
     await this.start();
     this.panel.reload();
+    this.openKiosk();
   }
 
-  dispose(): void {
-    logger.log("Disposing notebook");
+  @LogMethodCalls()
+  async dispose(): Promise<void> {
     clearInterval(this.readyTimer);
     this.panel.dispose();
     this.bridge.dispose();
+    // Close open NotebookEditor that matches the document
+    const editors = vscode.window.visibleNotebookEditors.filter(
+      (editor) => editor.notebook === this.opts.notebookDoc,
+    );
+    for (const editor of editors) {
+      await closeNotebookEditor(editor);
+    }
   }
 
+  @LogMethodCalls()
   interrupt(): Promise<void> {
-    logger.log("Interrupting notebook");
     return this.bridge.interrupt();
   }
 
-  save(): Promise<string> {
-    logger.log("Saving notebook");
+  @LogMethodCalls()
+  save(cellData: vscode.NotebookCellData[]): Promise<string> {
     const cellIds: string[] = [];
-    const codes: string[] = [];
     const names: string[] = [];
     const configs: CellConfig[] = [];
-
-    for (const cell of this.cells.values()) {
+    const codes: string[] = [];
+    for (const cell of cellData) {
       const metadata = getCellMetadata(cell);
       if (!metadata.id) {
-        logger.error("Cell has no id", cell);
+        this.logger.error("Cell has no id", cell);
         continue;
       }
+
       cellIds.push(metadata.id);
-      codes.push(cell.document.getText());
+      if (cell.languageId === PYTHON_LANGUAGE_ID) {
+        codes.push(cell.value);
+      } else if (cell.languageId === MARKDOWN_LANGUAGE_ID) {
+        codes.push(toMarkdown(cell.value));
+      } else {
+        this.logger.error("Unsupported language", cell.languageId);
+        codes.push(cell.value);
+      }
+
       names.push(metadata.name || DEFAULT_NAME);
       configs.push({
         hide_code: false,
@@ -272,6 +298,7 @@ export class Kernel implements IKernel {
     });
   }
 
+  @LogMethodCalls()
   readCode(): Promise<string> {
     return this.bridge.readCode();
   }
@@ -281,7 +308,7 @@ export class Kernel implements IKernel {
     _notebook: vscode.NotebookDocument,
     controller: vscode.NotebookController,
   ): Promise<void> {
-    logger.log(`Executing ${cells.length} cells`);
+    this.logger.log(`Executing ${cells.length} cells`);
     this.opts.controller = controller;
     // If no id, then it's a new cell
     for (const cell of cells) {
@@ -341,7 +368,6 @@ export class Kernel implements IKernel {
   private isFlushing = new Map<string, boolean>();
 
   private async handleCellMessage(message: CellOp): Promise<void> {
-    // await initializePromise;
     // Push onto the queue
     const key = message.cell_id;
     const queue = this.keyedMessageQueue.get(key) || [];
@@ -366,107 +392,103 @@ export class Kernel implements IKernel {
         }
         await this.handleCellMessageInternal(message);
       } catch (err) {
-        logger.error("Error handling cell message", err);
+        this.logger.error("Error handling cell message", err);
       }
     }
     this.isFlushing.set(key, false);
   }
 
   private async handleCellMessageInternal(message: CellOp): Promise<void> {
-    logger.debug(
-      "message: ",
-      JSON.stringify({
-        cell_id: message.cell_id,
-        status: message.status,
-        channel: message.output?.channel,
-        mimetype: message.output?.mimetype,
-        consoleLength: toArray(message.console).length,
-        consoleMimeTypes: toArray(message.console).map(
-          (item) => item?.mimetype,
-        ),
-      }),
-    );
     const cell_id = message.cell_id as CellId;
     // Update status
-    const prevStatus = this.lastCellStatus.get(cell_id);
-    const nextStatus = message.status ?? "idle";
+    const prevStatus = this.lastCellStatus.get(cell_id) ?? "idle";
+    const nextStatus = message.status ?? prevStatus;
     this.lastCellStatus.set(cell_id, nextStatus);
 
     const cell = this.cells.get(cell_id);
     if (!cell) {
       const possibleValues = Array.from(this.cells.keys());
-      logger.error("No cell found for cell", cell_id);
-      logger.debug("Possible values", possibleValues.join(", "));
+      this.logger.error("No cell found for cell", cell_id);
+      this.logger.debug("Possible values", possibleValues.join(", "));
       return;
     }
 
     const cellMetadata = getCellMetadata(cell);
     invariant(cellMetadata.id, "Cell id is not set");
 
-    // If its not running, or idle, ignore
-    if (nextStatus !== "running" && nextStatus !== "idle") {
-      return;
-    }
-
-    let execution: vscode.NotebookCellExecution;
-
-    // // Wait for other executions to finish
-    // if (this.executingCells.has(cellMetadata.id)) {
-    //   logger.log("Waiting for previous execution to finish for cell", cellMetadata.id);
-    //   await this.executingCells.get(cellMetadata.id)?.promise;
-    // }
-
-    // Create execution
-    try {
-      logger.debug("Creating execution for cell", cellMetadata.id);
-      execution = this.opts.controller.createNotebookCellExecution(cell);
-    } catch (err) {
-      logger.error("Failed to create execution", err);
-      return;
-    }
-
-    const endExecution = async (success: boolean): Promise<void> => {
-      execution.end(success, Date.now());
-      logger.debug("ended execution for cell", cellMetadata.id);
-    };
-
-    execution.token.onCancellationRequested(() => {
-      logger.log("Cancelling cell", cellMetadata.id);
-      endExecution(false);
-    });
-
-    logger.debug(
+    this.logger.debug(
       "transitioning cell",
-      cellMetadata.id,
+      cell_id,
       "from",
       prevStatus,
       "to",
       nextStatus,
     );
 
-    // If going from queued to running, remove the console output
-    let cellStartTime = this.cellStartTimes.get(cellMetadata.id) || Date.now();
+    const hasError = toArray(message.output || []).some(
+      (item) => item.channel === "marimo-error",
+    );
 
-    if (execution && prevStatus === "queued" && nextStatus === "running") {
-      logger.debug("clearing console outputs for cell", cellMetadata.id);
-      const nonConsoleOutputs = cell.outputs.filter((output) => {
-        const channel = output.metadata?.channel;
-        return ["stdout", "stderr", "stdin", "marimo-error"].includes(channel);
-      });
-      cellStartTime = Date.now();
-      this.cellStartTimes.set(cellMetadata.id, cellStartTime);
-      execution.start(Date.now());
-      await execution.replaceOutput(nonConsoleOutputs);
-      endExecution(false);
+    if (hasError) {
+      // Start and stop an execution to show the error
+      const execution =
+        this.cellExecutions.get(cellMetadata.id) ||
+        this.opts.controller.createNotebookCellExecution(cell);
+      try {
+        await execution.start(Date.now());
+      } catch {
+        // Do nothing
+      }
+      await execution.replaceOutput([
+        handleCellOutput(message.output, "marimo-error"),
+      ]);
+      await execution.end(false, Date.now());
       return;
     }
 
-    execution.start(cellStartTime);
+    // If it went from queued to queued, do nothing
+    if (prevStatus === "queued" && nextStatus === "queued") {
+      return;
+    }
+
+    // If it went from not queued to queued, create the execution
+    if (prevStatus !== "queued" && nextStatus === "queued") {
+      this.logger.debug("starting execution for cell", cellMetadata.id);
+      const execution = this.opts.controller.createNotebookCellExecution(cell);
+      execution.token.onCancellationRequested(() => {
+        this.logger.log("Cancelling cell", cellMetadata.id);
+        this.bridge.interrupt();
+        execution.end(false, Date.now());
+        this.cellExecutions.delete(cell_id);
+      });
+      this.cellExecutions.set(cellMetadata.id, execution);
+      return;
+    }
+
+    const execution = this.cellExecutions.get(cellMetadata.id);
+    if (!execution) {
+      this.logger.error("Execution not found for cell", cellMetadata.id);
+      return;
+    }
+
+    // If it went from queued to running, start the execution
+    if (prevStatus === "queued" && nextStatus === "running") {
+      this.logger.debug("updating output for cell", cellMetadata.id);
+      await execution.start(Date.now());
+      // Clear the outputs
+      await execution.clearOutput();
+    }
+
+    const endExecution = async (success: boolean): Promise<void> => {
+      execution.end(success, Date.now());
+      this.cellExecutions.delete(cell_id);
+      this.logger.debug("ended execution for cell", cellMetadata.id);
+    };
 
     // If it is running or idle, update the output
     // Merge the console outputs
     if (nextStatus === "idle" || nextStatus === "running") {
-      logger.debug("updating output for cell", cellMetadata.id);
+      this.logger.debug("updating output for cell", cellMetadata.id);
 
       let stdOutContainer = cell.outputs.find(
         (output) => output.metadata?.channel === "stdout",
@@ -477,19 +499,9 @@ export class Kernel implements IKernel {
       let stdInContainer = cell.outputs.find(
         (output) => output.metadata?.channel === "stdin",
       );
-      let outputContainer = cell.outputs.find(
-        (output) => output.metadata?.channel === "output",
-      );
       let marimoErrorContainer = cell.outputs.find(
         (output) => output.metadata?.channel === "marimo-error",
       );
-      let pdbContainer = cell.outputs.find(
-        (output) => output.metadata?.channel === "pdb",
-      );
-      let mediaContainer = cell.outputs.find(
-        (output) => output.metadata?.channel === "media",
-      );
-
       // If new console output, append to existing
       if (message.console) {
         const stdOut = toArray(message.console).filter(
@@ -521,51 +533,22 @@ export class Kernel implements IKernel {
 
       // If new output, replace
       if (message.output) {
-        const outputs = toArray(message.output).filter(
-          (item) => item.channel === "output",
-        );
         const marimoErrors = toArray(message.output).filter(
           (item) => item.channel === "marimo-error",
         );
-        const pdb = toArray(message.output).filter(
-          (item) => item.channel === "pdb",
-        );
-        const media = toArray(message.output).filter(
-          (item) => item.channel === "media",
-        );
-
-        outputContainer = handleCellOutput(outputs, "output");
-        marimoErrorContainer = handleCellOutput(
-          marimoErrors,
-
-          "marimo-error",
-        );
-        pdbContainer = handleCellOutput(pdb, "pdb");
-        mediaContainer = handleCellOutput(media, "media");
+        marimoErrorContainer = handleCellOutput(marimoErrors, "marimo-error");
       }
-
       const items = [
-        // outputContainer,
         marimoErrorContainer,
-        // pdbContainer,
-        // mediaContainer,
         stdOutContainer,
         stdErrContainer,
         stdInContainer,
       ].filter((v): v is vscode.NotebookCellOutput => !!v);
 
       try {
-        logger.debug(
-          "updating output with items",
-          items.length,
-          " each with ",
-          items
-            .map((item) => `${item.metadata?.channel}:${item.items.length}`)
-            .join(", "),
-        );
         await execution.replaceOutput(items);
       } catch (err) {
-        logger.error("Failed to update output", err);
+        this.logger.error("Failed to update output", err);
         await execution.replaceOutput([
           new vscode.NotebookCellOutput([
             vscode.NotebookCellOutputItem.error(err as Error),
@@ -576,15 +559,25 @@ export class Kernel implements IKernel {
       }
     }
 
-    endExecution(true);
+    // Should end
+    const isEnd = nextStatus === "idle" && !!message.output;
+    if (isEnd) {
+      endExecution(true);
+    }
   }
 }
 
 function handleCellOutput(
-  output: CellOutput | CellOutput[],
+  output: CellOutput | CellOutput[] | undefined,
   channel: CellChannel,
   prevItems: vscode.NotebookCellOutputItem[] = [],
 ): vscode.NotebookCellOutput {
+  if (!output) {
+    return new vscode.NotebookCellOutput(prevItems, {
+      channel: channel,
+    });
+  }
+
   const items = toArray(output).flatMap((item) => {
     if (item.mimetype === "text/plain" && item.channel === "stderr") {
       return vscode.NotebookCellOutputItem.stderr(item.data as string);
@@ -617,62 +610,10 @@ function handleCellOutput(
     );
   });
 
-  // const flattenByMimetype = [...prevItems, ...items].reduce((acc, item) => {
-  //   const existing = acc.find((i) => i.mime === item.mime);
-  //   if (existing) {
-  //     return acc.map((i) => {
-  //       if (i === existing) {
-  //         const combinedUInt8Array = new Uint8Array(
-  //           i.data.buffer.byteLength + item.data.buffer.byteLength,
-  //         );
-  //         combinedUInt8Array.set(new Uint8Array(i.data.buffer), 0);
-  //         combinedUInt8Array.set(new Uint8Array(item.data.buffer), i.data.buffer.byteLength);
-  //         return new vscode.NotebookCellOutputItem(
-  //           combinedUInt8Array,
-  //           i.mime,
-  //         );
-  //       }
-  //       return i;
-  //     });
-  //   }
-  //   return [...acc, item];
-  // }, [] as vscode.NotebookCellOutputItem[]);
-
-  // return new vscode.NotebookCellOutput(flattenByMimetype, {
-  //   channel: channel,
-  // });
   return new vscode.NotebookCellOutput([...prevItems, ...items], {
     channel: channel,
   });
 }
-
-// function maybeInitialize() {
-//   const version = "0.6.20-dev9";
-//   const mod = import(
-//     `https://cdn.jsdelivr.net/npm/@marimo-team/islands@${version}/dist/main.js`
-//   );
-//   mod.then((m) => {
-//     m.initialize();
-//   });
-// }
-
-// const initializePromise = maybeInitialize();
-
-// function addIslandsScript(html: string, version: string): string {
-//   version = "0.6.20-dev9";
-//   const isDark =
-//     vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Dark ||
-//     vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.HighContrast;
-//   return `
-//   <span class="marimo" style="display: contents;">
-//     <span style="min-height: 70px;" class="${isDark ? "dark" : "light"}">
-//       <script type="module" src="https://cdn.jsdelivr.net/npm/@marimo-team/islands@0.6.20-dev9/dist/main.js"></script>
-//       <link href="https://cdn.jsdelivr.net/npm/@marimo-team/islands@0.6.20-dev9/dist/style.css" rel="stylesheet" crossorigin="anonymous">
-//       ${html}
-//     </span>
-//   </span>
-//   `;
-// }
 
 function toArray<T>(value: T | ReadonlyArray<T>): T[] {
   if (Array.isArray(value)) {
@@ -703,4 +644,16 @@ function deepEqual(a: any, b: any): boolean {
     }
   }
   return true;
+}
+
+function toMarkdown(value: string): string {
+  // Trim
+  value = value.trim();
+
+  const isMultiline = value.includes("\n");
+  if (!isMultiline) {
+    return `mo.md("${value}")`;
+  }
+
+  return `mo.md("""\n${value}\n""")`;
 }

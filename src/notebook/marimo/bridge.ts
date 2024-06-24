@@ -1,16 +1,22 @@
 import createClient from "openapi-fetch";
 import * as vscode from "vscode";
-import type { Disposable } from "vscode";
 import { WebSocket } from "ws";
-import { Config } from "../../config";
+import { Config, composeUrl } from "../../config";
+import {
+  MarimoExplorer,
+  MarimoRunningKernelsProvider,
+} from "../../explorer/explorer";
 import type { paths } from "../../generated/api";
-import { logger as l } from "../../logger";
+import { fetchMarimoStartupValues } from "../../launcher/utils";
+import { logger } from "../../logger";
+import type { ILifecycle } from "../../types";
 import {
   DeferredRequestRegistry,
   type RequestId,
 } from "../../utils/DeferredRequestRegistry";
 import { Deferred } from "../../utils/deferred";
 import { logNever } from "../../utils/invariant";
+import { LogMethodCalls } from "../../utils/log";
 import type { KernelKey } from "../common/key";
 import {
   type CellOp,
@@ -20,17 +26,13 @@ import {
   type InstallMissingPackagesRequest,
   type InstantiateRequest,
   type KernelReady,
-  type MarimoConfig,
   type MessageOperation,
   type RunRequest,
   type SaveNotebookRequest,
   SessionId,
   type SkewToken,
   type UpdateCellIdsRequest,
-  WorkspaceFilesResponse,
 } from "./types";
-
-const logger = l.createLogger("marimo-bridge");
 
 /**
  * Bridge between VS Code and Marimo kernel.
@@ -38,7 +40,9 @@ const logger = l.createLogger("marimo-bridge");
  * Connects to the Marimo kernel via WebSocket and HTTP.
  * Tries to connect to the WebSocket on construction.
  */
-export class MarimoBridge implements Disposable {
+export class MarimoBridge implements ILifecycle {
+  private logger = logger.createLogger("marimo-bridge");
+
   private socket!: WebSocket;
   private sessionId!: SessionId;
   private client!: ReturnType<typeof createClient<paths>>;
@@ -60,19 +64,16 @@ export class MarimoBridge implements Disposable {
 
   constructor(
     private readonly port: number,
-    private readonly kernelKey: KernelKey,
-    private readonly skewToken: SkewToken,
-    private readonly userConfig: MarimoConfig,
+    private kernelKey: KernelKey,
+    private skewToken: SkewToken,
     private readonly callbacks: {
       onCellMessage: (message: CellOp) => void;
       onKernelReady: (payload: KernelReady) => void;
     },
-  ) {
+  ) {}
 
-  }
-
-  start(): void {
-    logger.log("start bridge");
+  @LogMethodCalls()
+  async start(): Promise<void> {
     // Create URLs
     const host = Config.host;
     const https = Config.https;
@@ -81,18 +82,18 @@ export class MarimoBridge implements Disposable {
     const wsURL = new URL(`${wsProtocol}://${host}:${this.port}/ws`);
     wsURL.searchParams.set("session_id", this.sessionId);
     wsURL.searchParams.set("file", this.kernelKey);
-    const httpURL = MarimoBridge.createHttpURL(this.port);
+    const httpURL = composeUrl(this.port);
 
     // Create WebSocket
     this.socket = new WebSocket(wsURL);
     this.socket.onopen = () => {
-      logger.log("connected");
+      this.logger.log("connected");
     };
     this.socket.onclose = (evt) => {
-      logger.log("disconnected", evt.code, evt.reason);
+      this.logger.log("disconnected", evt.code, evt.reason);
     };
     this.socket.onerror = (error) => {
-      logger.log("error", error);
+      this.logger.log("error", error);
     };
     this.socket.onmessage = (message) => {
       this.handleMessage(
@@ -108,44 +109,93 @@ export class MarimoBridge implements Disposable {
         req.headers.set("Marimo-Server-Token", this.skewToken);
         return req;
       },
+      onResponse: async (res, _options) => {
+        // Log errors
+        if (!res.ok) {
+          // If error is 401 and message includes 'Invalid server token' fetch a new token
+          const text = await res.text();
+          if (res.status === 401 && text.includes("Invalid server token")) {
+            logger.error("Invalid server token");
+            const { skewToken } = await fetchMarimoStartupValues(this.port);
+            this.skewToken = skewToken;
+            // TODO: Retry the request
+          }
+
+          logger.error(`HTTP error: ${res.status} ${res.statusText}`, text);
+        }
+        return res;
+      },
     });
   }
 
-  private static createHttpURL(port: number): URL {
-    const host = Config.host;
-    const https = Config.https;
-    const httpProtocol = https ? "https" : "http";
-    return new URL(`${httpProtocol}://${host}:${port}`);
+  @LogMethodCalls()
+  async restart(): Promise<void> {
+    await retry(async () => {
+      const response = await this.client.POST(
+        "/api/kernel/restart_session",
+        {},
+      );
+      if (response.error) {
+        throw new Error((response as any).error);
+      }
+      this.socket.close();
+    });
+    this.start();
   }
 
-  public static getRunningNotebooks(port: number) {
+  static getRunningNotebooks(port: number, skewToken: SkewToken) {
     const client = createClient<paths>({
-      baseUrl: MarimoBridge.createHttpURL(port).toString(),
+      baseUrl: composeUrl(port),
+    });
+    client.use({
+      onRequest: (req) => {
+        req.headers.set("Marimo-Server-Token", skewToken);
+        return req;
+      },
     });
     return client.POST("/api/home/running_notebooks");
   }
 
+  static shutdownSession(
+    port: number,
+    skewToken: SkewToken,
+    sessionId: string,
+  ) {
+    const client = createClient<paths>({
+      baseUrl: composeUrl(port),
+    });
+    client.use({
+      onRequest: (req) => {
+        req.headers.set("Marimo-Server-Token", skewToken);
+        return req;
+      },
+    });
+    return client.POST("/api/home/shutdown_session", {
+      body: { sessionId: sessionId },
+    });
+  }
+
+  @LogMethodCalls()
   public async dispose(): Promise<void> {
-    logger.log("dispose");
     this.socket.close();
   }
 
+  @LogMethodCalls()
   public async run(request: RunRequest): Promise<void> {
-    logger.log("run");
     await this.client.POST("/api/kernel/run", {
       body: request,
     });
   }
 
+  @LogMethodCalls()
   public async delete(request: DeleteCellRequest): Promise<void> {
-    logger.log("delete");
     await this.client.POST("/api/kernel/delete", {
       body: request,
     });
   }
 
+  @LogMethodCalls()
   public async save(request: SaveNotebookRequest): Promise<string> {
-    logger.log("save");
     const response = await this.client.POST("/api/kernel/save", {
       body: request,
       parseAs: "text",
@@ -153,53 +203,47 @@ export class MarimoBridge implements Disposable {
     return response.data ?? "";
   }
 
-  public async closeSession(): Promise<void> {
-    logger.log("restart");
-    await this.client.POST("/api/kernel/restart_session", {});
-    this.socket.close();
-    this.start();
-  }
-
+  @LogMethodCalls()
   public async functionRequest(request: FunctionCallRequest): Promise<void> {
-    logger.log("function request");
     await this.client.POST("/api/kernel/function_call", {
       body: request,
     });
   }
 
+  @LogMethodCalls()
   public async instantiate(request: InstantiateRequest): Promise<void> {
-    logger.log("instantiate");
     await this.client.POST("/api/kernel/instantiate", {
       body: request,
     });
   }
 
+  @LogMethodCalls()
   public async installMissingPackages(
     request: InstallMissingPackagesRequest,
   ): Promise<void> {
-    logger.log("install missing packages");
     await this.client.POST("/api/kernel/install_missing_packages", {
       body: request,
     });
   }
 
+  @LogMethodCalls()
   public async interrupt(): Promise<void> {
-    logger.log("interrupt");
     await this.client.POST("/api/kernel/interrupt", {});
   }
 
+  @LogMethodCalls()
   public async readCode(): Promise<string> {
-    logger.log("read code");
     const response = await this.client.POST("/api/kernel/read_code");
     return response.data?.contents ?? "";
   }
 
+  @LogMethodCalls()
   public async updateCellIds(request: UpdateCellIdsRequest): Promise<void> {
     // Don't send if the socket is not open
     if (this.socket.readyState !== WebSocket.OPEN) {
       return;
     }
-    logger.log("update cell ids");
+    this.logger.log("update cell ids");
     await this.client.POST("/api/kernel/sync/cell_ids", {
       body: request,
     });
@@ -210,6 +254,7 @@ export class MarimoBridge implements Disposable {
     switch (message.op) {
       case "kernel-ready":
         this.callbacks.onKernelReady(message.data);
+        MarimoRunningKernelsProvider.refresh();
         return;
       case "cell-op":
         this.callbacks.onCellMessage(message.data);
@@ -256,7 +301,7 @@ export class MarimoBridge implements Disposable {
       case "reload":
         vscode.commands.executeCommand("workbench.action.reloadWindow");
         return;
-      case "missing-package-alert":
+      case "missing-package-alert": {
         const response = await vscode.window.showInformationMessage(
           "Missing packages:",
           {
@@ -299,7 +344,8 @@ export class MarimoBridge implements Disposable {
           },
         );
         return;
-      case "installing-package-alert":
+      }
+      case "installing-package-alert": {
         if (!this.progress) {
           return;
         }
@@ -333,6 +379,7 @@ export class MarimoBridge implements Disposable {
           this.progressCompletedDeferred = undefined;
         }
         return;
+      }
       // Unused features
       case "remove-ui-elements":
       case "data-column-preview":
@@ -345,8 +392,16 @@ export class MarimoBridge implements Disposable {
       case "update-cell-ids":
         return;
       default:
-        logNever(message);
-        return;
+        return logNever(message);
     }
   }
+}
+
+function retry(fn: () => Promise<void>, retries = 3): Promise<void> {
+  return fn().catch((error) => {
+    if (retries === 0) {
+      throw error;
+    }
+    return retry(fn, retries - 1);
+  });
 }

@@ -57,6 +57,7 @@ export type InstallMissingPackagesRequest =
   schemas["InstallMissingPackagesRequest"];
 export type UpdateCellIdsRequest = schemas["UpdateCellIdsRequest"];
 export type RunRequest = schemas["RunRequest"];
+export type MarimoFile = schemas["MarimoFile"];
 export type WorkspaceFilesResponse = schemas["WorkspaceFilesResponse"];
 export type DeleteCellRequest = schemas["DeleteCellRequest"];
 export type SaveNotebookRequest = schemas["SaveNotebookRequest"];

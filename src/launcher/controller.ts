@@ -11,13 +11,14 @@ import {
 } from "vscode";
 import { MarimoPanelManager } from "../browser/panel";
 import { Config, composeUrl } from "../config";
+import { getGlobalState } from "../ctx";
 import { logger } from "../logger";
-import { updateStatusBar } from "../ui/status-bar";
-import { ping } from "../utils/network";
-import { MarimoTerminal } from "./terminal";
-import { getFocusedMarimoTextEditor, isMarimoApp } from "../utils/query";
-import { ServerManager } from "./server-manager";
+import { statusBarManager } from "../ui/status-bar";
 import { MarimoCmdBuilder } from "../utils/cmd";
+import { ping } from "../utils/network";
+import { getFocusedMarimoTextEditor, isMarimoApp } from "../utils/query";
+import { type IMarimoTerminal, MarimoTerminal } from "./terminal";
+import { ServerManager } from "./server-manager";
 
 export type AppMode = "edit" | "run";
 
@@ -37,7 +38,7 @@ export interface IMarimoController {
  * Manages a running marimo server, the terminal, and the webview panel.
  */
 export class MarimoController implements Disposable {
-  public terminal: MarimoTerminal;
+  public terminal: IMarimoTerminal;
   private panel: MarimoPanelManager;
 
   public currentMode: AppMode | undefined;
@@ -45,18 +46,13 @@ export class MarimoController implements Disposable {
   public port: number | undefined;
   private logger = logger.createLogger(this.appName);
 
-  constructor(
-    public file: TextDocument,
-    private extension: ExtensionContext,
-    private onUpdate: () => void,
-  ) {
+  constructor(public file: TextDocument) {
     this.file = file;
     const workspaceFolder = workspace.workspaceFolders?.find((folder) =>
       file.uri.fsPath.startsWith(folder.uri.fsPath),
     )?.uri.fsPath;
 
     this.terminal = new MarimoTerminal(
-      extension,
       file.uri.fsPath,
       workspaceFolder,
       this.appName,
@@ -72,11 +68,22 @@ export class MarimoController implements Disposable {
   }
 
   async start(mode: AppMode, port: number) {
-    this.extension.globalState.update(this.keyFor("mode"), mode);
+    // If edit mode, use the existing server
+    const serverManager = ServerManager.instance;
+    if (mode === "edit") {
+      const {port} = await serverManager.start();
+      this.active = true;
+      this.port = port
+      this.currentMode = mode;
+      this.onUpdate();
+      return;
+    }
+
+    getGlobalState().update(this.keyFor("mode"), mode);
     this.currentMode = mode;
-    this.extension.globalState.update(this.keyFor("port"), port);
+    getGlobalState().update(this.keyFor("port"), port);
     this.port = port;
-    const filePath = this.terminal.relativePathFor(this.file.uri.fsPath);
+    const filePath = this.terminal.relativePathFor(this.file.uri);
 
     const cmd = new MarimoCmdBuilder()
       .debug(Config.debug)
@@ -95,6 +102,10 @@ export class MarimoController implements Disposable {
 
     this.active = true;
     this.onUpdate();
+  }
+
+  private onUpdate() {
+    statusBarManager.update();
   }
 
   isWebviewActive() {
@@ -127,9 +138,7 @@ export class MarimoController implements Disposable {
     }
     this.logger.log("terminal recovered");
 
-    const port = +(
-      this.extension.globalState.get<number>(this.keyFor("port")) || 0
-    );
+    const port = +(getGlobalState().get<number>(this.keyFor("port")) || 0);
     if (!port) {
       return;
     }
@@ -142,8 +151,7 @@ export class MarimoController implements Disposable {
 
     this.active = true;
     this.port = port;
-    this.currentMode =
-      this.extension.globalState.get(this.keyFor("mode")) || "edit";
+    this.currentMode = getGlobalState().get(this.keyFor("mode")) || "edit";
     this.logger.log("state recovered");
 
     this.onUpdate();
@@ -154,8 +162,9 @@ export class MarimoController implements Disposable {
     this.panel.dispose();
     this.terminal.dispose();
     this.active = false;
-    this.extension.globalState.update(this.keyFor("mode"), undefined);
-    this.extension.globalState.update(this.keyFor("port"), undefined);
+    this.port = undefined;
+    getGlobalState().update(this.keyFor("mode"), undefined);
+    getGlobalState().update(this.keyFor("port"), undefined);
     this.onUpdate();
   }
 
@@ -170,7 +179,11 @@ export class MarimoController implements Disposable {
     if (!this.port) {
       return "";
     }
-    return composeUrl(this.port);
+    const url = new URL(composeUrl(this.port));
+    if (this.currentMode === "edit") {
+      url.searchParams.set("file", this.terminal.relativePathFor(this.file.uri));
+    }
+    return url.toString();
   }
 
   private keyFor(key: string) {
@@ -184,18 +197,13 @@ export const Controllers = {
   getControllerForActivePanel(): MarimoController | undefined {
     return [...all.values()].find((c) => c.isWebviewActive());
   },
-  getOrCreate(
-    file: TextDocument,
-    extension: ExtensionContext,
-  ): MarimoController {
+  getOrCreate(file: TextDocument): MarimoController {
     const key = file.uri.fsPath;
     let controller = all.get(key);
     if (controller) {
       return controller;
     }
-    controller = new MarimoController(file, extension, () =>
-      updateStatusBar(extension),
-    );
+    controller = new MarimoController(file);
     all.set(key, controller);
     return controller;
   },
@@ -214,23 +222,16 @@ export const Controllers = {
   },
 };
 
-export function withController<T>(
-  extension: ExtensionContext,
-  fn: (controller: MarimoController) => T,
-) {
+export function withController<T>(fn: (controller: MarimoController) => T) {
   const activePanelController = Controllers.getControllerForActivePanel();
   if (activePanelController) {
     return fn(activePanelController);
   }
 
-  const file = getFocusedMarimoTextEditor({toast: true});
+  const file = getFocusedMarimoTextEditor({ toast: true });
   if (!file) {
     return;
   }
-  if (!isMarimoApp(file.document)) {
-    window.showInformationMessage("This is not a marimo app.");
-    return;
-  }
-  const controller = Controllers.getOrCreate(file.document, extension);
+  const controller = Controllers.getOrCreate(file.document);
   return fn(controller);
 }

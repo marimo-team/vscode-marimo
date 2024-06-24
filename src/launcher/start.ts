@@ -1,6 +1,6 @@
 import { window } from "vscode";
 import { Config } from "../config";
-import { disposeStatusBar } from "../ui/status-bar";
+import { statusBarManager } from "../ui/status-bar";
 import { tryPort } from "../utils/network";
 import type { AppMode, MarimoController } from "./controller";
 
@@ -35,20 +35,21 @@ async function start({
     controller.dispose();
   }
 
-  window.showInformationMessage(
-    `Starting ${controller.appName} in ${mode} mode`,
-  );
+  const defaultPort = mode === 'run' ? Config.readPort : Config.port;
 
   // Start with the current port if available
   // Make sure the port is free, otherwise try the next one
-  const port = await tryPort(controller.port || Config.port);
+  const port = await tryPort(controller.port || defaultPort);
+  window.showInformationMessage(
+    `Starting ${controller.appName} in ${mode} mode (port: ${port})`,
+  );
 
   await controller.start(mode, port);
 }
 
 function stop(controller: MarimoController) {
   controller.dispose();
-  disposeStatusBar();
+  statusBarManager.update();
 }
 
 export const Launcher = {

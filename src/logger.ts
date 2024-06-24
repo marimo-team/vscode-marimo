@@ -1,7 +1,9 @@
 import { window } from "vscode";
 import { Config } from "./config";
 
-const channel = window.createOutputChannel("marimo");
+const channel = window.createOutputChannel("marimo") || {
+  appendLine: console.log,
+};
 
 class Logger {
   constructor(private prefix: string) {}
@@ -11,7 +13,7 @@ class Logger {
       return;
     }
     if (this.prefix) {
-      channel.appendLine(`${this.prefix}: ${args.join(" ")}`);
+      channel.appendLine(`[${this.prefix}]: ${args.join(" ")}`);
     } else {
       channel.appendLine(args.join(" "));
     }
@@ -19,7 +21,7 @@ class Logger {
 
   log(...args: unknown[]) {
     if (this.prefix) {
-      channel.appendLine(`${this.prefix}: ${args.join(" ")}`);
+      channel.appendLine(`[${this.prefix}]: ${args.join(" ")}`);
     } else {
       channel.appendLine(args.join(" "));
     }
@@ -27,7 +29,7 @@ class Logger {
 
   error(...args: unknown[]) {
     if (this.prefix) {
-      channel.appendLine(`[error] [${this.prefix}] ${args.join(" ")}`);
+      channel.appendLine(`[🛑] [${this.prefix}] ${args.join(" ")}`);
     } else {
       channel.appendLine(args.join(" "));
     }
@@ -35,7 +37,7 @@ class Logger {
 
   warn(...args: unknown[]) {
     if (this.prefix) {
-      channel.appendLine(`[warn] [${this.prefix}] ${args.join(" ")}`);
+      channel.appendLine(`[⚠️] [${this.prefix}] ${args.join(" ")}`);
     } else {
       channel.appendLine(args.join(" "));
     }

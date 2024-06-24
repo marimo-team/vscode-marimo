@@ -1,5 +1,5 @@
 import { type QuickPickItem, type Uri, window } from "vscode";
-import { exportNotebookAs } from "./convert";
+import { exportNotebookAs } from "./export-as";
 
 interface CommandPickItem extends QuickPickItem {
   handler: () => void;
@@ -11,7 +11,7 @@ export async function exportAsCommands(file: Uri) {
     {
       label: "$(browser) Export as HTML",
       async handler() {
-        exportNotebookAs(file.fsPath, "html");
+        await exportNotebookAs(file.fsPath, "html");
       },
     },
     {

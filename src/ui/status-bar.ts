@@ -1,77 +1,122 @@
 import {
-  type ExtensionContext,
+  type Disposable,
   StatusBarAlignment,
   type StatusBarItem,
   ThemeColor,
   commands,
   window,
+  workspace,
 } from "vscode";
 import { Controllers } from "../launcher/controller";
 import { KernelManager } from "../notebook/kernel-manager";
+import type { ILifecycle } from "../types";
+import { invariant } from "../utils/invariant";
 import { getFocusedMarimoTextEditor, isMarimoApp } from "../utils/query";
-import { extension } from "../ctx";
 
-let statusBar: StatusBarItem | undefined;
+class StatusBarManager implements ILifecycle {
+  private statusBar: StatusBarItem | undefined;
+  private otherDisposables: Disposable[] = [];
 
-export function ensureStatusBar() {
-  if (!statusBar) {
-    statusBar = window.createStatusBarItem(StatusBarAlignment.Left, 10);
-    statusBar.command = "vscode-marimo.showCommands";
-    statusBar.show();
+  async restart(): Promise<void> {
+    this.update();
   }
-  return statusBar;
-}
 
-export function disposeStatusBar() {
-  statusBar?.dispose();
-  statusBar = undefined;
-}
+  async start(): Promise<void> {
+    this.initStatusBar();
+    this.update();
+    this.addListeners();
+  }
 
-export function updateStatusBar(ext: ExtensionContext = extension) {
-  const statusBar = ensureStatusBar();
+  private addListeners() {
+    this.otherDisposables.push(
+      window.onDidChangeActiveTextEditor(() => {
+        this.update();
+      }),
+    );
+    this.otherDisposables.push(
+      window.onDidChangeActiveNotebookEditor(() => {
+        this.update();
+      }),
+    );
+    this.otherDisposables.push(
+      window.onDidChangeTextEditorViewColumn(() => {
+        this.update();
+      }),
+    );
+  }
 
-  // Update if looking at a NotebookEditor
-  const kernel = KernelManager.getFocusedMarimoKernel();
-  if (kernel) {
-    statusBar.show();
-    statusBar.text = "$(zap) marimo";
-    statusBar.backgroundColor = new ThemeColor(
+  private initStatusBar() {
+    if (!this.statusBar) {
+      this.statusBar = window.createStatusBarItem(StatusBarAlignment.Left, 10);
+      this.statusBar.command = "vscode-marimo.showCommands";
+      this.statusBar.show();
+    }
+  }
+
+  dispose() {
+    this.otherDisposables.forEach((d) => d.dispose());
+    this.statusBar?.dispose();
+    this.statusBar = undefined;
+  }
+
+  update() {
+    this.initStatusBar();
+
+    const kernel = KernelManager.getFocusedMarimoKernel();
+    if (kernel) {
+      this.updateForKernel();
+    } else {
+      this.updateForTextEditor();
+    }
+  }
+
+  private updateForKernel() {
+    invariant(this.statusBar, "statusBar should be defined");
+
+    this.statusBar.show();
+    this.statusBar.text = "$(zap) marimo";
+    this.statusBar.backgroundColor = new ThemeColor(
       "statusBarItem.warningBackground",
     );
-    statusBar.color = new ThemeColor("statusBarItem.warningForeground");
-    commands.executeCommand("setContext", "marimo.isMarimoApp", false);
-    return;
+    this.statusBar.color = new ThemeColor("statusBarItem.warningForeground");
+    void commands.executeCommand("setContext", "marimo.isMarimoApp", false);
   }
 
-  // Update if looking at a TextEditor
-  const editor = getFocusedMarimoTextEditor({ toast: false });
-  commands.executeCommand(
-    "setContext",
-    "marimo.isMarimoApp",
-    isMarimoApp(editor?.document),
-  );
+  private updateForTextEditor() {
+    invariant(this.statusBar, "statusBar should be defined");
 
-  if (!editor?.document) {
-    statusBar.hide();
-    return;
-  }
-  statusBar.show();
-
-  const activeController =
-    Controllers.getControllerForActivePanel() ||
-    Controllers.getOrCreate(editor.document, ext);
-  if (activeController.active) {
-    statusBar.text =
-      activeController.currentMode === "run"
-        ? "$(zap) marimo (run)"
-        : "$(zap) marimo";
-    statusBar.backgroundColor = new ThemeColor(
-      "statusBarItem.warningBackground",
+    const editor = getFocusedMarimoTextEditor({ toast: false });
+    void commands.executeCommand(
+      "setContext",
+      "marimo.isMarimoApp",
+      isMarimoApp(editor?.document),
     );
-    statusBar.color = new ThemeColor("statusBarItem.warningForeground");
-  } else {
-    statusBar.text = "$(play) Start marimo";
-    statusBar.backgroundColor = undefined;
-    statusBar.color = undefined;
+
+    if (!editor?.document) {
+      this.statusBar.hide();
+      return;
+    }
+
+    this.statusBar.show();
+
+    const activeController =
+      Controllers.getControllerForActivePanel() ||
+      Controllers.getOrCreate(editor.document);
+    if (activeController.active) {
+      this.statusBar.text =
+        activeController.currentMode === "run"
+          ? "$(zap) marimo (run)"
+          : "$(zap) marimo";
+      this.statusBar.backgroundColor = new ThemeColor(
+        "statusBarItem.warningBackground",
+      );
+      this.statusBar.color = new ThemeColor("statusBarItem.warningForeground");
+    } else {
+      this.statusBar.text = "$(play) Start marimo";
+      this.statusBar.backgroundColor = undefined;
+      this.statusBar.color = undefined;
+    }
   }
 }
+
+export const statusBarManager = new StatusBarManager();

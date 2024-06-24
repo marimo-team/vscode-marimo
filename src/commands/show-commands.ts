@@ -3,8 +3,11 @@ import { DOCUMENTATION_URL } from "../constants";
 import { exportAsCommands } from "../export/export-as-commands";
 import { MarimoController } from "../launcher/controller";
 import { Launcher } from "../launcher/start";
+import {
+  getActiveMarimoFile,
+  openMarimoNotebookDocument,
+} from "../notebook/extension";
 import { Kernel } from "../notebook/kernel";
-import { openNotebookDocument } from "../notebook/extension";
 
 interface CommandPickItem extends QuickPickItem {
   handler: () => void;
@@ -29,7 +32,7 @@ export async function showCommands(controller: MarimoController | Kernel) {
   }
 }
 
-async function showKernelCommands(kernel: Kernel): Promise<CommandPickItem[]> {
+export function showKernelCommands(kernel: Kernel): CommandPickItem[] {
   return [
     {
       label: "$(split-horizontal) Open outputs in embedded browser",
@@ -66,15 +69,15 @@ async function showKernelCommands(kernel: Kernel): Promise<CommandPickItem[]> {
   ];
 }
 
-async function showMarimoControllerCommands(
+export function showMarimoControllerCommands(
   controller: MarimoController,
-): Promise<CommandPickItem[]> {
+): CommandPickItem[] {
   return [
     // Non-active commands
     {
       label: "$(notebook) Start as VSCode notebook",
       async handler() {
-        await openNotebookDocument();
+        await openMarimoNotebookDocument(await getActiveMarimoFile());
       },
       if: !controller.active,
     },
@@ -112,7 +115,7 @@ async function showMarimoControllerCommands(
       if: controller.active,
     },
     {
-      label: "$(refresh) Restart marimo server",
+      label: "$(refresh) Restart marimo kernel",
       async handler() {
         const mode = controller.currentMode || "edit";
         await Launcher.stop(controller);
@@ -142,7 +145,7 @@ async function showMarimoControllerCommands(
       if: controller.active,
     },
     {
-      label: "$(close) Stop server",
+      label: "$(close) Stop kernel",
       handler() {
         Launcher.stop(controller);
       },

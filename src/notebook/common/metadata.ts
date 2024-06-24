@@ -7,8 +7,10 @@ interface CellMetadata {
   name?: string;
 }
 
-export function getCellMetadata(cell: vscode.NotebookCell): CellMetadata {
-  return cell.metadata.custom || {};
+export function getCellMetadata(
+  cell: vscode.NotebookCell | vscode.NotebookCellData,
+): CellMetadata {
+  return cell.metadata?.custom || {};
 }
 
 export async function setCellMetadata(
