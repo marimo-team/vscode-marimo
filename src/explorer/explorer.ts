@@ -14,7 +14,9 @@ import {
   workspace,
 } from "vscode";
 import { Config } from "../config";
+import { Controllers } from "../launcher/controller";
 import { ServerManager } from "../launcher/server-manager";
+import { Launcher } from "../launcher/start";
 import { logger } from "../logger";
 import { openMarimoNotebookDocument } from "../notebook/extension";
 import type { Kernel } from "../notebook/kernel";
@@ -74,15 +76,43 @@ export class MarimoAppProvider
       "marimo-explorer.openFile": (element: Entry) =>
         this.openResource(element.uri),
       "marimo-explorer.openAsVSCodeNotebook": async (element: Entry) => {
-        const kernel = KernelManager.instance.getKernelByUri(element.uri);
-        if (kernel) {
-          // Focus the notebook
-          showNotebookDocument(kernel.notebookDoc);
-        } else {
-          await openMarimoNotebookDocument(element.uri);
+        const didFocus = this.focusIfActive(element.uri);
+        if (didFocus) {
+          return;
         }
+
+        await openMarimoNotebookDocument(element.uri);
+      },
+      "marimo-explorer.edit": async (element: Entry) => {
+        const didFocus = this.focusIfActive(element.uri);
+        if (didFocus) {
+          return;
+        }
+
+        const textDocument = await workspace.openTextDocument(element.uri);
+        const controller = Controllers.getOrCreate(textDocument);
+        await Launcher.start({ controller, mode: "edit" });
+        controller.open();
       },
     };
+  }
+
+  private focusIfActive(uri: Uri): boolean {
+    // Try controller
+    const controller = Controllers.get(uri);
+    if (controller?.isWebviewActive()) {
+      controller.open();
+      return true;
+    }
+
+    // Try kernel
+    const kernel = KernelManager.instance.getKernelByUri(uri);
+    if (kernel) {
+      showNotebookDocument(kernel.notebookDoc);
+      return true;
+    }
+
+    return false;
   }
 
   getTreeItem(element: Entry): TreeItem {
@@ -102,7 +132,7 @@ export class MarimoAppProvider
       const filePath = element.uri.fsPath;
       const relativePath = workspace.asRelativePath(element.uri);
       treeItem.label = relativePath;
-      treeItem.iconPath = new ThemeIcon("book");
+      treeItem.iconPath = new ThemeIcon("file");
       treeItem.tooltip = filePath;
     }
     return treeItem;

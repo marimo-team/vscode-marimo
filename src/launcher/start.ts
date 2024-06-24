@@ -35,7 +35,7 @@ async function start({
     controller.dispose();
   }
 
-  const defaultPort = mode === 'run' ? Config.readPort : Config.port;
+  const defaultPort = mode === "run" ? Config.readPort : Config.port;
 
   // Start with the current port if available
   // Make sure the port is free, otherwise try the next one

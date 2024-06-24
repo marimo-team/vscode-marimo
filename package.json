@@ -94,6 +94,12 @@
         "icon": "$(notebook)"
       },
       {
+        "command": "marimo-explorer.edit",
+        "enablement": "view == marimo-explorer-applications",
+        "title": "Edit",
+        "icon": "$(edit)"
+      },
+      {
         "command": "vscode-marimo.startServer",
         "enablement": "(view == marimo-explorer-running-applications) && marimo.isMarimoServerRunning === false",
         "category": "marimo",
@@ -268,6 +274,11 @@
         {
           "when": "view == marimo-explorer-applications",
           "command": "marimo-explorer.openAsVSCodeNotebook",
+          "group": "inline"
+        },
+        {
+          "when": "view == marimo-explorer-applications",
+          "command": "marimo-explorer.edit",
           "group": "inline"
         }
       ],

@@ -12,13 +12,14 @@ import {
 import { MarimoPanelManager } from "../browser/panel";
 import { Config, composeUrl } from "../config";
 import { getGlobalState } from "../ctx";
+import { MarimoRunningKernelsProvider } from "../explorer/explorer";
 import { logger } from "../logger";
 import { statusBarManager } from "../ui/status-bar";
 import { MarimoCmdBuilder } from "../utils/cmd";
 import { ping } from "../utils/network";
 import { getFocusedMarimoTextEditor, isMarimoApp } from "../utils/query";
-import { type IMarimoTerminal, MarimoTerminal } from "./terminal";
 import { ServerManager } from "./server-manager";
+import { type IMarimoTerminal, MarimoTerminal } from "./terminal";
 
 export type AppMode = "edit" | "run";
 
@@ -71,9 +72,9 @@ export class MarimoController implements Disposable {
     // If edit mode, use the existing server
     const serverManager = ServerManager.instance;
     if (mode === "edit") {
-      const {port} = await serverManager.start();
+      const { port } = await serverManager.start();
       this.active = true;
-      this.port = port
+      this.port = port;
       this.currentMode = mode;
       this.onUpdate();
       return;
@@ -121,11 +122,16 @@ export class MarimoController implements Disposable {
     if (browser === "system") {
       // Close the panel if opened
       this.panel.dispose();
-      env.openExternal(Uri.parse(this.url));
+      await env.openExternal(Uri.parse(this.url));
     } else if (browser === "embedded") {
-      this.panel.create(this.url);
+      await this.panel.create(this.url);
       this.panel.show();
     }
+
+    // Wait 1s and refresh connections
+    setTimeout(() => {
+      MarimoRunningKernelsProvider.refresh();
+    }, 1000);
   }
 
   reloadPanel() {
@@ -181,7 +187,10 @@ export class MarimoController implements Disposable {
     }
     const url = new URL(composeUrl(this.port));
     if (this.currentMode === "edit") {
-      url.searchParams.set("file", this.terminal.relativePathFor(this.file.uri));
+      url.searchParams.set(
+        "file",
+        this.terminal.relativePathFor(this.file.uri),
+      );
     }
     return url.toString();
   }
@@ -207,11 +216,11 @@ export const Controllers = {
     all.set(key, controller);
     return controller;
   },
-  get(file: TextDocument | undefined): MarimoController | undefined {
-    if (!file) {
+  get(uri: Uri | undefined): MarimoController | undefined {
+    if (!uri) {
       return;
     }
-    return all.get(file.uri.fsPath);
+    return all.get(uri.fsPath);
   },
   findWithTerminal(term: Terminal): MarimoController | undefined {
     return [...all.values()].find((c) => c.terminal.is(term));
