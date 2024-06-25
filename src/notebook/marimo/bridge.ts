@@ -69,6 +69,7 @@ export class MarimoBridge implements ILifecycle {
     private skewToken: SkewToken,
     private readonly callbacks: {
       onCellMessage: (message: CellOp) => void;
+      onCompletedRun: () => void;
       onKernelReady: (payload: KernelReady) => void;
     },
   ) {}
@@ -306,9 +307,9 @@ export class MarimoBridge implements ILifecycle {
         logger.warn("query params not supported");
         return;
       case "interrupted":
-        await this.interrupt();
         return;
       case "completed-run":
+        await this.callbacks.onCompletedRun();
         return;
       case "reconnected":
         vscode.window.showInformationMessage("Restored a previous session");

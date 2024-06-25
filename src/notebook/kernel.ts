@@ -73,6 +73,7 @@ export class Kernel implements IKernel {
     this.bridge = new MarimoBridge(port, kernelKey, skewToken, {
       onCellMessage: this.handleCellMessage.bind(this),
       onKernelReady: this.handleReady.bind(this),
+      onCompletedRun: this.handleCompleteRun.bind(this),
     });
     this.bridge.start();
     const basename = vscode.workspace.asRelativePath(notebookDoc.uri);
@@ -248,6 +249,7 @@ export class Kernel implements IKernel {
     await this.bridge.restart();
     // Clear cells
     this.ready = new Deferred<KernelReady>();
+    this.endAllExecutions();
     this.cells.clear();
     await this.start();
     this.panel.reload();
@@ -345,6 +347,18 @@ export class Kernel implements IKernel {
     });
   }
 
+  private endAllExecutions() {
+    // Finish all running cells
+    for (const execution of this.cellExecutions.values()) {
+      execution.end(true, Date.now())
+    }
+    this.cellExecutions.clear();
+  }
+
+  private async handleCompleteRun(): Promise<void> {
+    this.endAllExecutions();
+  }
+
   private async handleReady(payload: KernelReady): Promise<void> {
     // Collect cells
     const { cell_ids, codes, names } = payload;
@@ -424,6 +438,7 @@ export class Kernel implements IKernel {
   }
 
   private async handleCellMessageInternal(message: CellOp): Promise<void> {
+    // logger.debug("message: ", JSON.stringify(message))
     const cell_id = message.cell_id as CellId;
     // Update status
     const prevStatus = this.lastCellStatus.get(cell_id) ?? "idle";
@@ -481,10 +496,7 @@ export class Kernel implements IKernel {
       this.logger.debug("starting execution for cell", cellMetadata.id);
       const execution = this.opts.controller.createNotebookCellExecution(cell);
       execution.token.onCancellationRequested(() => {
-        this.logger.log("Cancelling cell", cellMetadata.id);
-        this.bridge.interrupt();
-        execution.end(false, Date.now());
-        this.cellExecutions.delete(cell_id);
+        this.logger.log("interrupting cell", cellMetadata.id);
       });
       this.cellExecutions.set(cellMetadata.id, execution);
       return;
@@ -585,7 +597,8 @@ export class Kernel implements IKernel {
     }
 
     // Should end
-    const isEnd = nextStatus === "idle" && !!message.output;
+    const hasConsoleOrOutput = !!message.console || !!message.output;
+    const isEnd = nextStatus === "idle" && hasConsoleOrOutput;
     if (isEnd) {
       endExecution(true);
     }

@@ -29,7 +29,7 @@ class Logger {
 
   error(...args: unknown[]) {
     if (this.prefix) {
-      channel.appendLine(`[🛑] [${this.prefix}] ${args.join(" ")}`);
+      channel.appendLine(`[🛑 error] [${this.prefix}] ${args.join(" ")}`);
     } else {
       channel.appendLine(args.join(" "));
     }
@@ -37,7 +37,7 @@ class Logger {
 
   warn(...args: unknown[]) {
     if (this.prefix) {
-      channel.appendLine(`[⚠️] [${this.prefix}] ${args.join(" ")}`);
+      channel.appendLine(`[⚠️ warn] [${this.prefix}] ${args.join(" ")}`);
     } else {
       channel.appendLine(args.join(" "));
     }
