@@ -35,6 +35,7 @@ interface IKernelManager extends vscode.Disposable {
  */
 export class KernelManager implements IKernelManager {
   private readonly supportedLanguages = [PYTHON_LANGUAGE_ID];
+  private logger = logger.createLogger("kernel-manager");
   public static instance: KernelManager = new KernelManager();
 
   private controller: vscode.NotebookController;
@@ -52,7 +53,7 @@ export class KernelManager implements IKernelManager {
       const key = getNotebookMetadata(notebook).key;
       const kernel = this.getKernel(key);
       if (!kernel) {
-        return logger.error("No kernel found for key", key);
+        return this.logger.error("No kernel found for key", key);
       }
       await kernel.interrupt();
     };
@@ -142,6 +143,7 @@ export class KernelManager implements IKernelManager {
     // Listen for closed notebooks
     this.otherDisposables.push(
       vscode.workspace.onDidCloseNotebookDocument((nb) => {
+        this.logger.log("notebook closed", nb.uri.toString());
         const kernel = this.getKernelForNotebook(nb);
         if (!kernel) {
           return;
@@ -180,11 +182,11 @@ export class KernelManager implements IKernelManager {
 
     const key = getNotebookMetadata(notebook).key;
     if (!key) {
-      logger.error("No key found in notebook metadata");
+      this.logger.error("No key found in notebook metadata");
       return;
     }
     if (!kernelMap.has(key)) {
-      logger.error("No kernel found for key", key);
+      this.logger.error("No kernel found for key", key);
       return;
     }
     return this.getKernel(key);

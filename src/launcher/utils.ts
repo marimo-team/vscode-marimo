@@ -1,4 +1,4 @@
-import { JSDOM } from "jsdom";
+import { parse } from "node-html-parser";
 import { composeUrl } from "../config";
 import type { MarimoConfig, SkewToken } from "../notebook/marimo/types";
 
@@ -16,19 +16,18 @@ export async function fetchMarimoStartupValues(port: number): Promise<{
 }> {
   const response = await fetch(`${composeUrl(port)}`);
   const html = await response.text();
-  const doc = new JSDOM(html).window.document;
+  const root = parse(html);
   const getDomValue = (tagName: string, datasetKey: string) => {
-    const element = Array.from(doc.getElementsByTagName(tagName))[0] as
-      | HTMLElement
-      | undefined;
+    const element = root.querySelector(tagName);
     if (!element) {
       throw new Error(`Could not find ${tagName}`);
     }
-    if (element.dataset[datasetKey] === undefined) {
+    const value = element.getAttribute(`data-${datasetKey}`);
+    if (value === undefined) {
       throw new Error(`${datasetKey} is undefined`);
     }
 
-    return element.dataset[datasetKey] as string;
+    return value;
   };
 
   const skewToken = getDomValue("marimo-server-token", "token") as SkewToken;

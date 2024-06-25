@@ -2,6 +2,7 @@ import createClient from "openapi-fetch";
 import * as vscode from "vscode";
 import { WebSocket } from "ws";
 import { Config, composeUrl } from "../../config";
+import { getGlobalState } from "../../ctx";
 import {
   MarimoExplorer,
   MarimoRunningKernelsProvider,
@@ -119,6 +120,26 @@ export class MarimoBridge implements ILifecycle {
             const { skewToken } = await fetchMarimoStartupValues(this.port);
             this.skewToken = skewToken;
             // TODO: Retry the request
+          }
+          // No longer connected to a kernel
+          if (res.status >= 500 && text.includes("Invalid session id")) {
+            // Show action to restart kernel
+            this.socket.close();
+            await vscode.window
+              .showErrorMessage<vscode.MessageItem>(
+                "No longer connected to a marimo server",
+                {
+                  modal: true,
+                },
+                {
+                  title: "Restart kernel",
+                },
+              )
+              .then((item) => {
+                if (item?.title === "Restart kernel") {
+                  this.restart();
+                }
+              });
           }
 
           logger.error(`HTTP error: ${res.status} ${res.statusText}`, text);
@@ -290,7 +311,7 @@ export class MarimoBridge implements ILifecycle {
       case "completed-run":
         return;
       case "reconnected":
-        vscode.window.showInformationMessage("Reconnected to Marimo server");
+        vscode.window.showInformationMessage("Restored a previous session");
         return;
       case "function-call-result":
         this.FUNCTIONS_REGISTRY.resolve(
@@ -303,7 +324,7 @@ export class MarimoBridge implements ILifecycle {
         return;
       case "missing-package-alert": {
         const response = await vscode.window.showInformationMessage(
-          "Missing packages:",
+          `Missing packages: ${message.data.packages.join(", ")}`,
           {
             detail: message.data.packages.join(", "),
           },
@@ -314,15 +335,22 @@ export class MarimoBridge implements ILifecycle {
         if (response?.title !== "Install") {
           return;
         }
-        const manager = await vscode.window.showQuickPick(
-          ["pip", "rye", "uv", "poetry", "pixi"],
-          {
-            placeHolder: "Select package manager",
-          },
+        const lastPackageManager = getGlobalState().get<string>(
+          "marimo.lastPackageManager",
         );
+        const choices = unique(
+          [lastPackageManager, "pip", "rye", "uv", "poetry", "pixi"].filter(
+            Boolean,
+          ),
+        );
+        const manager = await vscode.window.showQuickPick(choices, {
+          placeHolder: "Select package manager",
+        });
         if (!manager) {
           return;
         }
+        // Save last choice
+        getGlobalState().update("marimo.lastPackageManager", manager);
         await this.installMissingPackages({
           manager: manager,
         });
@@ -404,4 +432,8 @@ function retry(fn: () => Promise<void>, retries = 3): Promise<void> {
     }
     return retry(fn, retries - 1);
   });
+}
+
+function unique<T>(arr: T[]): T[] {
+  return Array.from(new Set(arr));
 }

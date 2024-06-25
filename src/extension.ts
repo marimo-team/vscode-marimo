@@ -1,6 +1,7 @@
 import {
   type Disposable,
   type ExtensionContext,
+  ProgressLocation,
   Uri,
   commands,
   env,
@@ -11,7 +12,10 @@ import { showCommands } from "./commands/show-commands";
 import { DOCUMENTATION_URL } from "./constants";
 import { convertIPyNotebook, convertMarkdownNotebook } from "./convert/convert";
 import { setExtension } from "./ctx";
-import { MarimoExplorer } from "./explorer/explorer";
+import {
+  MarimoExplorer,
+  MarimoRunningKernelsProvider,
+} from "./explorer/explorer";
 import { exportAsCommands } from "./export/export-as-commands";
 import { Controllers, withController } from "./launcher/controller";
 import { createNewMarimoFile } from "./launcher/new-file";
@@ -20,7 +24,6 @@ import { Launcher } from "./launcher/start";
 import { logger } from "./logger";
 import { NOTEBOOK_TYPE } from "./notebook/constants";
 import {
-  createNotebookDocument,
   getActiveMarimoFile,
   handleOnOpenNotebookDocument,
   openMarimoNotebookDocument,
@@ -79,18 +82,42 @@ export async function activate(extension: ExtensionContext) {
   ///// Commands /////
   // These commands are for the server
   commands.registerCommand(Commands.startServer, async () => {
-    await serverManager.start();
+    await window.withProgress(
+      {
+        location: ProgressLocation.Notification,
+        title: "Starting marimo server...",
+        cancellable: false,
+      },
+      async () => {
+        // Start server
+        await serverManager.start();
+      },
+    );
   });
   commands.registerCommand(Commands.stopServer, async () => {
-    // Close all marimo notebook editors
-    const editors = window.visibleNotebookEditors.filter(
-      (editor) => editor.notebook.notebookType === NOTEBOOK_TYPE,
+    await window.withProgress(
+      {
+        location: ProgressLocation.Notification,
+        title: "Stopping marimo server...",
+        cancellable: false,
+      },
+      async () => {
+        // Close all marimo notebook editors
+        const editors = window.visibleNotebookEditors.filter(
+          (editor) => editor.notebook.notebookType === NOTEBOOK_TYPE,
+        );
+        for (const editor of editors) {
+          await window.showTextDocument(editor.notebook.uri, {
+            preview: false,
+          });
+          await commands.executeCommand("workbench.action.closeActiveEditor");
+        }
+        // Stop server
+        await serverManager.stopServer();
+        // Refresh explorer
+        MarimoRunningKernelsProvider.refresh();
+      },
     );
-    for (const editor of editors) {
-      await window.showTextDocument(editor.notebook.uri, { preview: false });
-      await commands.executeCommand("workbench.action.closeActiveEditor");
-    }
-    await serverManager.stopServer();
   });
 
   // These commands all operate on a marimo .py file
