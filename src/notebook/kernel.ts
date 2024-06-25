@@ -204,6 +204,16 @@ export class Kernel implements IKernel {
         // name is not needed
       } as unknown as UpdateCellIdsRequest);
     }
+
+    // Update markdown cells to run on change.
+    const markdownChanges = e.cellChanges.flatMap((change)=>change.cell).filter((cell) =>
+      cell.document.languageId === MARKDOWN_LANGUAGE_ID);
+
+    // Execute the pending markdown cells
+    await this.bridge.run({
+      cellIds: markdownChanges.map((cell) => getCellMetadata(cell).id!),
+      codes: markdownChanges.map((cell) => toMarkdown(cell.document.getText())),
+    });
   }
 
   @LogMethodCalls()
