@@ -5,7 +5,7 @@
   "publisher": "marimo-team",
   "description": "Run marimo in VSCode",
   "packageManager": "pnpm@8.15.1",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "engines": {
     "vscode": "^1.86.0"
   },
@@ -109,7 +109,7 @@
       {
         "command": "marimo-explorer.edit",
         "enablement": "view == marimo-explorer-applications",
-        "title": "Edit",
+        "title": "Start in marimo editor (edit)",
         "icon": "$(edit)"
       },
       {
