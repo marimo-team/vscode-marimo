@@ -4,22 +4,23 @@ export function isMarimoApp(
   document: TextDocument | undefined,
   includeEmpty = true,
 ) {
-  if (!document) {
+  if (!document || !["python", "markdown"].includes(document.languageId)) {
     return false;
   }
 
-  // If ends in .py and is empty, return true
-  // This is so we can create a new file and start the server
-  if (
-    includeEmpty &&
-    document.fileName.endsWith(".py") &&
-    document.getText().trim() === ""
-  ) {
+  // If it's empty, return true.
+  // This is so we can create a new file and start the server.
+  if (includeEmpty && document.getText().trim() === "") {
     return true;
   }
 
   // Cheap way of checking if it's a marimo app
-  return document.getText().includes("app = marimo.App(");
+  const fileName = document.fileName;
+  const text = document.getText();
+  return (
+    (text.includes("app = marimo.App(") && fileName.endsWith(".py")) ||
+    (text.includes("marimo-version") && fileName.endsWith(".md"))
+  );
 }
 
 /**

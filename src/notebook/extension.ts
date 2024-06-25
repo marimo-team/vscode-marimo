@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import type { ServerManager } from "../launcher/server-manager";
 import { logger } from "../logger";
+import { isMarimoApp } from "../utils/query";
 import { showNotebookDocument } from "../utils/show";
 import {
   type NotebookMetadata,
@@ -33,14 +34,8 @@ export async function getActiveMarimoFile() {
   }
 
   const document = editor.document;
-  if (document.languageId !== PYTHON_LANGUAGE_ID) {
-    vscode.window.showErrorMessage("Not a Python file!");
-    return;
-  }
-
-  const containsMarimoApp = document.getText().includes("marimo.App");
-  if (!containsMarimoApp) {
-    vscode.window.showErrorMessage("No marimo.App found!");
+  if (!isMarimoApp(document, false)) {
+    vscode.window.showErrorMessage("Active editor is not a Marimo file!");
     return;
   }
 

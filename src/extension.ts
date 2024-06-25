@@ -237,6 +237,7 @@ export async function activate(extension: ExtensionContext) {
       const content = editor.document.getText();
       if (!content.includes("marimo-version:")) {
         await convertMarkdownNotebook(filePath);
+        return;
       }
     }
 
