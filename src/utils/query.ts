@@ -10,18 +10,17 @@ export function isMarimoApp(
 
   // If it's empty, return true This is so we can create a new file and start
   // the server
-  if (
-    includeEmpty &&
-    document.getText().trim() === ""
-  ) {
+  if (includeEmpty && document.getText().trim() === "") {
     return true;
   }
 
   // Cheap way of checking if it's a marimo app
   const fileName = document.fileName;
   const text = document.getText();
-  return (text.includes("app = marimo.App(") && fileName.endsWith(".py")) || (
-    text.includes("marimo-version") && fileName.endsWith(".md"));
+  return (
+    (text.includes("app = marimo.App(") && fileName.endsWith(".py")) ||
+    (text.includes("marimo-version") && fileName.endsWith(".md"))
+  );
 }
 
 /**

@@ -206,8 +206,9 @@ export class Kernel implements IKernel {
     }
 
     // Update markdown cells to run on change.
-    const markdownChanges = e.cellChanges.flatMap((change)=>change.cell).filter((cell) =>
-      cell.document.languageId === MARKDOWN_LANGUAGE_ID);
+    const markdownChanges = e.cellChanges
+      .flatMap((change) => change.cell)
+      .filter((cell) => cell.document.languageId === MARKDOWN_LANGUAGE_ID);
 
     // Execute the pending markdown cells
     await this.bridge.run({
@@ -350,15 +351,18 @@ export class Kernel implements IKernel {
       const code = codes[idx];
       // TODO: Since markdown is special, it should be tagged in payload, opposed to trying to determine here.
       const markdown = maybeMarkdown(code);
-      const cellData = (markdown === null) ? new vscode.NotebookCellData(
-          vscode.NotebookCellKind.Code,
-          code,
-          PYTHON_LANGUAGE_ID,
-      ) : new vscode.NotebookCellData(
-          vscode.NotebookCellKind.Markup,
-          markdown,
-          MARKDOWN_LANGUAGE_ID
-      );
+      const cellData =
+        markdown === null
+          ? new vscode.NotebookCellData(
+              vscode.NotebookCellKind.Code,
+              code,
+              PYTHON_LANGUAGE_ID,
+            )
+          : new vscode.NotebookCellData(
+              vscode.NotebookCellKind.Markup,
+              markdown,
+              MARKDOWN_LANGUAGE_ID,
+            );
 
       cellData.metadata = {
         custom: {
@@ -675,16 +679,15 @@ function toMarkdown(value: string): string {
   return `mo.md("""\n${value}\n""")`;
 }
 
-
 // Consider replacing with the dedent library marimo uses, if this logic stays.
 function dedent(str: string) {
   const match = str.match(/^[ \t]*(?=\S)/gm);
   if (!match) {
     return str; // If no indentation, return original string
   }
-  const minIndent = Math.min(...match.map(el => el.length));
-  const re = new RegExp(`^[ \t]{${minIndent}}`, 'gm');
-  return str.replace(re, '');
+  const minIndent = Math.min(...match.map((el) => el.length));
+  const re = new RegExp(`^[ \t]{${minIndent}}`, "gm");
+  return str.replace(re, "");
 }
 
 function maybeMarkdown(value: string): string | null {
@@ -692,12 +695,12 @@ function maybeMarkdown(value: string): string | null {
   // AST, anything done here is a bit of a hack, data should come from server.
   value = value.trim();
   // Regular expression to match the function calls
-  const regex = /mo\.md\(\s*r?((["'])(?:\2\2)?)(.*?)\1\s*\)/gms;  // 'g' flag to check 0all occurrences
+  const regex = /^mo\.md\(\s*r?((["'])(?:\2\2)?)(.*?)\1\s*\)$/gms; // 'g' flag to check all occurrences
   const matches = [...value.matchAll(regex)];
 
   // Check if there is exactly one match
   if (matches.length === 1) {
-    let extractedString = matches[0][3];  // Extract the string content
+    const extractedString = matches[0][3]; // Extract the string content
     return dedent(extractedString);
   }
   return null;

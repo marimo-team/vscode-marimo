@@ -1,8 +1,8 @@
 import * as vscode from "vscode";
 import type { ServerManager } from "../launcher/server-manager";
 import { logger } from "../logger";
-import { showNotebookDocument } from "../utils/show";
 import { isMarimoApp } from "../utils/query";
+import { showNotebookDocument } from "../utils/show";
 import {
   type NotebookMetadata,
   getNotebookMetadata,
