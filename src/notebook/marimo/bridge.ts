@@ -18,6 +18,7 @@ import {
 import { Deferred } from "../../utils/deferred";
 import { logNever } from "../../utils/invariant";
 import { LogMethodCalls } from "../../utils/log";
+import { SingleMessage } from "../../utils/single-promise";
 import type { KernelKey } from "../common/key";
 import {
   type CellOp,
@@ -126,21 +127,12 @@ export class MarimoBridge implements ILifecycle {
           if (res.status >= 500 && text.includes("Invalid session id")) {
             // Show action to restart kernel
             this.socket.close();
-            await vscode.window
-              .showErrorMessage<vscode.MessageItem>(
-                "No longer connected to a marimo server",
-                {
-                  modal: true,
-                },
-                {
-                  title: "Restart kernel",
-                },
-              )
-              .then((item) => {
-                if (item?.title === "Restart kernel") {
-                  this.restart();
-                }
-              });
+            await SingleMessage.instance.gate(
+              "marimo-bridge.restart",
+              async () => {
+                await this.messageForRequest();
+              },
+            );
           }
 
           logger.error(`HTTP error: ${res.status} ${res.statusText}`, text);
@@ -148,6 +140,20 @@ export class MarimoBridge implements ILifecycle {
         return res;
       },
     });
+  }
+
+  private async messageForRequest() {
+    await vscode.window
+      .showErrorMessage<vscode.MessageItem>(
+        "No longer connected to a marimo server",
+        { modal: true },
+        { title: "Restart kernel" },
+      )
+      .then(async (item) => {
+        if (item?.title === "Restart kernel") {
+          await this.restart();
+        }
+      });
   }
 
   @LogMethodCalls()

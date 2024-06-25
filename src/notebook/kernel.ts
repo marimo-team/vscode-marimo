@@ -350,7 +350,7 @@ export class Kernel implements IKernel {
   private endAllExecutions() {
     // Finish all running cells
     for (const execution of this.cellExecutions.values()) {
-      execution.end(true, Date.now())
+      execution.end(true, Date.now());
     }
     this.cellExecutions.clear();
   }
