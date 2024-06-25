@@ -55,35 +55,35 @@
       {
         "command": "vscode-marimo.openAsVSCodeNotebook",
         "category": "marimo",
-        "enablement": "resourceLangId == python && marimo.isMarimoApp",
+        "enablement": "marimo.isMarimoApp",
         "title": "Start as a native VSCode notebook",
         "shortTitle": "Start as VSCode notebook",
         "icon": "$(notebook)"
       },
       {
         "command": "vscode-marimo.edit",
-        "enablement": "resourceLangId == python && marimo.isMarimoApp",
+        "enablement": "marimo.isMarimoApp",
         "category": "marimo",
         "title": "Start in marimo editor (edit)",
         "shortTitle": "Start in marimo editor (edit)"
       },
       {
         "command": "vscode-marimo.run",
-        "enablement": "resourceLangId == python && marimo.isMarimoApp",
+        "enablement": "marimo.isMarimoApp",
         "category": "marimo",
         "title": "Start in marimo editor (run)",
         "shortTitle": "Start in marimo editor (run)"
       },
       {
         "command": "vscode-marimo.stopKernel",
-        "enablement": "(resourceLangId == python && marimo.isMarimoApp)",
+        "enablement": "marimo.isMarimoApp",
         "category": "marimo",
         "title": "Stop kernel",
         "icon": "$(stop)"
       },
       {
         "command": "vscode-marimo.restartKernel",
-        "enablement": "(resourceLangId == python && marimo.isMarimoApp) || (notebookType == marimo-notebook)",
+        "enablement": "marimo.isMarimoApp || (notebookType == marimo-notebook)",
         "category": "marimo",
         "title": "Restart kernel",
         "icon": "$(refresh)"
@@ -162,14 +162,14 @@
       },
       {
         "command": "vscode-marimo.showCommands",
-        "enablement": "(resourceLangId == python && marimo.isMarimoApp) || notebookType == marimo-notebook",
+        "enablement": "marimo.isMarimoApp || notebookType == marimo-notebook",
         "category": "marimo",
         "title": "Show marimo commands",
         "icon": "$(symbol-event)"
       },
       {
         "command": "vscode-marimo.exportAsCommands",
-        "enablement": "(resourceLangId == python && marimo.isMarimoApp) || notebookType == marimo-notebook",
+        "enablement": "marimo.isMarimoApp || notebookType == marimo-notebook",
         "category": "marimo",
         "title": "Export notebook as...",
         "icon": "$(export)"
@@ -190,6 +190,9 @@
         "selector": [
           {
             "filenamePattern": "*.py"
+          },
+          {
+            "filenamePattern": "*.md"
           }
         ]
       }
@@ -232,12 +235,12 @@
           "group": "navigation"
         },
         {
-          "when": "resourceLangId == python && marimo.isMarimoApp",
+          "when": "marimo.isMarimoApp",
           "command": "vscode-marimo.showCommands",
           "group": "navigation"
         },
         {
-          "when": "resourceLangId == python && marimo.isMarimoApp",
+          "when": "marimo.isMarimoApp",
           "command": "vscode-marimo.exportAsCommands",
           "group": "navigation"
         },
@@ -250,17 +253,17 @@
       ],
       "editor/title/run": [
         {
-          "when": "resourceLangId == python && marimo.isMarimoApp",
+          "when": "marimo.isMarimoApp",
           "command": "vscode-marimo.edit",
           "group": "navigation"
         },
         {
-          "when": "resourceLangId == python && marimo.isMarimoApp",
+          "when": "marimo.isMarimoApp",
           "command": "vscode-marimo.run",
           "group": "navigation"
         },
         {
-          "when": "resourceLangId == python && marimo.isMarimoApp",
+          "when": "marimo.isMarimoApp",
           "command": "vscode-marimo.openAsVSCodeNotebook",
           "icon": "$(notebook)",
           "group": "navigation"
