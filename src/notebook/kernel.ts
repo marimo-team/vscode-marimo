@@ -211,10 +211,14 @@ export class Kernel implements IKernel {
       .filter((cell) => cell.document.languageId === MARKDOWN_LANGUAGE_ID);
 
     // Execute the pending markdown cells
-    await this.bridge.run({
-      cellIds: markdownChanges.map((cell) => getCellMetadata(cell).id!),
-      codes: markdownChanges.map((cell) => toMarkdown(cell.document.getText())),
-    });
+    if (markdownChanges.length > 0) {
+      await this.bridge.run({
+        cellIds: markdownChanges.map((cell) => getCellMetadata(cell).id!),
+        codes: markdownChanges.map((cell) =>
+          toMarkdown(cell.document.getText()),
+        ),
+      });
+    }
   }
 
   @LogMethodCalls()
@@ -667,9 +671,9 @@ function deepEqual(a: any, b: any): boolean {
   return true;
 }
 
-function toMarkdown(value: string): string {
+function toMarkdown(text: string): string {
   // Trim
-  value = value.trim();
+  const value = text.trim();
 
   const isMultiline = value.includes("\n");
   if (!isMultiline) {
@@ -690,10 +694,10 @@ function dedent(str: string) {
   return str.replace(re, "");
 }
 
-function maybeMarkdown(value: string): string | null {
+function maybeMarkdown(text: string): string | null {
   // TODO: Python can safely extract the string value with the
   // AST, anything done here is a bit of a hack, data should come from server.
-  value = value.trim();
+  const value = text.trim();
   // Regular expression to match the function calls
   const regex = /^mo\.md\(\s*r?((["'])(?:\2\2)?)(.*?)\1\s*\)$/gms; // 'g' flag to check all occurrences
   const matches = [...value.matchAll(regex)];

@@ -8,8 +8,8 @@ export function isMarimoApp(
     return false;
   }
 
-  // If it's empty, return true This is so we can create a new file and start
-  // the server
+  // If it's empty, return true.
+  // This is so we can create a new file and start the server.
   if (includeEmpty && document.getText().trim() === "") {
     return true;
   }
