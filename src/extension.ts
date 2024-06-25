@@ -131,6 +131,7 @@ export async function activate(extension: ExtensionContext) {
     const maybeKernel = KernelManager.getFocusedMarimoKernel();
     if (maybeKernel) {
       await maybeKernel.restart();
+      await maybeKernel.openKiosk();
       return;
     }
 

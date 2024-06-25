@@ -282,17 +282,17 @@
         {
           "when": "view == marimo-explorer-running-applications",
           "command": "marimo-explorer.stopKernel",
-          "group": "inline"
+          "group": "inline@1"
         },
         {
           "when": "view == marimo-explorer-applications",
           "command": "marimo-explorer.openAsVSCodeNotebook",
-          "group": "inline"
+          "group": "inline@2"
         },
         {
           "when": "view == marimo-explorer-applications",
           "command": "marimo-explorer.edit",
-          "group": "inline"
+          "group": "inline@1"
         }
       ],
       "view/title": [

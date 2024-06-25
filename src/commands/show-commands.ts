@@ -37,21 +37,22 @@ export function showKernelCommands(kernel: Kernel): CommandPickItem[] {
     {
       label: "$(split-horizontal) Open outputs in embedded browser",
       description: kernel.relativePath,
-      handler() {
-        kernel.openKiosk("embedded");
+      async handler() {
+        await kernel.openKiosk("embedded");
       },
     },
     {
       label: "$(link-external) Open outputs in system browser",
       description: kernel.relativePath,
-      handler() {
-        kernel.openKiosk("system");
+      async handler() {
+        await kernel.openKiosk("system");
       },
     },
     {
       label: "$(refresh) Restart kernel",
       async handler() {
         await kernel.restart();
+        await kernel.openKiosk();
       },
     },
     {
