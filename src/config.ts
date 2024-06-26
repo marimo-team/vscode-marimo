@@ -25,6 +25,12 @@ export const Config = {
   get port() {
     return getConfig("port", 2718);
   },
+  get readPort() {
+    if (typeof Config.port === "string") {
+      return Number.parseInt(Config.port) + 10;
+    }
+    return Config.port + 10;
+  },
   get host() {
     return "localhost";
   },
@@ -35,7 +41,7 @@ export const Config = {
     return getConfig("enableToken", false);
   },
   get tokenPassword() {
-    return getConfig("tokenPassword");
+    return getConfig<string>("tokenPassword");
   },
   get https() {
     return false;

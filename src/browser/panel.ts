@@ -1,5 +1,6 @@
 import { Uri, ViewColumn, type WebviewPanel, env, window } from "vscode";
 import { logger } from "../logger";
+import { LogMethodCalls } from "../utils/log";
 
 export class MarimoPanelManager {
   private nativePanel: WebviewPanel | undefined;
@@ -16,8 +17,8 @@ export class MarimoPanelManager {
     return this.nativePanel?.active ?? false;
   }
 
+  @LogMethodCalls()
   reload() {
-    this.logger.log("reloading panel");
     if (this.nativePanel && this.url) {
       this.nativePanel.webview.html = "";
       this.nativePanel.webview.html = getWebviewContent(this.url);
@@ -85,13 +86,16 @@ export class MarimoPanelManager {
     }, undefined);
   }
 
+  @LogMethodCalls()
   show() {
-    this.logger.log("showing embedded browser");
+    if (!this.nativePanel) {
+      logger.warn("Panel not created yet");
+    }
     this.nativePanel?.reveal();
   }
 
+  @LogMethodCalls()
   dispose() {
-    this.logger.log("disposing panel");
     this.nativePanel?.dispose();
   }
 }

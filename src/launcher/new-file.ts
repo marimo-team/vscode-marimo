@@ -1,7 +1,7 @@
 import path from "node:path";
 import { Uri, window, workspace } from "vscode";
 
-export async function createNewMarimoFile() {
+export async function createNewMarimoFile(): Promise<Uri | undefined> {
   const editor = window.activeTextEditor;
   // fallback to the first workspace folder
   const workspaceFolder = workspace.workspaceFolders?.[0];
@@ -44,6 +44,7 @@ export async function createNewMarimoFile() {
 
   const document = await workspace.openTextDocument(newFileUri);
   await window.showTextDocument(document);
+  return newFileUri;
 }
 
 const NEW_FILE_CONTENT = `

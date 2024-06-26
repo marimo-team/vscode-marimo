@@ -1,84 +1,44 @@
-import http from "node:http";
-import https from "node:https";
-import { type TextDocument, window } from "vscode";
+import { parse } from "node-html-parser";
+import { composeUrl } from "../config";
+import type { MarimoConfig, SkewToken } from "../notebook/marimo/types";
 
-function isPortFree(port: number) {
-  return new Promise((resolve) => {
-    const server = http
-      .createServer()
-      .listen(port, () => {
-        server.close();
-        resolve(true);
-      })
-      .on("error", () => {
-        resolve(false);
-      });
-  });
-}
-
-export function wait(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-export async function tryPort(start: number): Promise<number> {
-  if (await isPortFree(start)) {
-    return start;
-  }
-  return tryPort(start + 1);
-}
-
-export function ping(url: string) {
-  const promise = new Promise<boolean>((resolve) => {
-    const useHttps = url.indexOf("https") === 0;
-    const module_ = useHttps ? https.request : http.request;
-
-    const pingRequest = module_(url, () => {
-      resolve(true);
-      pingRequest.destroy();
-    });
-
-    pingRequest.on("error", () => {
-      resolve(false);
-      pingRequest.destroy();
-    });
-
-    pingRequest.write("");
-    pingRequest.end();
-  });
-  return promise;
-}
-
-export function isMarimoApp(
-  document: TextDocument | undefined,
-  includeEmpty = true,
-) {
-  if (!document) {
-    return false;
-  }
-
-  // If ends in .py and is empty, return true
-  // This is so we can create a new file and start the server
-  if (
-    includeEmpty &&
-    document.fileName.endsWith(".py") &&
-    document.getText().trim() === ""
-  ) {
-    return true;
-  }
-
-  // Cheap way of checking if it's a marimo app
-  return document.getText().includes("app = marimo.App(");
-}
-
-export function getCurrentFile(toast = true) {
-  const file = [window.activeTextEditor, ...window.visibleTextEditors].find(
-    (editor) => isMarimoApp(editor?.document, false),
-  );
-  if (!file) {
-    if (toast) {
-      window.showInformationMessage("No marimo file is open.");
+/**
+ * Grabs the index.html of the marimo server and extracts
+ * various startup values.
+ * - skewToken
+ * - version
+ * - userConfig
+ */
+export async function fetchMarimoStartupValues(port: number): Promise<{
+  skewToken: SkewToken;
+  version: string;
+  userConfig: MarimoConfig;
+}> {
+  const response = await fetch(`${composeUrl(port)}`);
+  const html = await response.text();
+  const root = parse(html);
+  const getDomValue = (tagName: string, datasetKey: string) => {
+    const element = root.querySelector(tagName);
+    if (!element) {
+      throw new Error(`Could not find ${tagName}`);
     }
-    return;
-  }
-  return file.document;
+    const value = element.getAttribute(`data-${datasetKey}`);
+    if (value === undefined) {
+      throw new Error(`${datasetKey} is undefined`);
+    }
+
+    return value;
+  };
+
+  const skewToken = getDomValue("marimo-server-token", "token") as SkewToken;
+  const userConfig = JSON.parse(
+    getDomValue("marimo-user-config", "config"),
+  ) as MarimoConfig;
+  const marimoVersion = getDomValue("marimo-version", "version");
+
+  return {
+    skewToken,
+    version: marimoVersion,
+    userConfig,
+  };
 }
