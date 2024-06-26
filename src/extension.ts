@@ -246,7 +246,11 @@ export async function activate(extension: ExtensionContext) {
 
   ///// Events /////
 
-  window.onDidCloseTerminal((terminal) => {
+  window.onDidCloseTerminal(async (terminal) => {
+    if (ServerManager.instance.terminal.is(terminal)) {
+      await ServerManager.instance.dispose();
+    }
+
     const controller = Controllers.findWithTerminal(terminal);
     controller?.dispose();
   });

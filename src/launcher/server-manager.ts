@@ -22,7 +22,7 @@ export class ServerManager {
   public static instance: ServerManager = new ServerManager();
   private logger = logger.createLogger("server-manager");
 
-  private terminal!: MarimoTerminal;
+  public terminal!: MarimoTerminal;
   private otherDisposables: vscode.Disposable[] = [];
   private state: "stopped" | "starting" | "started" = "stopped";
   private port: number | undefined;
