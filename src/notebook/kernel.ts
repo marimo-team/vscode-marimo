@@ -44,6 +44,7 @@ export class Kernel implements IKernel {
   private readonly logger = logger.createLogger("kernel");
   private readonly bridge: MarimoBridge;
   private readonly cells = new Map<CellId, vscode.NotebookCell>();
+  private autoSaveInterval: NodeJS.Timeout | undefined;
   private readonly cellExecutions = new Map<
     CellId,
     vscode.NotebookCellExecution
@@ -242,10 +243,23 @@ export class Kernel implements IKernel {
     }
 
     this.logger.log("Started");
+
+    if (this.opts.userConfig.save?.autosave) {
+      this.logger.log("Starting auto-save");
+      this.startAutoSave(this.opts.userConfig.save.autosave_delay || 1000);
+    }
   }
 
   @LogMethodCalls()
   async restart(): Promise<void> {
+    // If there are un-saved changes, force as save
+    if (this.opts.notebookDoc.isDirty) {
+      const res = await this.opts.notebookDoc.save();
+      if (!res) {
+        return;
+      }
+    }
+
     await this.bridge.restart();
     // Clear cells
     this.ready = new Deferred<KernelReady>();
@@ -259,6 +273,7 @@ export class Kernel implements IKernel {
   @LogMethodCalls()
   async dispose(): Promise<void> {
     clearInterval(this.readyTimer);
+    this.stopAutoSave();
     this.panel.dispose();
     this.bridge.dispose();
     // Close open NotebookEditor that matches the document
@@ -435,6 +450,23 @@ export class Kernel implements IKernel {
       }
     }
     this.isFlushing.set(key, false);
+  }
+
+  private startAutoSave(timeout: number) {
+    if (this.autoSaveInterval) {
+      clearInterval(this.autoSaveInterval);
+    }
+    this.autoSaveInterval = setInterval(async () => {
+      if (this.notebookDoc.isDirty) {
+        this.notebookDoc.save();
+      }
+    }, timeout);
+  }
+
+  private stopAutoSave() {
+    if (this.autoSaveInterval) {
+      clearInterval(this.autoSaveInterval);
+    }
   }
 
   private async handleCellMessageInternal(message: CellOp): Promise<void> {
