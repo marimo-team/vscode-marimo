@@ -1,6 +1,7 @@
 import { parse } from "node-html-parser";
 import { composeUrl } from "../config";
 import type { MarimoConfig, SkewToken } from "../notebook/marimo/types";
+import { asURL } from "../utils/url";
 
 /**
  * Grabs the index.html of the marimo server and extracts
@@ -14,7 +15,7 @@ export async function fetchMarimoStartupValues(port: number): Promise<{
   version: string;
   userConfig: MarimoConfig;
 }> {
-  const url = new URL(composeUrl(port));
+  const url = asURL(await composeUrl(port));
   const response = await fetch(url);
 
   if (!response.ok) {
@@ -24,7 +25,7 @@ export async function fetchMarimoStartupValues(port: number): Promise<{
   }
 
   // If was redirected to /auth/login, then show a message that an existing server is running
-  if (new URL(response.url).pathname.startsWith("/auth/login")) {
+  if (asURL(response.url).pathname.startsWith("/auth/login")) {
     throw new Error(
       `An existing marimo server created outside of vscode is running at this url: ${url.toString()}`,
     );

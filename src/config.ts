@@ -1,4 +1,5 @@
-import { workspace } from "vscode";
+import { Uri, env, workspace } from "vscode";
+import { logger } from "./logger";
 
 export function getConfig<T>(key: string): T | undefined;
 export function getConfig<T>(key: string, v: T): T;
@@ -48,6 +49,32 @@ export const Config = {
   },
 };
 
-export function composeUrl(port: number) {
-  return `${Config.https ? "https" : "http"}://${Config.host}:${port}`;
+export async function composeUrl(port: number): Promise<string> {
+  const url = `${Config.https ? "https" : "http"}://${Config.host}:${port}/`;
+  try {
+    const externalUri = await env.asExternalUri(Uri.parse(url));
+    const externalUrl = externalUri.toString();
+    if (externalUrl !== url) {
+      logger.log("Mapping to external url", externalUrl, "from", url);
+    }
+    return externalUrl;
+  } catch (e) {
+    logger.error("Failed to create external url", url, e);
+    return url;
+  }
+}
+
+export async function composeWsUrl(port: number): Promise<string> {
+  const url = `${Config.https ? "wss" : "ws"}://${Config.host}:${port}/`;
+  try {
+    const externalUri = await env.asExternalUri(Uri.parse(url));
+    const externalUrl = externalUri.toString();
+    if (externalUrl !== url) {
+      logger.log("Mapping to external url", externalUrl, "from", url);
+    }
+    return externalUrl;
+  } catch (e) {
+    logger.error("Failed to create external url", url, e);
+    return url;
+  }
 }

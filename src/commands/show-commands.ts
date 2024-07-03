@@ -85,9 +85,9 @@ export function showKernelCommands(kernel: Kernel): CommandPickItem[] {
   ];
 }
 
-export function showMarimoControllerCommands(
+export async function showMarimoControllerCommands(
   controller: MarimoController,
-): CommandPickItem[] {
+): Promise<CommandPickItem[]> {
   return [
     // Non-active commands
     {
@@ -117,7 +117,7 @@ export function showMarimoControllerCommands(
     // Active commands
     {
       label: "$(split-horizontal) Open in embedded browser",
-      description: controller.url,
+      description: await controller.url(),
       handler() {
         controller.open("embedded");
       },
@@ -125,7 +125,7 @@ export function showMarimoControllerCommands(
     },
     {
       label: "$(link-external) Open in system browser",
-      description: controller.url,
+      description: await controller.url(),
       handler() {
         controller.open("system");
       },

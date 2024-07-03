@@ -7,6 +7,7 @@ import { Deferred } from "../utils/deferred";
 import { invariant } from "../utils/invariant";
 import { LogMethodCalls } from "../utils/log";
 import { closeNotebookEditor } from "../utils/show";
+import { asURL } from "../utils/url";
 import type { KernelKey } from "./common/key";
 import { getCellMetadata, setCellMetadata } from "./common/metadata";
 import { MARKDOWN_LANGUAGE_ID, PYTHON_LANGUAGE_ID } from "./constants";
@@ -133,7 +134,7 @@ export class Kernel implements IKernel {
       this.panel.show();
     }
 
-    const url = new URL(composeUrl(this.opts.port));
+    const url = asURL(await composeUrl(this.opts.port));
     url.searchParams.set("kiosk", "true");
     url.searchParams.set("file", this.kernelKey);
 

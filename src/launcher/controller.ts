@@ -18,6 +18,7 @@ import { statusBarManager } from "../ui/status-bar";
 import { MarimoCmdBuilder } from "../utils/cmd";
 import { ping } from "../utils/network";
 import { getFocusedMarimoTextEditor, isMarimoApp } from "../utils/query";
+import { asURL } from "../utils/url";
 import { ServerManager } from "./server-manager";
 import { type IMarimoTerminal, MarimoTerminal } from "./terminal";
 
@@ -119,12 +120,13 @@ export class MarimoController implements Disposable {
       this.panel.show();
     }
 
+    const url = await this.url();
     if (browser === "system") {
       // Close the panel if opened
       this.panel.dispose();
-      await env.openExternal(Uri.parse(this.url));
+      await env.openExternal(Uri.parse(url));
     } else if (browser === "embedded") {
-      await this.panel.create(this.url);
+      await this.panel.create(url);
       this.panel.show();
     }
 
@@ -149,7 +151,7 @@ export class MarimoController implements Disposable {
       return;
     }
 
-    const url = composeUrl(port);
+    const url = await composeUrl(port);
 
     if (!(await ping(url))) {
       return;
@@ -181,11 +183,11 @@ export class MarimoController implements Disposable {
     return folderName ? `${folderName}/${fileName}` : fileName;
   }
 
-  public get url() {
+  public async url(): Promise<string> {
     if (!this.port) {
       return "";
     }
-    const url = new URL(composeUrl(this.port));
+    const url = asURL(await composeUrl(this.port));
     if (this.currentMode === "edit") {
       url.searchParams.set("file", this.file.uri.fsPath);
     }

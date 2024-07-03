@@ -16,6 +16,14 @@ export function createVSCodeMock(vi: VitestUtils) {
     };
   });
 
+  vscode.env = vscode.env || {};
+  vscode.env.asExternalUri = vi.fn().mockImplementation(async (uri) => uri);
+  enum QuickPickItemKind {
+    Separator = -1,
+    Default = 0,
+  }
+  vscode.QuickPickItemKind = QuickPickItemKind;
+
   vscode.notebooks = vscode.notebooks || {};
   vscode.notebooks.createNotebookController = vi
     .fn()

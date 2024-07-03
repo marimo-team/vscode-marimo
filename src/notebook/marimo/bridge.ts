@@ -1,7 +1,8 @@
+import { join } from "node:path";
 import createClient from "openapi-fetch";
 import * as vscode from "vscode";
 import { WebSocket } from "ws";
-import { Config, composeUrl } from "../../config";
+import { composeUrl, composeWsUrl } from "../../config";
 import { getGlobalState } from "../../ctx";
 import {
   MarimoExplorer,
@@ -19,6 +20,7 @@ import { Deferred } from "../../utils/deferred";
 import { logNever } from "../../utils/invariant";
 import { LogMethodCalls } from "../../utils/log";
 import { SingleMessage } from "../../utils/single-promise";
+import { asURL } from "../../utils/url";
 import type { KernelKey } from "../common/key";
 import {
   type CellOp,
@@ -79,14 +81,12 @@ export class MarimoBridge implements ILifecycle {
   @LogMethodCalls()
   async start(): Promise<void> {
     // Create URLs
-    const host = Config.host;
-    const https = Config.https;
     this.sessionId = SessionId.create();
-    const wsProtocol = https ? "wss" : "ws";
-    const wsURL = new URL(`${wsProtocol}://${host}:${this.port}/ws`);
+    const wsBaseUrl = await composeWsUrl(this.port);
+    const wsURL = asURL(join(wsBaseUrl, "ws"));
     wsURL.searchParams.set("session_id", this.sessionId);
     wsURL.searchParams.set("file", this.kernelKey);
-    const httpURL = composeUrl(this.port);
+    const httpURL = await composeUrl(this.port);
 
     // Create WebSocket
     this.socket = new WebSocket(wsURL);
@@ -173,9 +173,9 @@ export class MarimoBridge implements ILifecycle {
     this.start();
   }
 
-  static getRunningNotebooks(port: number, skewToken: SkewToken) {
+  static async getRunningNotebooks(port: number, skewToken: SkewToken) {
     const client = createClient<paths>({
-      baseUrl: composeUrl(port),
+      baseUrl: await composeUrl(port),
     });
     client.use({
       onRequest: (req) => {
@@ -186,13 +186,13 @@ export class MarimoBridge implements ILifecycle {
     return client.POST("/api/home/running_notebooks");
   }
 
-  static shutdownSession(
+  static async shutdownSession(
     port: number,
     skewToken: SkewToken,
     sessionId: string,
   ) {
     const client = createClient<paths>({
-      baseUrl: composeUrl(port),
+      baseUrl: await composeUrl(port),
     });
     client.use({
       onRequest: (req) => {

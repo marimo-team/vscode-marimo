@@ -16,24 +16,34 @@ describe("showCommands", () => {
       [
         "$(split-horizontal) Open outputs in embedded browser",
         "$(link-external) Open outputs in system browser",
+        "",
         "$(refresh) Restart kernel",
-        "$(question) Show documentation",
         "$(export) Export notebook as...",
+        "",
+        "$(question) View marimo documentation",
+        "$(comment-discussion) Join Discord community",
+        "$(settings) Edit settings",
+        "$(info) Status: stopped",
       ]
     `);
   });
 
   it("should show commands for non active Controller", async () => {
-    const commands = showMarimoControllerCommands(
-      await createMockController(),
+    const commands = (
+      await showMarimoControllerCommands(await createMockController())
     ).filter((index) => index.if !== false);
     expect(commands.map((c) => c.label)).toMatchInlineSnapshot(`
       [
         "$(notebook) Start as VSCode notebook",
         "$(zap) Start in marimo editor (edit)",
-        "$(remote-explorer-documentation) Start in marimo editor (run)",
-        "$(question) Show documentation",
+        "$(preview) Start in marimo editor (run)",
+        "",
         "$(export) Export notebook as...",
+        "",
+        "$(question) View marimo documentation",
+        "$(comment-discussion) Join Discord community",
+        "$(settings) Edit settings",
+        "$(info) Status: stopped",
       ]
     `);
   });
@@ -42,19 +52,24 @@ describe("showCommands", () => {
     const controller = await createMockController();
     controller.active = true;
     controller.currentMode = "run";
-    const commands = showMarimoControllerCommands(controller).filter(
+    const commands = (await showMarimoControllerCommands(controller)).filter(
       (index) => index.if !== false,
     );
     expect(commands.map((c) => c.label)).toMatchInlineSnapshot(`
       [
+        "",
         "$(split-horizontal) Open in embedded browser",
         "$(link-external) Open in system browser",
         "$(refresh) Restart marimo kernel",
         "$(package) Switch to edit mode",
         "$(terminal) Show Terminal",
         "$(close) Stop kernel",
-        "$(question) Show documentation",
         "$(export) Export notebook as...",
+        "",
+        "$(question) View marimo documentation",
+        "$(comment-discussion) Join Discord community",
+        "$(settings) Edit settings",
+        "$(info) Status: stopped",
       ]
     `);
   });
@@ -63,19 +78,24 @@ describe("showCommands", () => {
     const controller = await createMockController();
     controller.active = true;
     controller.currentMode = "edit";
-    const commands = showMarimoControllerCommands(controller).filter(
+    const commands = (await showMarimoControllerCommands(controller)).filter(
       (index) => index.if !== false,
     );
     expect(commands.map((c) => c.label)).toMatchInlineSnapshot(`
       [
+        "",
         "$(split-horizontal) Open in embedded browser",
         "$(link-external) Open in system browser",
         "$(refresh) Restart marimo kernel",
         "$(package) Switch to run mode",
         "$(terminal) Show Terminal",
         "$(close) Stop kernel",
-        "$(question) Show documentation",
         "$(export) Export notebook as...",
+        "",
+        "$(question) View marimo documentation",
+        "$(comment-discussion) Join Discord community",
+        "$(settings) Edit settings",
+        "$(info) Status: stopped",
       ]
     `);
   });

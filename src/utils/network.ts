@@ -6,7 +6,7 @@ import { composeUrl } from "../config";
  * Check if a port is free
  */
 async function isPortFree(port: number) {
-  const healthy = await ping(composeUrl(port));
+  const healthy = await ping(await composeUrl(port));
   return !healthy;
 }
 

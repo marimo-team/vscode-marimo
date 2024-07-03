@@ -1,3 +1,4 @@
+import { join } from "node:path";
 import * as vscode from "vscode";
 import { Config, composeUrl } from "../config";
 import { logger as l, logger } from "../logger";
@@ -106,7 +107,8 @@ export class ServerManager {
    */
   private async isHealthy(port: number): Promise<boolean> {
     try {
-      const health = await fetch(`${composeUrl(port)}/health`);
+      const baseUrl = await composeUrl(port);
+      const health = await fetch(join(baseUrl, "health"));
       return health.ok;
     } catch {
       return false;
