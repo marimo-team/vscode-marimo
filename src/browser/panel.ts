@@ -112,6 +112,7 @@ function getWebviewContent(url: string) {
       <body style="position: absolute; padding: 0; margin: 0; top: 0; bottom: 0; left: 0; right: 0; display: flex;">
           <iframe
             id="preview-panel"
+            allow="clipboard-read; clipboard-write;"
             src="${url}" frameborder="0" style="flex: 1;"
           ></iframe>
 

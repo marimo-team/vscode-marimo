@@ -189,7 +189,7 @@ export class MarimoController implements Disposable {
     if (this.currentMode === "edit") {
       url.searchParams.set(
         "file",
-        this.terminal.relativePathFor(this.file.uri),
+        this.file.uri.fsPath,
       );
     }
     return url.toString();
