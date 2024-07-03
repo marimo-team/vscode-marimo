@@ -1,13 +1,28 @@
 import { window } from "vscode";
+import { Config } from "./config";
+import { EXTENSION_DISPLAY_NAME } from "./constants";
 
-const channel = window.createOutputChannel("marimo");
+const channel = window.createOutputChannel(EXTENSION_DISPLAY_NAME) || {
+  appendLine: console.log,
+};
 
 class Logger {
   constructor(private prefix: string) {}
 
+  debug(...args: unknown[]) {
+    if (!Config.debug) {
+      return;
+    }
+    if (this.prefix) {
+      channel.appendLine(`[${this.prefix}]: ${args.join(" ")}`);
+    } else {
+      channel.appendLine(args.join(" "));
+    }
+  }
+
   log(...args: unknown[]) {
     if (this.prefix) {
-      channel.appendLine(`${this.prefix}: ${args.join(" ")}`);
+      channel.appendLine(`[${this.prefix}]: ${args.join(" ")}`);
     } else {
       channel.appendLine(args.join(" "));
     }
@@ -15,7 +30,15 @@ class Logger {
 
   error(...args: unknown[]) {
     if (this.prefix) {
-      channel.appendLine(`${this.prefix}: ${args.join(" ")}`);
+      channel.appendLine(`[🛑 error] [${this.prefix}] ${args.join(" ")}`);
+    } else {
+      channel.appendLine(args.join(" "));
+    }
+  }
+
+  warn(...args: unknown[]) {
+    if (this.prefix) {
+      channel.appendLine(`[⚠️ warn] [${this.prefix}] ${args.join(" ")}`);
     } else {
       channel.appendLine(args.join(" "));
     }

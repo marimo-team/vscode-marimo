@@ -1,8 +1,9 @@
 import { Uri, ViewColumn, type WebviewPanel, env, window } from "vscode";
 import { logger } from "../logger";
+import { LogMethodCalls } from "../utils/log";
 
 export class MarimoPanelManager {
-  private nativePanel: WebviewPanel | undefined;
+  public nativePanel: WebviewPanel | undefined;
   private url: string | undefined;
   private logger = logger.createLogger(this.appName);
 
@@ -16,8 +17,8 @@ export class MarimoPanelManager {
     return this.nativePanel?.active ?? false;
   }
 
+  @LogMethodCalls()
   reload() {
-    this.logger.log("reloading panel");
     if (this.nativePanel && this.url) {
       this.nativePanel.webview.html = "";
       this.nativePanel.webview.html = getWebviewContent(this.url);
@@ -85,13 +86,16 @@ export class MarimoPanelManager {
     }, undefined);
   }
 
+  @LogMethodCalls()
   show() {
-    this.logger.log("showing embedded browser");
+    if (!this.nativePanel) {
+      logger.warn("Panel not created yet");
+    }
     this.nativePanel?.reveal();
   }
 
+  @LogMethodCalls()
   dispose() {
-    this.logger.log("disposing panel");
     this.nativePanel?.dispose();
   }
 }
@@ -108,6 +112,7 @@ function getWebviewContent(url: string) {
       <body style="position: absolute; padding: 0; margin: 0; top: 0; bottom: 0; left: 0; right: 0; display: flex;">
           <iframe
             id="preview-panel"
+            allow="clipboard-read; clipboard-write;"
             src="${url}" frameborder="0" style="flex: 1;"
           ></iframe>
 

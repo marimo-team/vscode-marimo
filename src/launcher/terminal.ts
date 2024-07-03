@@ -1,20 +1,24 @@
 import path from "node:path";
-import {
-  type Disposable,
-  type ExtensionContext,
-  type Terminal,
-  window,
-} from "vscode";
+import { type Disposable, type Terminal, type Uri, window } from "vscode";
+import { Config } from "../config";
+import { getGlobalState } from "../ctx";
 import { logger } from "../logger";
-import { Config } from "./config";
-import { wait } from "./utils";
+import { LogMethodCalls } from "../utils/log";
+import { wait } from "../utils/wait";
 
-export class MarimoTerminal implements Disposable {
+export interface IMarimoTerminal extends Disposable {
+  show(): void;
+  relativePathFor(file: Uri): string;
+  is(term: Terminal): boolean;
+  tryRecoverTerminal(): Promise<boolean>;
+  executeCommand(cmd: string): Promise<void>;
+}
+
+export class MarimoTerminal implements IMarimoTerminal {
   private terminal: Terminal | undefined;
   private logger = logger.createLogger(this.appName);
 
   constructor(
-    private extension: ExtensionContext,
     private fsPath: string,
     private cwd: string | undefined,
     private appName: string,
@@ -33,27 +37,27 @@ export class MarimoTerminal implements Disposable {
     await wait(1000);
   }
 
-  relativePathFor(file: string) {
-    if (this.cwd && file.startsWith(this.cwd)) {
-      return path.relative(this.cwd, file);
+  relativePathFor(file: Uri): string {
+    if (this.cwd && file.fsPath.startsWith(this.cwd)) {
+      return path.relative(this.cwd, file.fsPath);
     }
-    return file;
+    return file.fsPath;
   }
 
   private isTerminalActive() {
     return this.terminal && this.terminal.exitStatus === undefined;
   }
 
+  @LogMethodCalls()
   dispose() {
-    this.logger.log("killing terminal");
     this.endProcess();
     this.terminal?.dispose();
     this.terminal = undefined;
     this.logger.log("terminal disposed");
   }
 
+  @LogMethodCalls()
   async show() {
-    this.logger.log("showing terminal");
     await this.ensureTerminal();
     this.terminal?.show(true);
   }
@@ -63,23 +67,24 @@ export class MarimoTerminal implements Disposable {
       this.terminal?.sendText("\u0003");
       this.terminal?.sendText("\u0003");
     }
-    this.extension.globalState.update(this.keyFor("pid"), undefined);
+    getGlobalState().update(this.keyFor("pid"), undefined);
   }
 
   is(term: Terminal) {
     return this.terminal === term;
   }
 
-  async tryRecoverTerminal() {
-    this.logger.log("trying to recover terminal");
+  @LogMethodCalls()
+  async tryRecoverTerminal(): Promise<boolean> {
+    this.logger.debug("trying to recover terminal");
     if (this.terminal) {
-      return;
+      return false;
     }
 
-    const pid = this.extension.globalState.get(this.keyFor("pid"));
+    const pid = getGlobalState().get(this.keyFor("pid"));
     this.logger.log("recovered pid", pid);
     if (!pid) {
-      return;
+      return false;
     }
 
     const terminals = await Promise.all(
@@ -98,6 +103,7 @@ export class MarimoTerminal implements Disposable {
     return false;
   }
 
+  @LogMethodCalls()
   async executeCommand(cmd: string) {
     await this.ensureTerminal();
     this.terminal?.sendText(cmd);
@@ -108,7 +114,7 @@ export class MarimoTerminal implements Disposable {
     await wait(2000);
     const pid = await this.terminal?.processId;
     if (pid) {
-      this.extension.globalState.update(this.keyFor("pid"), pid);
+      getGlobalState().update(this.keyFor("pid"), pid);
     }
   }
 
