@@ -400,6 +400,7 @@
     "pretest": "pnpm run build && pnpm run lint",
     "publish": "vsce publish --no-dependencies",
     "publish:pre-release": "vsce publish --no-dependencies --pre-release",
+    "openvsx:publish": "npx ovsx publish --pat",
     "release": "npx bumpp && pnpm run publish",
     "release:pre-release": "npx bumpp && pnpm run publish:pre-release",
     "test": "vitest",
