@@ -14,13 +14,26 @@ export async function fetchMarimoStartupValues(port: number): Promise<{
   version: string;
   userConfig: MarimoConfig;
 }> {
-  const response = await fetch(`${composeUrl(port)}`);
+  const url = new URL(composeUrl(port));
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(
+      `Could not fetch ${url}. Is ${url} healthy? ${response.status} ${response.statusText}`,
+    )
+  }
+
+  // If was redirected to /auth/login, then show a message that an existing server is running
+  if (new URL(response.url).pathname.startsWith("/auth/login")) {
+    throw new Error(`An existing marimo server created outside of vscode is running at this url: ${url.toString()}`);
+  }
+
   const html = await response.text();
   const root = parse(html);
   const getDomValue = (tagName: string, datasetKey: string) => {
     const element = root.querySelector(tagName);
     if (!element) {
-      throw new Error(`Could not find ${tagName}`);
+      throw new Error(`Could not find ${tagName}. Is ${url} healthy?`);
     }
     const value = element.getAttribute(`data-${datasetKey}`);
     if (value === undefined) {

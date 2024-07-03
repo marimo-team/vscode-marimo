@@ -4,7 +4,7 @@ import { Config } from "../config";
 import { getGlobalState } from "../ctx";
 import { logger } from "../logger";
 import { LogMethodCalls } from "../utils/log";
-import { wait } from "../utils/network";
+import { wait } from "../utils/wait";
 
 export interface IMarimoTerminal extends Disposable {
   show(): void;

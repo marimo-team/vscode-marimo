@@ -1,22 +1,13 @@
 import http from "node:http";
 import https from "node:https";
+import { composeUrl } from "../config";
 
-function isPortFree(port: number) {
-  return new Promise((resolve) => {
-    const server = http
-      .createServer()
-      .listen(port, () => {
-        server.close();
-        resolve(true);
-      })
-      .on("error", () => {
-        resolve(false);
-      });
-  });
-}
-
-export function wait(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+/**
+ * Check if a port is free
+ */
+async function isPortFree(port: number) {
+  const healthy = await ping(composeUrl(port));
+  return !healthy;
 }
 
 export async function tryPort(start: number): Promise<number> {
@@ -26,6 +17,9 @@ export async function tryPort(start: number): Promise<number> {
   return tryPort(start + 1);
 }
 
+/**
+ * Ping a url to see if it is healthy
+ */
 export function ping(url: string): Promise<boolean> {
   const promise = new Promise<boolean>((resolve) => {
     const useHttps = url.indexOf("https") === 0;
