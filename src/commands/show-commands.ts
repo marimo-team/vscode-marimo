@@ -1,14 +1,25 @@
-import { type QuickPickItem, Uri, env, window, QuickPickItemKind, commands } from "vscode";
-import { DOCUMENTATION_URL, EXTENSION_DISPLAY_NAME, EXTENSION_PACKAGE } from "../constants";
+import {
+  type QuickPickItem,
+  QuickPickItemKind,
+  Uri,
+  commands,
+  env,
+  window,
+} from "vscode";
+import {
+  DOCUMENTATION_URL,
+  EXTENSION_DISPLAY_NAME,
+  EXTENSION_PACKAGE,
+} from "../constants";
 import { exportAsCommands } from "../export/export-as-commands";
 import { MarimoController } from "../launcher/controller";
+import { ServerManager } from "../launcher/server-manager";
 import { Launcher } from "../launcher/start";
 import {
   getActiveMarimoFile,
   openMarimoNotebookDocument,
 } from "../notebook/extension";
 import { Kernel } from "../notebook/kernel";
-import { ServerManager } from "../launcher/server-manager";
 
 interface CommandPickItem extends QuickPickItem {
   handler: () => void;
@@ -193,9 +204,13 @@ function miscCommands(): CommandPickItem[] {
       label: `$(info) Status: ${ServerManager.instance.getStatus()}`,
       handler: async () => {
         // Open output panel with channel 'marimo'
-        await commands.executeCommand(`workbench.action.output.show.extension-output-${EXTENSION_PACKAGE.fullName}-#1-${EXTENSION_DISPLAY_NAME}`);
-        await commands.executeCommand(`marimo-explorer-running-applications.focus`);
+        await commands.executeCommand(
+          `workbench.action.output.show.extension-output-${EXTENSION_PACKAGE.fullName}-#1-${EXTENSION_DISPLAY_NAME}`,
+        );
+        await commands.executeCommand(
+          "marimo-explorer-running-applications.focus",
+        );
       },
-    }
+    },
   ];
 }

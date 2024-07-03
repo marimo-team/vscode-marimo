@@ -12,7 +12,7 @@ export class SingleMessage {
 
   private gates: Map<Channel, Deferred<void>> = new Map();
 
-  async gate(channel: string, promise: () => Promise<any>): Promise<void> {
+  async gate<T>(channel: string, promise: () => Promise<T>): Promise<void> {
     // If gate exists, wait for it
     const deferred = this.gates.get(channel);
     if (deferred) {

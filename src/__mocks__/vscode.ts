@@ -3,6 +3,7 @@ import type { VitestUtils } from "vitest";
 import type { NotebookController } from "vscode";
 
 export function createVSCodeMock(vi: VitestUtils) {
+  // biome-ignore lint/suspicious/noExplicitAny: any is ok
   const vscode = create(vi) as any;
 
   vscode.window.createWebviewPanel.mockImplementation(() => {

@@ -101,7 +101,12 @@ export async function handleOnOpenNotebookDocument(
         await serverManager.start();
       // If not new, try to hydrate existing notebooks
       if (!metadata.isNew) {
-        await kernelManager.hydrateExistingNotebooks({ port, skewToken, userConfig, version });
+        await kernelManager.hydrateExistingNotebooks({
+          port,
+          skewToken,
+          userConfig,
+          version,
+        });
       }
 
       // Create Kernel

@@ -3,7 +3,7 @@ import { logger } from "../logger";
 import { LogMethodCalls } from "../utils/log";
 
 export class MarimoPanelManager {
-  private nativePanel: WebviewPanel | undefined;
+  public nativePanel: WebviewPanel | undefined;
   private url: string | undefined;
   private logger = logger.createLogger(this.appName);
 

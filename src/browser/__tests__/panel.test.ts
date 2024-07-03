@@ -15,9 +15,9 @@ describe("Panel", () => {
   it("should show panel", async () => {
     const panel = new MarimoPanelManager("app");
     await panel.create("https://example.com");
-    const nativePanel = (panel as any).nativePanel;
+    const nativePanel = panel.nativePanel;
     expect(nativePanel).toBeDefined();
-    expect(nativePanel.webview.html).toMatchInlineSnapshot(`
+    expect(nativePanel?.webview.html).toMatchInlineSnapshot(`
       "
             <!DOCTYPE html>
             <html lang="en">

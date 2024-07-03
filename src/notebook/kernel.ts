@@ -213,17 +213,22 @@ export class Kernel implements IKernel {
 
     // Update markdown cells to run on change.
     const markdownChanges = e.cellChanges
-      .flatMap((change) => change.document ? change.cell : [])
+      .flatMap((change) => (change.document ? change.cell : []))
       .filter((cell) => cell.document.languageId === MARKDOWN_LANGUAGE_ID);
 
     // Execute the pending markdown cells
     if (markdownChanges.length > 0) {
-      await this.bridge.run({
-        cellIds: markdownChanges.map((cell) => getCellMetadata(cell).id!),
-        codes: markdownChanges.map((cell) =>
-          toMarkdown(cell.document.getText()),
-        ),
-      });
+      const cellIds: CellId[] = [];
+      const codes: string[] = [];
+      for (const cell of markdownChanges) {
+        const metadata = getCellMetadata(cell);
+        if (!metadata.id) {
+          continue;
+        }
+        cellIds.push(metadata.id);
+        codes.push(toMarkdown(cell.document.getText()));
+      }
+      await this.bridge.run({ cellIds, codes });
     }
   }
 
@@ -359,11 +364,22 @@ export class Kernel implements IKernel {
       }
     }
 
+    const cellIds: string[] = [];
+    const codes: string[] = [];
+
+    for (const cell of cells) {
+      const metadata = getCellMetadata(cell);
+      if (!metadata.id) {
+        this.logger.error("Cell has no id", cell);
+        continue;
+      }
+
+      cellIds.push(metadata.id);
+      codes.push(cell.document.getText());
+    }
+
     // Execute the cell in the kernel
-    await this.bridge.run({
-      cellIds: cells.map((cell) => getCellMetadata(cell).id!),
-      codes: cells.map((cell) => cell.document.getText()),
-    });
+    await this.bridge.run({ cellIds, codes });
   }
 
   private endAllExecutions() {
@@ -699,6 +715,7 @@ function toArray<T>(value: T | ReadonlyArray<T>): T[] {
   return [value] as T[];
 }
 
+// biome-ignore lint/suspicious/noExplicitAny: any is ok
 function deepEqual(a: any, b: any): boolean {
   if (a === b) {
     return true;

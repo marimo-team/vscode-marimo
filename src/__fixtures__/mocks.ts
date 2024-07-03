@@ -1,6 +1,7 @@
 import { readTextDocument } from "jest-mock-vscode";
 import { vi } from "vitest";
 import {
+  type ExtensionContext,
   NotebookController,
   type NotebookDocument,
   Uri,
@@ -36,7 +37,7 @@ setExtension({
     get: vi.fn(),
     update: vi.fn(),
   },
-} as any);
+} as unknown as ExtensionContext);
 
 export const controller = createNotebookController();
 export const mockNotebookDocument: NotebookDocument = {

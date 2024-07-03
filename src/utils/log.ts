@@ -1,17 +1,22 @@
 import { logger as defaultLogger } from "../logger";
+import { invariant } from "./invariant";
 
 /**
  * Decorator that logs method calls.
  */
-export function LogMethodCalls<T extends any[]>() {
+// biome-ignore lint/suspicious/noExplicitAny: any is ok
+export function LogMethodCalls<T extends (...args: any[]) => any>() {
   return (
     _target: object,
     propertyKey: string | symbol,
-    descriptor: TypedPropertyDescriptor<(...args: T) => any>,
-  ): TypedPropertyDescriptor<(...args: T) => any> => {
-    const originalMethod = descriptor.value!;
+    descriptor: TypedPropertyDescriptor<T>,
+  ): TypedPropertyDescriptor<T> => {
+    const originalMethod = descriptor.value;
+    invariant(originalMethod, "Method not found");
 
-    descriptor.value = function (...args: T) {
+    // @ts-expect-error ignore
+    descriptor.value = function (...args: Parameters<T>) {
+      // biome-ignore lint/suspicious/noExplicitAny: any is ok
       const logger = (this as any).logger;
       if (logger && "log" in logger) {
         logger.log(`-> ${String(propertyKey)}()`);

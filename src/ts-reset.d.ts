@@ -5,6 +5,7 @@ interface Body {
 interface JSON {
   parse(
     text: string,
+    // biome-ignore lint/suspicious/noExplicitAny: any is ok
     reviver?: (this: any, key: string, value: any) => any,
   ): unknown;
 }

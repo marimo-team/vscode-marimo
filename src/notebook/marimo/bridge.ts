@@ -166,7 +166,7 @@ export class MarimoBridge implements ILifecycle {
         {},
       );
       if (response.error) {
-        throw new Error((response as any).error);
+        throw new Error((response as { error: string }).error);
       }
       this.socket.close();
     });

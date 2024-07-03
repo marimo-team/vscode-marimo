@@ -20,12 +20,14 @@ export async function fetchMarimoStartupValues(port: number): Promise<{
   if (!response.ok) {
     throw new Error(
       `Could not fetch ${url}. Is ${url} healthy? ${response.status} ${response.statusText}`,
-    )
+    );
   }
 
   // If was redirected to /auth/login, then show a message that an existing server is running
   if (new URL(response.url).pathname.startsWith("/auth/login")) {
-    throw new Error(`An existing marimo server created outside of vscode is running at this url: ${url.toString()}`);
+    throw new Error(
+      `An existing marimo server created outside of vscode is running at this url: ${url.toString()}`,
+    );
   }
 
   const html = await response.text();
