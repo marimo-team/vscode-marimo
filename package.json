@@ -123,7 +123,7 @@
       },
       {
         "command": "vscode-marimo.startServer",
-        "enablement": "(view == marimo-explorer-running-applications) && marimo.isMarimoServerRunning === false",
+        "enablement": "(view == marimo-explorer-running-applications || notebookType == marimo-notebook) && marimo.isMarimoServerRunning === false",
         "category": "marimo",
         "title": "Start server",
         "icon": "$(play)"
@@ -173,7 +173,7 @@
         "command": "vscode-marimo.showCommands",
         "enablement": "marimo.isMarimoApp || notebookType == marimo-notebook",
         "category": "marimo",
-        "title": "Show marimo commands",
+        "title": "marimo commands",
         "icon": "$(symbol-event)"
       },
       {
@@ -246,7 +246,7 @@
         {
           "when": "marimo.isMarimoApp",
           "command": "vscode-marimo.showCommands",
-          "group": "navigation"
+          "group": "navigation@1"
         },
         {
           "when": "marimo.isMarimoApp",
@@ -282,17 +282,17 @@
         {
           "when": "notebookType == marimo-notebook && marimo.isMarimoServerRunning === true",
           "command": "vscode-marimo.restartKernel",
-          "group": "navigation/execute@1"
+          "group": "navigation/execute@2"
         },
         {
           "when": "notebookType == marimo-notebook && marimo.isMarimoServerRunning === false",
           "command": "vscode-marimo.startServer",
-          "group": "navigation/execute@2"
+          "group": "navigation/execute@3"
         },
         {
           "when": "notebookType == marimo-notebook",
           "command": "vscode-marimo.showCommands",
-          "group": "navigation"
+          "group": "navigation/execute@1"
         }
       ],
       "view/item/context": [
