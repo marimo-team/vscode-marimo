@@ -1,7 +1,8 @@
 import { window } from "vscode";
 import { Config } from "./config";
+import { EXTENSION_DISPLAY_NAME } from "./constants";
 
-const channel = window.createOutputChannel("marimo") || {
+const channel = window.createOutputChannel(EXTENSION_DISPLAY_NAME) || {
   appendLine: console.log,
 };
 

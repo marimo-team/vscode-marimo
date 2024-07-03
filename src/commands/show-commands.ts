@@ -1,5 +1,5 @@
-import { type QuickPickItem, Uri, env, window } from "vscode";
-import { DOCUMENTATION_URL } from "../constants";
+import { type QuickPickItem, Uri, env, window, QuickPickItemKind, commands } from "vscode";
+import { DOCUMENTATION_URL, EXTENSION_DISPLAY_NAME, EXTENSION_PACKAGE } from "../constants";
 import { exportAsCommands } from "../export/export-as-commands";
 import { MarimoController } from "../launcher/controller";
 import { Launcher } from "../launcher/start";
@@ -8,11 +8,18 @@ import {
   openMarimoNotebookDocument,
 } from "../notebook/extension";
 import { Kernel } from "../notebook/kernel";
+import { ServerManager } from "../launcher/server-manager";
 
 interface CommandPickItem extends QuickPickItem {
   handler: () => void;
   if?: boolean;
 }
+
+const SEPARATOR = {
+  label: "",
+  kind: QuickPickItemKind.Separator,
+  handler: () => {},
+};
 
 export async function showCommands(controller: MarimoController | Kernel) {
   let commands: CommandPickItem[] = [];
@@ -48,6 +55,7 @@ export function showKernelCommands(kernel: Kernel): CommandPickItem[] {
         await kernel.openKiosk("system");
       },
     },
+    SEPARATOR,
     {
       label: "$(refresh) Restart kernel",
       async handler() {
@@ -56,17 +64,13 @@ export function showKernelCommands(kernel: Kernel): CommandPickItem[] {
       },
     },
     {
-      label: "$(question) Show documentation",
-      handler() {
-        env.openExternal(Uri.parse(DOCUMENTATION_URL));
-      },
-    },
-    {
       label: "$(export) Export notebook as...",
       handler() {
         exportAsCommands(kernel.fileUri);
       },
     },
+    SEPARATOR,
+    ...miscCommands(),
   ];
 }
 
@@ -91,13 +95,14 @@ export function showMarimoControllerCommands(
       if: !controller.active,
     },
     {
-      label: "$(remote-explorer-documentation) Start in marimo editor (run)",
+      label: "$(preview) Start in marimo editor (run)",
       async handler() {
         await Launcher.start({ controller, mode: "run" });
         controller.open();
       },
       if: !controller.active,
     },
+    SEPARATOR,
     // Active commands
     {
       label: "$(split-horizontal) Open in embedded browser",
@@ -152,21 +157,44 @@ export function showMarimoControllerCommands(
       },
       if: controller.active,
     },
-
-    // Misc commands
-    {
-      label: "$(question) Show documentation",
-      handler() {
-        env.openExternal(Uri.parse(DOCUMENTATION_URL));
-      },
-      if: true,
-    },
     {
       label: "$(export) Export notebook as...",
       handler() {
         exportAsCommands(controller.file.uri);
       },
-      if: true,
     },
+
+    SEPARATOR,
+    ...miscCommands(),
+  ];
+}
+
+function miscCommands(): CommandPickItem[] {
+  return [
+    {
+      label: "$(question) View marimo documentation",
+      handler() {
+        env.openExternal(Uri.parse(DOCUMENTATION_URL));
+      },
+    },
+    {
+      label: "$(comment-discussion) Join Discord community",
+      handler() {
+        env.openExternal(Uri.parse("https://marimo.io/discord"));
+      },
+    },
+    {
+      label: "$(settings) Edit settings",
+      handler() {
+        void commands.executeCommand("workbench.action.openSettings", "marimo");
+      },
+    },
+    {
+      label: `$(info) Status: ${ServerManager.instance.getStatus()}`,
+      handler() {
+        // Open output panel with channel 'marimo'
+        void commands.executeCommand(`workbench.action.output.show.extension-output-${EXTENSION_PACKAGE.fullName}-#1-${EXTENSION_DISPLAY_NAME}`);
+      },
+    }
   ];
 }

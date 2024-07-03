@@ -65,14 +65,16 @@
         "enablement": "marimo.isMarimoApp",
         "category": "marimo",
         "title": "Start in marimo editor (edit)",
-        "shortTitle": "Start in marimo editor (edit)"
+        "shortTitle": "Start in marimo editor (edit)",
+        "icon": "$(edit)"
       },
       {
         "command": "vscode-marimo.run",
         "enablement": "marimo.isMarimoApp",
         "category": "marimo",
         "title": "Start in marimo editor (run)",
-        "shortTitle": "Start in marimo editor (run)"
+        "shortTitle": "Start in marimo editor (run)",
+        "icon": "$(preview)"
       },
       {
         "command": "vscode-marimo.stopKernel",
@@ -83,10 +85,17 @@
       },
       {
         "command": "vscode-marimo.restartKernel",
-        "enablement": "marimo.isMarimoApp || (notebookType == marimo-notebook)",
+        "enablement": "marimo.isMarimoApp || notebookType == marimo-notebook",
         "category": "marimo",
         "title": "Restart kernel",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "vscode-marimo.startKernel",
+        "enablement": "notebookType == marimo-notebook",
+        "category": "marimo",
+        "title": "Start kernel",
+        "icon": "$(play)"
       },
       {
         "command": "marimo-explorer.restartKernel",
@@ -143,8 +152,8 @@
       {
         "command": "vscode-marimo.openDocumentation",
         "category": "marimo",
-        "title": "Show documentation: doc.marimo.io",
-        "shortTitle": "Show documentation",
+        "title": "View marimo documentation",
+        "shortTitle": "View marimo documentation",
         "icon": "$(remote-explorer-documentation)"
       },
       {
@@ -271,9 +280,14 @@
       ],
       "notebook/toolbar": [
         {
-          "when": "notebookType == marimo-notebook",
+          "when": "notebookType == marimo-notebook && marimo.isMarimoServerRunning === true",
           "command": "vscode-marimo.restartKernel",
           "group": "navigation/execute@1"
+        },
+        {
+          "when": "notebookType == marimo-notebook && marimo.isMarimoServerRunning === false",
+          "command": "vscode-marimo.startServer",
+          "group": "navigation/execute@2"
         },
         {
           "when": "notebookType == marimo-notebook",

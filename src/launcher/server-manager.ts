@@ -33,6 +33,10 @@ export class ServerManager {
     userConfig: MarimoConfig;
   }> = new Deferred();
 
+  getStatus(): "stopped" | "starting" | "started" {
+    return this.state;
+  }
+
   init(): void {
     this.terminal = new MarimoTerminal(Config.root, Config.root, "editor");
     this.updateState("stopped");
