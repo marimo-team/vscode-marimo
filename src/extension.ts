@@ -79,6 +79,13 @@ export async function activate(extension: ExtensionContext) {
   serverManager.init();
   addDisposable(kernelManager, serverManager);
 
+  const refreshUI = () => {
+    // Refresh explorer
+    MarimoRunningKernelsProvider.refresh();
+    // Update status bar
+    statusBarManager.update();
+  };
+
   ///// Commands /////
   // These commands are for the server
   commands.registerCommand(Commands.startServer, async () => {
@@ -117,10 +124,7 @@ export async function activate(extension: ExtensionContext) {
         await serverManager.stopServer();
         // Remove all kernels
         kernelManager.clearAllKernels();
-        // Refresh explorer
-        MarimoRunningKernelsProvider.refresh();
-        // Update status bar
-        statusBarManager.update();
+        refreshUI();
       },
     );
   });
@@ -265,6 +269,9 @@ export async function activate(extension: ExtensionContext) {
   window.onDidCloseTerminal(async (terminal) => {
     if (ServerManager.instance.terminal.is(terminal)) {
       await ServerManager.instance.dispose();
+      await KernelManager.instance.clearAllKernels();
+      // Refresh
+      refreshUI();
     }
 
     const controller = Controllers.findWithTerminal(terminal);

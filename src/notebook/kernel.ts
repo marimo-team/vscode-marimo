@@ -213,7 +213,7 @@ export class Kernel implements IKernel {
 
     // Update markdown cells to run on change.
     const markdownChanges = e.cellChanges
-      .flatMap((change) => change.cell)
+      .flatMap((change) => change.document ? change.cell : [])
       .filter((cell) => cell.document.languageId === MARKDOWN_LANGUAGE_ID);
 
     // Execute the pending markdown cells

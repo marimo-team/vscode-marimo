@@ -152,6 +152,7 @@ export class KernelManager implements IKernelManager {
     for (const kernel of kernelMap.values()) {
       await kernel.dispose();
     }
+    kernelMap.clear();
   }
 
   async dispose(): Promise<void> {
