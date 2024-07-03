@@ -99,6 +99,10 @@ export async function handleOnOpenNotebookDocument(
       logger.log("Checking server...");
       const { port, skewToken, userConfig, version } =
         await serverManager.start();
+      // If not new, try to hydrate existing notebooks
+      if (!metadata.isNew) {
+        await kernelManager.hydrateExistingNotebooks({ port, skewToken, userConfig, version });
+      }
 
       // Create Kernel
       const kernel = kernelManager.createKernel({

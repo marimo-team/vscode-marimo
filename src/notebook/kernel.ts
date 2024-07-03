@@ -75,6 +75,10 @@ export class Kernel implements IKernel {
       onCellMessage: this.handleCellMessage.bind(this),
       onKernelReady: this.handleReady.bind(this),
       onCompletedRun: this.handleCompleteRun.bind(this),
+      onRestart: () => {
+        // Open the browser
+        this.openKiosk();
+      },
     });
     this.bridge.start();
     const basename = vscode.workspace.asRelativePath(notebookDoc.uri);

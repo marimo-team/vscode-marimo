@@ -90,7 +90,8 @@ export async function activate(extension: ExtensionContext) {
       },
       async () => {
         // Start server
-        await serverManager.start();
+        const response = await serverManager.start();
+        await kernelManager.hydrateExistingNotebooks(response);
       },
     );
   });
@@ -114,8 +115,12 @@ export async function activate(extension: ExtensionContext) {
         }
         // Stop server
         await serverManager.stopServer();
+        // Remove all kernels
+        kernelManager.clearAllKernels();
         // Refresh explorer
         MarimoRunningKernelsProvider.refresh();
+        // Update status bar
+        statusBarManager.update();
       },
     );
   });
@@ -130,8 +135,19 @@ export async function activate(extension: ExtensionContext) {
   commands.registerCommand(Commands.restartKernel, async () => {
     const maybeKernel = KernelManager.getFocusedMarimoKernel();
     if (maybeKernel) {
-      await maybeKernel.restart();
-      await maybeKernel.openKiosk();
+      await window.withProgress(
+        {
+          location: ProgressLocation.Notification,
+          title: "Restarting marimo kernel...",
+          cancellable: false,
+        },
+        async () => {
+          // Maybe start server
+          await serverManager.start();
+          await maybeKernel.restart();
+          await maybeKernel.openKiosk();
+        },
+      );
       return;
     }
 

@@ -83,7 +83,14 @@ export class KernelManager implements IKernelManager {
   @LogMethodCalls()
   createKernel(opts: CreateKernelOptions): Kernel {
     const { port, uri, skewToken, version, userConfig, notebookDoc } = opts;
+
+    // If already created, return
     const key = toKernelKey(uri);
+    const existing = kernelMap.get(key);
+    if (existing && existing.notebookDoc === notebookDoc) {
+      return existing;
+    }
+
     const kernel = new Kernel({
       port: port,
       kernelKey: key,
@@ -96,6 +103,27 @@ export class KernelManager implements IKernelManager {
     });
     kernelMap.set(key, kernel);
     return kernel;
+  }
+
+  hydrateExistingNotebooks(opts: {
+    port: number;
+    skewToken: SkewToken;
+    version: string;
+    userConfig: MarimoConfig;
+  }): void {
+    // Find all open notebooks
+    for (const nb of vscode.workspace.notebookDocuments) {
+      if (nb.notebookType === NOTEBOOK_TYPE) {
+        this.createKernel({
+          uri: nb.uri,
+          port: opts.port,
+          skewToken: opts.skewToken,
+          version: opts.version,
+          userConfig: opts.userConfig,
+          notebookDoc: nb,
+        });
+      }
+    }
   }
 
   getKernel(key: KernelKey | undefined): Kernel | undefined {

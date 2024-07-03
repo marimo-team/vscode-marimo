@@ -72,6 +72,7 @@ export class MarimoBridge implements ILifecycle {
       onCellMessage: (message: CellOp) => void;
       onCompletedRun: () => void;
       onKernelReady: (payload: KernelReady) => void;
+      onRestart: () => void;
     },
   ) {}
 
@@ -152,6 +153,7 @@ export class MarimoBridge implements ILifecycle {
       .then(async (item) => {
         if (item?.title === "Restart kernel") {
           await this.restart();
+          await this.callbacks.onRestart();
         }
       });
   }
