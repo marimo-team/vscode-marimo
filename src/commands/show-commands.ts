@@ -191,9 +191,10 @@ function miscCommands(): CommandPickItem[] {
     },
     {
       label: `$(info) Status: ${ServerManager.instance.getStatus()}`,
-      handler() {
+      handler: async () => {
         // Open output panel with channel 'marimo'
-        void commands.executeCommand(`workbench.action.output.show.extension-output-${EXTENSION_PACKAGE.fullName}-#1-${EXTENSION_DISPLAY_NAME}`);
+        await commands.executeCommand(`workbench.action.output.show.extension-output-${EXTENSION_PACKAGE.fullName}-#1-${EXTENSION_DISPLAY_NAME}`);
+        await commands.executeCommand(`marimo-explorer-running-applications.focus`);
       },
     }
   ];
