@@ -16,6 +16,7 @@ export class MarimoCmdBuilder {
   fileOrDir(fileOrDir: string) {
     if (fileOrDir.includes(" ")) {
       this.cmd.push(`"${fileOrDir}"`);
+      return this;
     }
     this.cmd.push(fileOrDir);
     return this;
