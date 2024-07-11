@@ -7,7 +7,7 @@
   "packageManager": "pnpm@8.15.1",
   "version": "0.4.1",
   "engines": {
-    "vscode": "^1.86.0"
+    "vscode": "^1.91.1"
   },
   "private": true,
   "categories": [
@@ -410,7 +410,7 @@
   "devDependencies": {
     "@biomejs/biome": "^1.7.3",
     "@types/node": "20.12.12",
-    "@types/vscode": "^1.86.0",
+    "@types/vscode": "^1.91.0",
     "@types/ws": "^8.5.10",
     "@vscode/test-cli": "^0.0.9",
     "@vscode/test-electron": "^2.3.10",
