@@ -100,7 +100,11 @@ export class MarimoPanelManager {
   }
 }
 
-function getWebviewContent(url: string) {
+function getWebviewContent(urlString: string) {
+  // add vscode=true to query string
+  const url = new URL(urlString);
+  url.searchParams.set("vscode", "true");
+
   return `
       <!DOCTYPE html>
       <html lang="en">
@@ -113,7 +117,7 @@ function getWebviewContent(url: string) {
           <iframe
             id="preview-panel"
             allow="clipboard-read; clipboard-write;"
-            src="${url}" frameborder="0" style="flex: 1;"
+            src="${url.toString()}" frameborder="0" style="flex: 1;"
           ></iframe>
 
           <script>
