@@ -12,8 +12,8 @@ devDependencies:
     specifier: 20.12.12
     version: 20.12.12
   '@types/vscode':
-    specifier: ^1.91.0
-    version: 1.91.0
+    specifier: ^1.92.0
+    version: 1.92.0
   '@types/ws':
     specifier: ^8.5.10
     version: 8.5.10
@@ -977,8 +977,8 @@ packages:
       undici-types: 5.26.5
     dev: true
 
-  /@types/vscode@1.91.0:
-    resolution: {integrity: sha512-PgPr+bUODjG3y+ozWUCyzttqR9EHny9sPAfJagddQjDwdtf66y2sDKJMnFZRuzBA2YtBGASqJGPil8VDUPvO6A==}
+  /@types/vscode@1.92.0:
+    resolution: {integrity: sha512-DcZoCj17RXlzB4XJ7IfKdPTcTGDLYvTOcTNkvtjXWF+K2TlKzHHkBEXNWQRpBIXixNEUgx39cQeTFunY0E2msw==}
     dev: true
 
   /@types/ws@8.5.10:
