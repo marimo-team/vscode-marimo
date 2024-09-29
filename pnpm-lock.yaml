@@ -24,8 +24,8 @@ devDependencies:
     specifier: ^2.3.10
     version: 2.3.10
   jest-mock-vscode:
-    specifier: ^3.0.5
-    version: 3.0.5
+    specifier: ^4.0.2
+    version: 4.0.2(@types/vscode@1.91.0)
   node-fetch:
     specifier: ^3.3.2
     version: 3.3.2
@@ -1925,10 +1925,13 @@ packages:
       '@pkgjs/parseargs': 0.11.0
     dev: true
 
-  /jest-mock-vscode@3.0.5:
-    resolution: {integrity: sha512-fyOdwDnVMqPk4sqZkcIvFSuFjRxmLpAA91RX+Q3c6uWPB/dtE/Lnx8M5kwzUNk1PX9Xqo+dQsIFERTVCfeRGnA==}
+  /jest-mock-vscode@4.0.2(@types/vscode@1.91.0):
+    resolution: {integrity: sha512-Vs/b0jPyECd5G3iJLSh2Kuw+p1zeL0Ea2+LPxeTyqjaEvd53Ex4IuABM6Owvx92Q7PunWFMZ7hX+xqEkTfPpcw==}
     engines: {node: '>16.0.0'}
+    peerDependencies:
+      '@types/vscode': ^1.90.0
     dependencies:
+      '@types/vscode': 1.91.0
       vscode-uri: 3.0.8
     dev: true
 

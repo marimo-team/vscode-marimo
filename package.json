@@ -414,7 +414,7 @@
     "@types/ws": "^8.5.10",
     "@vscode/test-cli": "^0.0.9",
     "@vscode/test-electron": "^2.3.10",
-    "jest-mock-vscode": "^3.0.5",
+    "jest-mock-vscode": "^4.0.2",
     "node-fetch": "^3.3.2",
     "node-html-parser": "^6.1.13",
     "openapi-fetch": "^0.9.7",
