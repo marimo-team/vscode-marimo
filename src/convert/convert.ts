@@ -1,10 +1,10 @@
-import { execSync } from "node:child_process";
-import { existsSync } from "node:fs";
 import path from "node:path";
 import { Uri, window, workspace } from "vscode";
 import { Config } from "../config";
+import { getUniqueFilename } from "../export/export-as";
 import { logger } from "../logger";
 import { printError } from "../utils/errors";
+import { execPython } from "../utils/exec";
 
 export async function convertIPyNotebook(filePath: string) {
   return convertNotebook(filePath, "ipynb");
@@ -14,20 +14,25 @@ export async function convertMarkdownNotebook(filePath: string) {
   return convertNotebook(filePath, "md");
 }
 
-export async function convertNotebook(
+async function convertNotebook(
   filePath: string,
   ext: "ipynb" | "md",
 ): Promise<Uri | boolean> {
   try {
     // convert
     const directory = path.dirname(filePath);
-    const response = execSync(`${Config.marimoPath} convert '${filePath}'`);
+    // Execute marimo via python
+    const response = await execPython([
+      Config.marimoPath,
+      "convert",
+      `'${filePath}'`, // Wrap in single quotes to handle spaces in path
+    ]);
     const appCode = response.toString();
 
     try {
       // try to save to file system
       const currentFilename = path.basename(filePath, `.${ext}`);
-      const newFilename = getUniqueFilename(directory, currentFilename);
+      const newFilename = getUniqueFilename(directory, currentFilename, "py");
       const newFilePath = Uri.file(path.join(directory, newFilename));
 
       await workspace.fs.writeFile(newFilePath, Buffer.from(appCode));
@@ -49,25 +54,10 @@ export async function convertNotebook(
       return true;
     }
   } catch (error) {
-    logger.log(error);
-    window.showErrorMessage(`Failed to convert notebook: ${printError(error)}`);
+    logger.info(error);
+    window.showErrorMessage(
+      `Failed to convert notebook: \n${printError(error)}`,
+    );
     return false;
   }
-}
-
-function getUniqueFilename(
-  directory: string,
-  filename: string,
-  postfix?: number,
-) {
-  const uniqueFilename = postfix
-    ? `${filename}_${postfix}.py`
-    : `${filename}.py`;
-
-  // If the file already exists, try again with a higher postfix
-  if (existsSync(path.join(directory, uniqueFilename))) {
-    return getUniqueFilename(directory, filename, postfix ? postfix + 1 : 1);
-  }
-
-  return uniqueFilename;
 }

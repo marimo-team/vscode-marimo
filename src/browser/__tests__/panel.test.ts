@@ -26,42 +26,48 @@ describe("Panel", () => {
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <title>marimo</title>
             </head>
-            <body style="position: absolute; padding: 0; margin: 0; top: 0; bottom: 0; left: 0; right: 0; display: flex;">
+            <body style="
+            position: absolute;
+            padding: 0;
+            margin: 0;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+          ">
                 <iframe
                   id="preview-panel"
                   allow="clipboard-read; clipboard-write;"
-                  src="https://example.com" frameborder="0" style="flex: 1;"
+                  src="https://example.com/?vscode=true"
+                  style="
+            flex: 1;
+            border: none;
+          "
                 ></iframe>
 
                 <script>
-                // When the iframe loads, or when the tab gets focus again later, move the
-                // the focus to the iframe.
-                let iframe = document.getElementById('preview-panel');
-                window.onfocus = iframe.onload = () => {
-                  // doesn't work immediately
-                  setTimeout(() => iframe.contentWindow.focus(), 100);
-                };
+                (function() {
+                  const vscode = acquireVsCodeApi();
+                  const iframe = document.getElementById('preview-panel');
 
-                const vscode = acquireVsCodeApi();
+                  function focusIframe() {
+                    setTimeout(() => iframe.contentWindow.focus(), 100);
+                  }
 
-                // Message proxy from parent (vscode webview) to child (iframe)
-                window.addEventListener(
-                  "message",
-                  (e) => {
-                    // If its from the child, post it to vscode
-                    if (e.source === iframe.contentWindow) {
-                      vscode.postMessage(e.data);
-                      return;
+                  window.onfocus = focusIframe;
+                  iframe.onload = focusIframe;
+
+                  window.addEventListener('message', (event) => {
+                    if (event.source === iframe.contentWindow) {
+                      vscode.postMessage(event.data);
+                    } else if (event.origin.startsWith('vscode-webview://')) {
+                      iframe.contentWindow.postMessage(event.data, '*');
+                    } else {
+                      console.log('Message from unknown source', event.origin);
                     }
-                    // If its from vscode, post it to the child
-                    if (e.origin.startsWith("vscode-webview://")) {
-                      iframe.contentWindow.postMessage(e.data, "*");
-                      return;
-                    }
-                    console.log("Message from unknown source", e.origin);
-                  },
-                  false
-                );
+                  }, false);
+                })();
                 </script>
             </body>
             </html>"

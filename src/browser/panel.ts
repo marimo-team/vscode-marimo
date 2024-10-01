@@ -3,38 +3,44 @@ import { logger } from "../logger";
 import { LogMethodCalls } from "../utils/log";
 
 export class MarimoPanelManager {
+  private static readonly WEBVIEW_TYPE = "marimo";
+  private static readonly VSCODE_PARAM = "vscode";
+
   public nativePanel: WebviewPanel | undefined;
   private url: string | undefined;
-  private logger = logger.createLogger(this.appName);
+  private readonly logger = logger.createLogger(this.appName);
 
-  constructor(private appName: string) {}
+  constructor(private readonly appName: string) {}
 
-  isReady() {
+  public isReady(): boolean {
     return !!this.nativePanel;
   }
 
-  isActive() {
+  public isActive(): boolean {
     return this.nativePanel?.active ?? false;
   }
 
   @LogMethodCalls()
-  reload() {
+  public reload(): void {
     if (this.nativePanel && this.url) {
-      this.nativePanel.webview.html = "";
-      this.nativePanel.webview.html = getWebviewContent(this.url);
+      this.nativePanel.webview.html = MarimoPanelManager.getWebviewContent(
+        this.url,
+      );
+    } else {
+      this.logger.warn("Cannot reload: panel or URL not set");
     }
   }
 
-  async create(url: string) {
-    this.logger.log("creating panel at", url);
+  public async create(url: string): Promise<void> {
+    this.logger.info("Creating panel at", url);
 
-    // Skip if already created
     if (this.nativePanel) {
+      this.logger.warn("Panel already exists");
       return;
     }
 
     this.nativePanel = window.createWebviewPanel(
-      "marimo",
+      MarimoPanelManager.WEBVIEW_TYPE,
       `marimo: ${this.appName}`,
       ViewColumn.Beside,
       {
@@ -43,69 +49,94 @@ export class MarimoPanelManager {
       },
     );
 
-    this.nativePanel.webview.html = getWebviewContent(url);
+    this.nativePanel.webview.html = MarimoPanelManager.getWebviewContent(url);
     this.url = url;
 
     this.nativePanel.onDidDispose(() => {
       this.nativePanel = undefined;
     });
 
-    // Handle messages from the webview
-    this.nativePanel.webview.onDidReceiveMessage((message) => {
-      switch (message.command) {
-        case "copy": {
-          env.clipboard.writeText(message.text);
-          return;
-        }
-        case "cut": {
-          env.clipboard.writeText(message.text);
-          return;
-        }
-        case "paste": {
-          env.clipboard.readText().then((text) => {
-            this.nativePanel?.webview.postMessage({
-              command: "paste",
-              text: text,
-            });
-          });
-          return;
-        }
-        case "external_link": {
-          env.openExternal(Uri.parse(message.url));
-          return;
-        }
-        case "context_menu": {
-          // Context menu is not supported yet
-          return;
-        }
-        default: {
-          this.logger.log("unknown message", message.command);
-          return;
-        }
-      }
-    }, undefined);
+    this.setupMessageHandler();
   }
 
   @LogMethodCalls()
-  show() {
+  public show(): void {
     if (!this.nativePanel) {
-      logger.warn("Panel not created yet");
+      this.logger.warn("Panel not created yet");
     }
     this.nativePanel?.reveal();
   }
 
   @LogMethodCalls()
-  dispose() {
+  public dispose(): void {
     this.nativePanel?.dispose();
   }
-}
 
-function getWebviewContent(urlString: string) {
-  // add vscode=true to query string
-  const url = new URL(urlString);
-  url.searchParams.set("vscode", "true");
+  private setupMessageHandler(): void {
+    if (!this.nativePanel) {
+      this.logger.error("Cannot setup message handler: panel not created");
+      return;
+    }
 
-  return `
+    this.nativePanel.webview.onDidReceiveMessage(
+      this.handleWebviewMessage,
+      undefined,
+    );
+  }
+
+  private handleWebviewMessage = async (message: {
+    command: string;
+    text?: string;
+    url?: string;
+  }): Promise<void> => {
+    switch (message.command) {
+      case "copy":
+      case "cut":
+        if (!message.text) {
+          break;
+        }
+        await env.clipboard.writeText(message.text);
+        break;
+      case "paste": {
+        const text = await env.clipboard.readText();
+        this.nativePanel?.webview.postMessage({ command: "paste", text });
+        break;
+      }
+      case "external_link":
+        if (!message.url) {
+          break;
+        }
+        await env.openExternal(Uri.parse(message.url));
+        break;
+      case "context_menu":
+        // Context menu is not supported yet
+        break;
+      default:
+        this.logger.info("Unknown message", message.command);
+    }
+  };
+
+  private static getWebviewContent(urlString: string): string {
+    const url = new URL(urlString);
+    url.searchParams.set(MarimoPanelManager.VSCODE_PARAM, "true");
+
+    const styles = `
+      position: absolute;
+      padding: 0;
+      margin: 0;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+    `;
+
+    const iframeStyles = `
+      flex: 1;
+      border: none;
+    `;
+
+    return `
       <!DOCTYPE html>
       <html lang="en">
       <head>
@@ -113,43 +144,38 @@ function getWebviewContent(urlString: string) {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>marimo</title>
       </head>
-      <body style="position: absolute; padding: 0; margin: 0; top: 0; bottom: 0; left: 0; right: 0; display: flex;">
+      <body style="${styles}">
           <iframe
             id="preview-panel"
             allow="clipboard-read; clipboard-write;"
-            src="${url.toString()}" frameborder="0" style="flex: 1;"
+            src="${url.toString()}"
+            style="${iframeStyles}"
           ></iframe>
 
           <script>
-          // When the iframe loads, or when the tab gets focus again later, move the
-          // the focus to the iframe.
-          let iframe = document.getElementById('preview-panel');
-          window.onfocus = iframe.onload = () => {
-            // doesn't work immediately
-            setTimeout(() => iframe.contentWindow.focus(), 100);
-          };
+          (function() {
+            const vscode = acquireVsCodeApi();
+            const iframe = document.getElementById('preview-panel');
 
-          const vscode = acquireVsCodeApi();
+            function focusIframe() {
+              setTimeout(() => iframe.contentWindow.focus(), 100);
+            }
 
-          // Message proxy from parent (vscode webview) to child (iframe)
-          window.addEventListener(
-            "message",
-            (e) => {
-              // If its from the child, post it to vscode
-              if (e.source === iframe.contentWindow) {
-                vscode.postMessage(e.data);
-                return;
+            window.onfocus = focusIframe;
+            iframe.onload = focusIframe;
+
+            window.addEventListener('message', (event) => {
+              if (event.source === iframe.contentWindow) {
+                vscode.postMessage(event.data);
+              } else if (event.origin.startsWith('vscode-webview://')) {
+                iframe.contentWindow.postMessage(event.data, '*');
+              } else {
+                console.log('Message from unknown source', event.origin);
               }
-              // If its from vscode, post it to the child
-              if (e.origin.startsWith("vscode-webview://")) {
-                iframe.contentWindow.postMessage(e.data, "*");
-                return;
-              }
-              console.log("Message from unknown source", e.origin);
-            },
-            false
-          );
+            }, false);
+          })();
           </script>
       </body>
       </html>`;
+  }
 }

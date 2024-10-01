@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createVSCodeMock } from "../../__mocks__/vscode";
 
 vi.mock("vscode", () => createVSCodeMock(vi));
+vi.mock("@vscode/python-extension", () => ({}));
 
 import { unlink } from "node:fs/promises";
 import type { Uri } from "vscode";

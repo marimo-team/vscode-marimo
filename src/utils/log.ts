@@ -18,10 +18,10 @@ export function LogMethodCalls<T extends (...args: any[]) => any>() {
     descriptor.value = function (...args: Parameters<T>) {
       // biome-ignore lint/suspicious/noExplicitAny: any is ok
       const logger = (this as any).logger;
-      if (logger && "log" in logger) {
-        logger.log(`-> ${String(propertyKey)}()`);
+      if (logger && "debug" in logger) {
+        logger.debug(`-> ${String(propertyKey)}()`);
       } else {
-        defaultLogger.log(
+        defaultLogger.debug(
           `[${this.constructor.name}] -> ${String(propertyKey)}()`,
         );
       }

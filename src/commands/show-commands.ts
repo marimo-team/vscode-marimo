@@ -13,13 +13,13 @@ import {
 } from "../constants";
 import { exportAsCommands } from "../export/export-as-commands";
 import { MarimoController } from "../launcher/controller";
-import { ServerManager } from "../launcher/server-manager";
 import { Launcher } from "../launcher/start";
 import {
   getActiveMarimoFile,
   openMarimoNotebookDocument,
 } from "../notebook/extension";
 import { Kernel } from "../notebook/kernel";
+import type { ServerManager } from "../services/server-manager";
 
 interface CommandPickItem extends QuickPickItem {
   handler: () => void;
@@ -32,14 +32,20 @@ const SEPARATOR = {
   handler: () => {},
 };
 
-export async function showCommands(controller: MarimoController | Kernel) {
+export async function showCommands(
+  controller: MarimoController | Kernel | undefined,
+  serverManager: ServerManager,
+) {
   let commands: CommandPickItem[] = [];
 
   if (controller instanceof Kernel) {
-    commands = await showKernelCommands(controller);
+    commands = await showKernelCommands(controller, serverManager);
   }
   if (controller instanceof MarimoController) {
-    commands = await showMarimoControllerCommands(controller);
+    commands = await showMarimoControllerCommands(controller, serverManager);
+  }
+  if (!controller) {
+    commands = miscCommands(serverManager);
   }
 
   const filteredCommands = commands.filter((index) => index.if !== false);
@@ -50,7 +56,10 @@ export async function showCommands(controller: MarimoController | Kernel) {
   }
 }
 
-export function showKernelCommands(kernel: Kernel): CommandPickItem[] {
+export function showKernelCommands(
+  kernel: Kernel,
+  serverManager: ServerManager,
+): CommandPickItem[] {
   return [
     {
       label: "$(split-horizontal) Open outputs in embedded browser",
@@ -81,12 +90,13 @@ export function showKernelCommands(kernel: Kernel): CommandPickItem[] {
       },
     },
     SEPARATOR,
-    ...miscCommands(),
+    ...miscCommands(serverManager),
   ];
 }
 
 export async function showMarimoControllerCommands(
   controller: MarimoController,
+  serverManager: ServerManager,
 ): Promise<CommandPickItem[]> {
   return [
     // Non-active commands
@@ -176,11 +186,11 @@ export async function showMarimoControllerCommands(
     },
 
     SEPARATOR,
-    ...miscCommands(),
+    ...miscCommands(serverManager),
   ];
 }
 
-function miscCommands(): CommandPickItem[] {
+export function miscCommands(serverManager: ServerManager): CommandPickItem[] {
   return [
     {
       label: "$(question) View marimo documentation",
@@ -201,7 +211,7 @@ function miscCommands(): CommandPickItem[] {
       },
     },
     {
-      label: `$(info) Status: ${ServerManager.instance.getStatus()}`,
+      label: `$(info) Server status: ${serverManager.getStatus()}`,
       handler: async () => {
         // Open output panel with channel 'marimo'
         await commands.executeCommand(

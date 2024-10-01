@@ -1,10 +1,10 @@
-import { window } from "vscode";
+import { LogOutputChannel, window } from "vscode";
 import { Config } from "./config";
 import { EXTENSION_DISPLAY_NAME } from "./constants";
 
-const channel = window.createOutputChannel(EXTENSION_DISPLAY_NAME) || {
-  appendLine: console.log,
-};
+const channel = window.createOutputChannel(EXTENSION_DISPLAY_NAME, {
+  log: true,
+});
 
 class Logger {
   constructor(private prefix: string) {}
@@ -14,33 +14,33 @@ class Logger {
       return;
     }
     if (this.prefix) {
-      channel.appendLine(`[${this.prefix}]: ${args.join(" ")}`);
+      channel.debug(`[${this.prefix}]: ${args.join(" ")}`);
     } else {
-      channel.appendLine(args.join(" "));
+      channel.debug(`${args.join(" ")}`);
     }
   }
 
-  log(...args: unknown[]) {
+  info(...args: unknown[]) {
     if (this.prefix) {
-      channel.appendLine(`[${this.prefix}]: ${args.join(" ")}`);
+      channel.info(`[${this.prefix}]: ${args.join(" ")}`);
     } else {
-      channel.appendLine(args.join(" "));
+      channel.info(args.join(" "));
     }
   }
 
   error(...args: unknown[]) {
     if (this.prefix) {
-      channel.appendLine(`[🛑 error] [${this.prefix}] ${args.join(" ")}`);
+      channel.error(`[${this.prefix}] ${args.join(" ")}`);
     } else {
-      channel.appendLine(args.join(" "));
+      channel.error(args.join(" "));
     }
   }
 
   warn(...args: unknown[]) {
     if (this.prefix) {
-      channel.appendLine(`[⚠️ warn] [${this.prefix}] ${args.join(" ")}`);
+      channel.warn(`[⚠️ warn] [${this.prefix}] ${args.join(" ")}`);
     } else {
-      channel.appendLine(args.join(" "));
+      channel.warn(args.join(" "));
     }
   }
 

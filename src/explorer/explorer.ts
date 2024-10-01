@@ -1,4 +1,6 @@
 import { join } from "node:path";
+import type { Disposable } from "vscode";
+
 import {
   EventEmitter,
   type ExtensionContext,
@@ -14,14 +16,14 @@ import {
   workspace,
 } from "vscode";
 import { Config } from "../config";
-import { Controllers } from "../launcher/controller";
-import { ServerManager } from "../launcher/server-manager";
+import type { ControllerManager } from "../launcher/controller";
 import { Launcher } from "../launcher/start";
 import { logger } from "../logger";
 import { openMarimoNotebookDocument } from "../notebook/extension";
 import type { Kernel } from "../notebook/kernel";
 import { KernelManager } from "../notebook/kernel-manager";
 import type { MarimoFile } from "../notebook/marimo/types";
+import type { ServerManager } from "../services/server-manager";
 import { LogMethodCalls } from "../utils/log";
 import { showNotebookDocument } from "../utils/show";
 
@@ -39,6 +41,8 @@ export class MarimoAppProvider
 {
   private static _onDidChangeTreeData = new EventEmitter<Entry | undefined>();
   readonly onDidChangeTreeData = MarimoAppProvider._onDidChangeTreeData.event;
+
+  constructor(private controllerManager: ControllerManager) {}
 
   @LogMethodCalls()
   static refresh(): void {
@@ -90,7 +94,7 @@ export class MarimoAppProvider
         }
 
         const textDocument = await workspace.openTextDocument(element.uri);
-        const controller = Controllers.getOrCreate(textDocument);
+        const controller = this.controllerManager.getOrCreate(textDocument);
         await Launcher.start({ controller, mode: "edit" });
         controller.open();
       },
@@ -99,7 +103,7 @@ export class MarimoAppProvider
 
   private focusIfActive(uri: Uri): boolean {
     // Try controller
-    const controller = Controllers.get(uri);
+    const controller = this.controllerManager.get(uri);
     if (controller?.isWebviewActive()) {
       controller.open();
       return true;
@@ -153,14 +157,15 @@ export class MarimoRunningKernelsProvider
   readonly onDidChangeTreeData =
     MarimoRunningKernelsProvider._onDidChangeTreeData.event;
 
+  constructor(private serverManager: ServerManager) {}
+
   @LogMethodCalls()
   static refresh(): void {
     MarimoRunningKernelsProvider._onDidChangeTreeData.fire(undefined);
   }
 
   async getChildren(): Promise<MarimoFile[]> {
-    const serverManager = ServerManager.instance;
-    const sessions = serverManager.getActiveSessions();
+    const sessions = this.serverManager.getActiveSessions();
     return sessions;
   }
 
@@ -226,38 +231,48 @@ export class MarimoRunningKernelsProvider
     if (kernel) {
       await kernel.dispose();
     }
-    await ServerManager.instance.shutdownSession(file);
+    await this.serverManager.shutdownSession(file);
     MarimoRunningKernelsProvider.refresh();
   }
 }
 
-export class MarimoExplorer {
+export class MarimoExplorer implements Disposable {
   private runningKernelsProvider: MarimoRunningKernelsProvider;
   private marimoFilesProvider: MarimoAppProvider;
+  private disposables: Disposable[] = [];
 
-  constructor(context: ExtensionContext) {
-    this.marimoFilesProvider = new MarimoAppProvider();
-    this.runningKernelsProvider = new MarimoRunningKernelsProvider();
+  constructor(
+    serverManager: ServerManager,
+    controllerManager: ControllerManager,
+  ) {
+    this.marimoFilesProvider = new MarimoAppProvider(controllerManager);
+    this.runningKernelsProvider = new MarimoRunningKernelsProvider(
+      serverManager,
+    );
 
-    context.subscriptions.push(
-      // Tree views
+    this.registerViews();
+    this.registerCommands();
+    this.registerEventListeners();
+  }
+
+  private registerViews() {
+    this.disposables.push(
       window.createTreeView("marimo-explorer-applications", {
         treeDataProvider: this.marimoFilesProvider,
       }),
       window.createTreeView("marimo-explorer-running-applications", {
         treeDataProvider: this.runningKernelsProvider,
       }),
+    );
+  }
+
+  private registerCommands() {
+    this.disposables.push(
       commands.registerCommand(
         "vscode-marimo.refresh",
         () => MarimoRunningKernelsProvider.refresh(),
         MarimoAppProvider.refresh(),
       ),
-      workspace.onDidOpenNotebookDocument(() => {
-        MarimoRunningKernelsProvider.refresh();
-      }),
-      workspace.onDidCloseNotebookDocument(() => {
-        MarimoRunningKernelsProvider.refresh();
-      }),
     );
 
     const explorerCommands = {
@@ -265,7 +280,24 @@ export class MarimoExplorer {
       ...this.runningKernelsProvider.getCommands(),
     };
     for (const [command, handler] of Object.entries(explorerCommands)) {
-      context.subscriptions.push(commands.registerCommand(command, handler));
+      this.disposables.push(commands.registerCommand(command, handler));
+    }
+  }
+
+  private registerEventListeners() {
+    this.disposables.push(
+      workspace.onDidOpenNotebookDocument(() => {
+        MarimoRunningKernelsProvider.refresh();
+      }),
+      workspace.onDidCloseNotebookDocument(() => {
+        MarimoRunningKernelsProvider.refresh();
+      }),
+    );
+  }
+
+  dispose() {
+    for (const disposable of this.disposables) {
+      disposable.dispose();
     }
   }
 }

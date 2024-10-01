@@ -91,13 +91,13 @@ export class MarimoBridge implements ILifecycle {
     // Create WebSocket
     this.socket = new WebSocket(wsURL);
     this.socket.onopen = () => {
-      this.logger.log("connected");
+      this.logger.info("connected");
     };
     this.socket.onclose = (evt) => {
-      this.logger.log("disconnected", evt.code, evt.reason);
+      this.logger.info("disconnected", evt.code, evt.reason);
     };
     this.socket.onerror = (error) => {
-      this.logger.log("error", error);
+      this.logger.info("error", error);
     };
     this.socket.onmessage = (message) => {
       this.handleMessage(
@@ -273,7 +273,7 @@ export class MarimoBridge implements ILifecycle {
     if (this.socket.readyState !== WebSocket.OPEN) {
       return;
     }
-    this.logger.log("update cell ids");
+    this.logger.info("update cell ids");
     await this.client.POST("/api/kernel/sync/cell_ids", {
       body: request,
     });
@@ -362,6 +362,7 @@ export class MarimoBridge implements ILifecycle {
         getGlobalState().update("marimo.lastPackageManager", manager);
         await this.installMissingPackages({
           manager: manager,
+          versions: {},
         });
         this.progressCompletedDeferred = new Deferred();
         await vscode.window.withProgress(
@@ -427,6 +428,7 @@ export class MarimoBridge implements ILifecycle {
       case "focus-cell":
       case "update-cell-codes":
       case "update-cell-ids":
+      case "send-ui-element-message":
         return;
       default:
         return logNever(message);

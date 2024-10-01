@@ -7,6 +7,7 @@ import {
   Uri,
   workspace,
 } from "vscode";
+import { Config } from "../config";
 import { setExtension } from "../ctx";
 import { MarimoController } from "../launcher/controller";
 import type { KernelKey } from "../notebook/common/key";
@@ -14,17 +15,18 @@ import { NOTEBOOK_TYPE } from "../notebook/constants";
 import { createNotebookController } from "../notebook/createMarimoNotebookController";
 import { Kernel } from "../notebook/kernel";
 import type { SkewToken } from "../notebook/marimo/types";
+import { ServerManager } from "../services/server-manager";
 
 const appFixture = new URL(
-  "../__fixtures__/app.py",
+  "../__fixtures__/export/app.py",
   import.meta.url,
 ).toString();
 export const appFixtureUri = Uri.parse(appFixture);
 export const markdownFixtureUri = Uri.parse(
-  new URL("../__fixtures__/mock.md", import.meta.url).toString(),
+  new URL("../__fixtures__/convert/mock.md", import.meta.url).toString(),
 );
 export const ipynbFixtureUri = Uri.parse(
-  new URL("../__fixtures__/mock.ipynb", import.meta.url).toString(),
+  new URL("../__fixtures__/convert/mock.ipynb", import.meta.url).toString(),
 );
 
 setExtension({
@@ -66,5 +68,8 @@ export const mockKernel = new Kernel({
 });
 
 export async function createMockController(file: Uri = Uri.parse(appFixture)) {
-  return new MarimoController(await readTextDocument(file));
+  return new MarimoController(
+    await readTextDocument(file),
+    ServerManager.getInstance(Config),
+  );
 }

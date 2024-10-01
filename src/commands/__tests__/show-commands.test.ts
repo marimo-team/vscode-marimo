@@ -2,16 +2,22 @@ import { describe, expect, it, vi } from "vitest";
 import { createVSCodeMock } from "../../__mocks__/vscode";
 
 vi.mock("vscode", () => createVSCodeMock(vi));
+vi.mock("@vscode/python-extension", () => ({}));
 
 import { createMockController, mockKernel } from "../../__fixtures__/mocks";
+import { Config } from "../../config";
+import { ServerManager } from "../../services/server-manager";
 import {
+  miscCommands,
   showKernelCommands,
   showMarimoControllerCommands,
 } from "../show-commands";
 
 describe("showCommands", () => {
+  const serverManager = ServerManager.getInstance(Config);
+
   it("should show commands for Kernel", async () => {
-    const commands = await showKernelCommands(mockKernel);
+    const commands = await showKernelCommands(mockKernel, serverManager);
     expect(commands.map((c) => c.label)).toMatchInlineSnapshot(`
       [
         "$(split-horizontal) Open outputs in embedded browser",
@@ -23,14 +29,17 @@ describe("showCommands", () => {
         "$(question) View marimo documentation",
         "$(comment-discussion) Join Discord community",
         "$(settings) Edit settings",
-        "$(info) Status: stopped",
+        "$(info) Server status: stopped",
       ]
     `);
   });
 
   it("should show commands for non active Controller", async () => {
     const commands = (
-      await showMarimoControllerCommands(await createMockController())
+      await showMarimoControllerCommands(
+        await createMockController(),
+        serverManager,
+      )
     ).filter((index) => index.if !== false);
     expect(commands.map((c) => c.label)).toMatchInlineSnapshot(`
       [
@@ -43,7 +52,7 @@ describe("showCommands", () => {
         "$(question) View marimo documentation",
         "$(comment-discussion) Join Discord community",
         "$(settings) Edit settings",
-        "$(info) Status: stopped",
+        "$(info) Server status: stopped",
       ]
     `);
   });
@@ -52,9 +61,9 @@ describe("showCommands", () => {
     const controller = await createMockController();
     controller.active = true;
     controller.currentMode = "run";
-    const commands = (await showMarimoControllerCommands(controller)).filter(
-      (index) => index.if !== false,
-    );
+    const commands = (
+      await showMarimoControllerCommands(controller, serverManager)
+    ).filter((index) => index.if !== false);
     expect(commands.map((c) => c.label)).toMatchInlineSnapshot(`
       [
         "",
@@ -69,7 +78,7 @@ describe("showCommands", () => {
         "$(question) View marimo documentation",
         "$(comment-discussion) Join Discord community",
         "$(settings) Edit settings",
-        "$(info) Status: stopped",
+        "$(info) Server status: stopped",
       ]
     `);
   });
@@ -78,9 +87,9 @@ describe("showCommands", () => {
     const controller = await createMockController();
     controller.active = true;
     controller.currentMode = "edit";
-    const commands = (await showMarimoControllerCommands(controller)).filter(
-      (index) => index.if !== false,
-    );
+    const commands = (
+      await showMarimoControllerCommands(controller, serverManager)
+    ).filter((index) => index.if !== false);
     expect(commands.map((c) => c.label)).toMatchInlineSnapshot(`
       [
         "",
@@ -95,7 +104,21 @@ describe("showCommands", () => {
         "$(question) View marimo documentation",
         "$(comment-discussion) Join Discord community",
         "$(settings) Edit settings",
-        "$(info) Status: stopped",
+        "$(info) Server status: stopped",
+      ]
+    `);
+  });
+
+  it("should show commands for active empty", async () => {
+    const commands = miscCommands(serverManager).filter(
+      (index) => index.if !== false,
+    );
+    expect(commands.map((c) => c.label)).toMatchInlineSnapshot(`
+      [
+        "$(question) View marimo documentation",
+        "$(comment-discussion) Join Discord community",
+        "$(settings) Edit settings",
+        "$(info) Server status: stopped",
       ]
     `);
   });

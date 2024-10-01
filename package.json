@@ -17,26 +17,7 @@
   ],
   "icon": "resources/marimo.png",
   "activationEvents": [
-    "onLanguage:python",
-    "onView:marimo-explorer-running-applications",
-    "onView:marimo-explorer-applications",
-    "onCommand:vscode-marimo.startServer",
-    "onCommand:vscode-marimo.stopServer",
-    "onCommand:vscode-marimo.stopKernel",
-    "onCommand:vscode-marimo.restartKernel",
-    "onCommand:vscode-marimo.edit",
-    "onCommand:vscode-marimo.run",
-    "onCommand:vscode-marimo.newMarimoFile",
-    "onCommand:vscode-marimo.openDocumentation",
-    "onCommand:vscode-marimo.openInBrowser",
-    "onCommand:vscode-marimo.openOutputsInBrowser",
-    "onCommand:vscode-marimo.openOutputsInPanel",
-    "onCommand:vscode-marimo.showCommands",
-    "onCommand:vscode-marimo.exportAsCommands",
-    "onCommand:vscode-marimo.openAsVSCodeNotebook",
-    "onCommand:vscode-marimo.convertToMarimoApp",
-    "onCommand:vscode-marimo.reloadBrowser",
-    "onCommand:vscode-marimo.refresh"
+    "onLanguage"
   ],
   "repository": {
     "type": "git",
@@ -155,6 +136,12 @@
         "title": "View marimo documentation",
         "shortTitle": "View marimo documentation",
         "icon": "$(remote-explorer-documentation)"
+      },
+      {
+        "command": "vscode-marimo.showStatus",
+        "category": "marimo",
+        "title": "Show marimo status",
+        "icon": "$(status-bar)"
       },
       {
         "command": "vscode-marimo.openInBrowser",
@@ -355,7 +342,7 @@
         },
         "marimo.port": {
           "type": "number",
-          "default": 2718,
+          "default": 2818,
           "description": "Default port for marimo server"
         },
         "marimo.enableToken": {
@@ -381,7 +368,7 @@
         "marimo.pythonPath": {
           "type": "string",
           "default": "",
-          "description": "Path to python executable"
+          "description": "Path to python interpreter. By default, it will use the one from python extension"
         },
         "marimo.marimoPath": {
           "type": "string",
@@ -396,7 +383,7 @@
     "dev": "pnpm run build --watch",
     "lint": "biome check --apply .",
     "pack": "vsce package --no-dependencies",
-    "codegen": "npx openapi-typescript https://raw.githubusercontent.com/marimo-team/marimo/0.6.22/openapi/api.yaml --immutable -o ./src/generated/api.ts",
+    "codegen": "npx openapi-typescript https://raw.githubusercontent.com/marimo-team/marimo/0.8.22/openapi/api.yaml --immutable -o ./src/generated/api.ts",
     "pretest": "pnpm run build && pnpm run lint",
     "publish": "vsce publish --no-dependencies",
     "publish:pre-release": "vsce publish --no-dependencies --pre-release",
@@ -414,15 +401,17 @@
     "@types/ws": "^8.5.12",
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.4.1",
+    "@vscode/python-extension": "^1.0.5",
     "jest-mock-vscode": "^3.0.5",
     "node-fetch": "^3.3.2",
     "node-html-parser": "^6.1.13",
-    "openapi-fetch": "^0.12.2",
+    "openapi-fetch": "^0.9.7",
     "openapi-typescript": "^7.4.1",
     "tempy": "^3.1.0",
     "tsup": "^8.3.0",
     "typescript": "^5.5.2",
     "vitest": "^2.1.1",
     "ws": "^8.17.0"
-  }
+  },
+  "dependencies": {}
 }

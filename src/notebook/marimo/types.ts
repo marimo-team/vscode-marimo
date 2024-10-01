@@ -50,7 +50,7 @@ export type MessageOperationData<T extends MessageOperationType> = Omit<
   "name"
 >;
 
-export type CellStatus = schemas["CellStatus"];
+export type CellStatus = schemas["RuntimeState"];
 export type Operation = schemas["MessageOperation"];
 export type InstantiateRequest = schemas["InstantiateRequest"];
 export type InstallMissingPackagesRequest =

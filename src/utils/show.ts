@@ -15,9 +15,9 @@ export async function showNotebookDocument(
   );
   try {
     if (existingEditor) {
-      logger.log("Focusing an existing marimo notebook");
+      logger.info("Focusing an existing marimo notebook");
     } else {
-      logger.log("Showing a new marimo notebook");
+      logger.info("Showing a new marimo notebook");
     }
     return await window.showNotebookDocument(document, {
       viewColumn: existingEditor?.viewColumn,

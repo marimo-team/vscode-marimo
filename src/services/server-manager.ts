@@ -1,6 +1,8 @@
 import { join } from "node:path";
-import * as vscode from "vscode";
-import { Config, composeUrl } from "../config";
+import type * as vscode from "vscode";
+import { type Config, composeUrl } from "../config";
+import { MarimoTerminal } from "../launcher/terminal";
+import { fetchMarimoStartupValues } from "../launcher/utils";
 import { logger as l, logger } from "../logger";
 import { MarimoBridge } from "../notebook/marimo/bridge";
 import type {
@@ -9,43 +11,76 @@ import type {
   SessionId,
   SkewToken,
 } from "../notebook/marimo/types";
+import type { ServerStatus, StartupResult } from "../types";
 import { MarimoCmdBuilder } from "../utils/cmd";
 import { Deferred } from "../utils/deferred";
+import { getInterpreter } from "../utils/exec";
 import { LogMethodCalls } from "../utils/log";
 import { tryPort } from "../utils/network";
-import { MarimoTerminal } from "./terminal";
-import { fetchMarimoStartupValues } from "./utils";
+import { VscodeContextManager } from "./context-manager";
 
-/**
- * Manages a single instance of a marimo server
- */
-export class ServerManager {
-  public static instance: ServerManager = new ServerManager();
-  private logger = logger.createLogger("server-manager");
-
-  public terminal!: MarimoTerminal;
-  private otherDisposables: vscode.Disposable[] = [];
-  private state: "stopped" | "starting" | "started" = "stopped";
-  private port: number | undefined;
-  private startedPromise: Deferred<{
+interface IServerManager {
+  getStatus(): "stopped" | "starting" | "started";
+  init(): void;
+  start(): Promise<{
     port: number;
     skewToken: SkewToken;
     version: string;
     userConfig: MarimoConfig;
-  }> = new Deferred();
+  }>;
+  stopServer(): Promise<void>;
+  dispose(): void;
+  getActiveSessions(): Promise<MarimoFile[]>;
+  shutdownSession(file: MarimoFile): Promise<void>;
+}
 
-  getStatus(): "stopped" | "starting" | "started" {
+/**
+ * Manages a single instance of a marimo server through the marimo CLI.
+ */
+export class ServerManager implements IServerManager {
+  private static instance: ServerManager;
+  private logger = logger.createLogger("server-manager");
+  public terminal!: MarimoTerminal;
+  private otherDisposables: vscode.Disposable[] = [];
+  private state: ServerStatus = "stopped";
+  private port: number | undefined;
+  private startedPromise: Deferred<StartupResult> = new Deferred();
+  private contextManager = new VscodeContextManager();
+
+  private constructor(private config: Config) {}
+
+  public static getInstance(config: Config): ServerManager {
+    if (!ServerManager.instance) {
+      ServerManager.instance = new ServerManager(config);
+    }
+    return ServerManager.instance;
+  }
+
+  getStatus(): ServerStatus {
     return this.state;
   }
 
+  getPort(): number | undefined {
+    return this.port;
+  }
+
   init(): void {
-    this.terminal = new MarimoTerminal(Config.root, Config.root, "editor");
+    this.terminal = new MarimoTerminal(
+      this.config.root,
+      this.config.root,
+      "editor",
+    );
     this.updateState("stopped");
     this.tryToRecover();
     this.otherDisposables.push(this.terminal);
   }
 
-  private constructor() {}
+  private updateState(newState: ServerStatus) {
+    this.state = newState;
+    this.contextManager.setMarimoServerRunning(
+      newState === "started" ? true : newState === "stopped" ? false : "null",
+    );
+  }
 
   @LogMethodCalls()
   private async tryToRecover() {
@@ -53,21 +88,21 @@ export class ServerManager {
 
     const recovered = await this.terminal.tryRecoverTerminal();
     if (recovered) {
-      this.logger.log("Recovered terminal");
+      this.logger.info("Recovered previous terminal");
       if (FORCE_RESTART_SERVER) {
         await this.stopServer();
         return;
       }
 
-      const healthy = await this.isHealthy(Config.port);
+      const healthy = await this.isHealthy(this.config.port);
       if (healthy) {
-        this.logger.log("Recovered server is healthy");
+        this.logger.info("Recovered server is healthy");
         this.updateState("started");
 
-        this.port = Config.port;
-        const domValues = await fetchMarimoStartupValues(Config.port);
+        this.port = this.config.port;
+        const domValues = await fetchMarimoStartupValues(this.config.port);
         this.startedPromise.resolve({
-          port: Config.port,
+          port: this.config.port,
           ...domValues,
         });
         return;
@@ -75,31 +110,8 @@ export class ServerManager {
       logger.warn("Recovered server is not healthy");
       await this.stopServer();
     } else {
-      this.logger.log("Could not recover any state");
+      this.logger.info("Could not recover any state");
     }
-  }
-
-  private updateState(newState: "stopped" | "starting" | "started") {
-    if (newState === "started") {
-      void vscode.commands.executeCommand(
-        "setContext",
-        "marimo.isMarimoServerRunning",
-        true,
-      );
-    } else if (newState === "stopped") {
-      void vscode.commands.executeCommand(
-        "setContext",
-        "marimo.isMarimoServerRunning",
-        false,
-      );
-    } else {
-      void vscode.commands.executeCommand(
-        "setContext",
-        "marimo.isMarimoServerRunning",
-        "null",
-      );
-    }
-    this.state = newState;
   }
 
   /**
@@ -130,7 +142,7 @@ export class ServerManager {
     userConfig: MarimoConfig;
   }> {
     if (this.state === "starting") {
-      this.logger.log("marimo server already starting");
+      this.logger.info("marimo server already starting");
       // If its starting, wait for it to start
       return this.startedPromise.promise;
     }
@@ -150,7 +162,7 @@ export class ServerManager {
       }
 
       // Check it is health, otherwise shutdown and restart
-      this.logger.log("Checking server health...");
+      this.logger.info("Checking server health...");
       if (!(await this.isHealthy(this.port))) {
         logger.warn("Server not healthy. Restarting...");
         this.startedPromise = new Deferred();
@@ -165,12 +177,12 @@ export class ServerManager {
       }
 
       // Otherwise, it is already running
-      this.logger.log("Server already running at port", this.port);
+      this.logger.info("Server already running at port", this.port);
       return this.startedPromise.promise;
     }
 
     if (this.state === "stopped") {
-      this.logger.log("Starting server...");
+      this.logger.info("Starting server...");
       this.startedPromise = new Deferred();
       const port = await this.startServer();
       const domValues = await fetchMarimoStartupValues(port);
@@ -193,46 +205,51 @@ export class ServerManager {
     });
   }
 
-  private async startServer() {
+  private async startServer(): Promise<number> {
     this.updateState("starting");
-
-    // Find open port
-    this.logger.log("Finding open port...");
-    const port = await tryPort(Config.port);
+    const port = await tryPort(this.config.port);
     this.port = port;
 
     if (await this.isHealthy(port)) {
-      this.logger.log(`Found existing server at port ${port}. Reusing`);
+      this.logger.info(`Found existing server at port ${port}. Reusing`);
       return port;
     }
 
-    // Start server
-    this.logger.log("Starting server at port", port);
-    const cmd = new MarimoCmdBuilder()
-      .debug(Config.debug)
-      .mode("edit")
-      .fileOrDir(Config.root)
-      .host(Config.host)
-      .port(port)
-      .headless(true)
-      .enableToken(Config.enableToken)
-      .tokenPassword(Config.tokenPassword)
-      .build();
+    const cmd = this.buildServerCommand(port);
+    await this.executeServerCommand(cmd);
 
-    await (Config.pythonPath
-      ? this.terminal.executeCommand(`${Config.pythonPath} -m ${cmd}`)
-      : this.terminal.executeCommand(cmd));
-
-    this.logger.log("Server started at port", port);
+    this.logger.info("Server started at port", port);
     this.updateState("started");
     return port;
+  }
+
+  private buildServerCommand(port: number): string {
+    return new MarimoCmdBuilder()
+      .debug(this.config.debug)
+      .mode("edit")
+      .fileOrDir(this.config.root)
+      .host(this.config.host)
+      .port(port)
+      .headless(true)
+      .enableToken(this.config.enableToken)
+      .tokenPassword(this.config.tokenPassword)
+      .build();
+  }
+
+  private async executeServerCommand(cmd: string): Promise<void> {
+    const interpreter = await getInterpreter();
+    if (interpreter) {
+      await this.terminal.executeCommand(`${interpreter} -m ${cmd}`);
+    } else {
+      await this.terminal.executeCommand(cmd);
+    }
   }
 
   @LogMethodCalls()
   async stopServer() {
     this.port = undefined;
     if (this.terminal) {
-      this.logger.log("Stopping server...");
+      this.logger.info("Stopping server...");
       this.terminal.dispose();
     }
     this.updateState("stopped");
@@ -255,7 +272,7 @@ export class ServerManager {
       skewToken,
     );
     if (runningNotebooks.error) {
-      logger.error("Error getting running notebooks", runningNotebooks);
+      this.logger.error("Error getting running notebooks", runningNotebooks);
       return [];
     }
     return [...(runningNotebooks.data?.files ?? [])];
@@ -273,7 +290,7 @@ export class ServerManager {
       file.sessionId as SessionId,
     );
     if (response.error) {
-      logger.error("Error shutting down session", response);
+      this.logger.error("Error shutting down session", response);
     }
   }
 }
