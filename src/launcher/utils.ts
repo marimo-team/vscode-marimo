@@ -16,7 +16,7 @@ export async function fetchMarimoStartupValues(port: number): Promise<{
   userConfig: MarimoConfig;
 }> {
   const url = asURL(await composeUrl(port));
-  const response = await fetch(url);
+  const response = await fetch(url.toString());
 
   if (!response.ok) {
     throw new Error(

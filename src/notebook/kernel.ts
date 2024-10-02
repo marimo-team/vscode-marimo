@@ -113,7 +113,7 @@ export class Kernel implements IKernel {
   waitForReady(): Promise<KernelReady> {
     let retries = 10;
     this.readyTimer = setInterval(() => {
-      this.logger.log("Waiting for marimo kernel to be ready...");
+      this.logger.info("Waiting for marimo kernel to be ready...");
       retries--;
       if (retries <= 0) {
         clearInterval(this.readyTimer);
@@ -165,7 +165,7 @@ export class Kernel implements IKernel {
 
     // Handle removed cells
     if (removedCells.length > 0) {
-      this.logger.log(`Removing ${removedCells.length} cells`);
+      this.logger.info(`Removing ${removedCells.length} cells`);
     }
     for (const removedCell of removedCells) {
       const metadata = getCellMetadata(removedCell);
@@ -174,12 +174,12 @@ export class Kernel implements IKernel {
       }
       this.cells.delete(metadata.id);
       this.bridge.delete({ cellId: metadata.id });
-      this.logger.log("Removed cell", metadata.id);
+      this.logger.info("Removed cell", metadata.id);
     }
 
     // Handle added cells
     if (removedCells.length > 0) {
-      this.logger.log(`Adding ${removedCells.length} cells`);
+      this.logger.info(`Adding ${removedCells.length} cells`);
     }
     for (const addedCell of addedCells) {
       const metadata = getCellMetadata(addedCell);
@@ -193,7 +193,7 @@ export class Kernel implements IKernel {
         });
       }
       this.cells.set(cellId, addedCell);
-      this.logger.log("Added cell", cellId);
+      this.logger.info("Added cell", cellId);
     }
 
     // Get all cell ids
@@ -241,21 +241,21 @@ export class Kernel implements IKernel {
     );
     // Wait for the kernel to be ready
     await this.waitForReady();
-    this.logger.log("Kernel is ready");
+    this.logger.info("Kernel is ready");
 
     // Instantiate the kernel
     if (this.opts.userConfig?.runtime?.auto_instantiate) {
-      this.logger.log("Instantiating kernel");
+      this.logger.info("Instantiating kernel");
       await this.bridge.instantiate({
         objectIds: [],
         values: [],
       });
     }
 
-    this.logger.log("Started");
+    this.logger.info("Started");
 
     if (this.opts.userConfig.save?.autosave) {
-      this.logger.log("Starting auto-save");
+      this.logger.info("Starting auto-save");
       this.startAutoSave(this.opts.userConfig.save.autosave_delay || 1000);
     }
   }
@@ -350,7 +350,7 @@ export class Kernel implements IKernel {
     _notebook: vscode.NotebookDocument,
     controller: vscode.NotebookController,
   ): Promise<void> {
-    this.logger.log(`Executing ${cells.length} cells`);
+    this.logger.info(`Executing ${cells.length} cells`);
     this.opts.controller = controller;
     // If no id, then it's a new cell
     for (const cell of cells) {
@@ -549,7 +549,7 @@ export class Kernel implements IKernel {
       this.logger.debug("starting execution for cell", cellMetadata.id);
       const execution = this.opts.controller.createNotebookCellExecution(cell);
       execution.token.onCancellationRequested(() => {
-        this.logger.log("interrupting cell", cellMetadata.id);
+        this.logger.info("interrupting cell", cellMetadata.id);
       });
       this.cellExecutions.set(cellMetadata.id, execution);
       return;

@@ -5,6 +5,7 @@ import { Uri, ViewColumn, window, workspace } from "vscode";
 import { Config } from "../config";
 import { logger } from "../logger";
 import { printError } from "../utils/errors";
+import { execPython } from "../utils/exec";
 
 export type ExportType =
   | "ipynb"
@@ -13,7 +14,13 @@ export type ExportType =
   | "html-without-code"
   | "script";
 
-export type ExportExtension = "html" | "ipynb" | "md" | "py" | "txt";
+export type ExportExtension =
+  | "html"
+  | "ipynb"
+  | "md"
+  | "script.py"
+  | "txt"
+  | "py";
 
 function getExportCommand(type: ExportType): string {
   if (type === "html-without-code") {
@@ -41,7 +48,7 @@ function getExportExtension(type: ExportType): ExportExtension {
     return "html";
   }
   if (type === "script") {
-    return "py";
+    return "script.py";
   }
   return "txt";
 }
@@ -51,14 +58,18 @@ export async function exportNotebookAs(
   exportType: ExportType,
 ): Promise<Uri | false> {
   try {
-    const marimoPath = Config.marimoPath;
-    // export
+    // Check the requirements are met
+    await checkRequirements(exportType);
+
+    // Run export via marimo CLI
     const directory = path.dirname(filePath);
-    const response = execSync(
-      `${marimoPath} export ${getExportCommand(
-        exportType,
-      )} '${filePath}' ${getExportArgs(exportType)}`.trim(),
-    );
+    const response = await execPython([
+      Config.marimoPath,
+      "export",
+      getExportCommand(exportType),
+      `'${filePath}'`, // Wrap in single quotes to handle spaces in path
+      getExportArgs(exportType),
+    ]);
 
     const appCode = response.toString();
 
@@ -86,13 +97,28 @@ export async function exportNotebookAs(
       return false;
     }
   } catch (error) {
-    logger.log(error);
-    window.showErrorMessage(`Failed to export notebook: ${printError(error)}`);
+    logger.info(error);
+    window.showErrorMessage(
+      `Failed to export notebook: \n${printError(error)}`,
+    );
     return false;
   }
 }
 
-function getUniqueFilename(
+function checkRequirements(format: ExportType) {
+  if (format === "ipynb") {
+    // Check that nbformat is installed
+    try {
+      execSync("nbformat --version", { stdio: "ignore" });
+    } catch {
+      throw new Error(
+        "nbformat is not installed. Please install nbformat, e.g. `pip install nbformat`",
+      );
+    }
+  }
+}
+
+export function getUniqueFilename(
   directory: string,
   filename: string,
   extension: string,

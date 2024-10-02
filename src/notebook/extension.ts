@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
-import type { ServerManager } from "../launcher/server-manager";
 import { logger } from "../logger";
+import type { ServerManager } from "../services/server-manager";
 import { isMarimoApp } from "../utils/query";
 import { showNotebookDocument } from "../utils/show";
 import {
@@ -11,20 +11,20 @@ import {
 import { NOTEBOOK_TYPE, PYTHON_LANGUAGE_ID } from "./constants";
 import { KernelManager } from "./kernel-manager";
 
-export async function createNotebookDocument() {
-  const data = new vscode.NotebookData([]);
-  setNotebookMetadata(data, {
-    isNew: true,
-    loaded: false,
-  });
+// export async function createNotebookDocument() {
+//   const data = new vscode.NotebookData([]);
+//   setNotebookMetadata(data, {
+//     isNew: true,
+//     loaded: false,
+//   });
 
-  // Create NotebookDocument and open it
-  const doc = await vscode.workspace.openNotebookDocument(NOTEBOOK_TYPE, data);
+//   // Create NotebookDocument and open it
+//   const doc = await vscode.workspace.openNotebookDocument(NOTEBOOK_TYPE, data);
 
-  // Open Notebook
-  logger.log("Opening new marimo notebook");
-  await vscode.window.showNotebookDocument(doc);
-}
+//   // Open Notebook
+//   logger.info("Opening new marimo notebook");
+//   await vscode.window.showNotebookDocument(doc);
+// }
 
 export async function getActiveMarimoFile() {
   const editor = vscode.window.activeTextEditor;
@@ -55,7 +55,7 @@ export async function openMarimoNotebookDocument(uri: vscode.Uri | undefined) {
   });
 
   // Open notebook
-  logger.log("Opening existing marimo notebook");
+  logger.info("Opening existing marimo notebook");
   const doc = await vscode.workspace.openNotebookDocument(uri);
   // Show the notebook, if not shown
   await showNotebookDocument(doc);
@@ -72,16 +72,16 @@ export async function handleOnOpenNotebookDocument(
   serverManager: ServerManager,
   kernelManager: KernelManager,
 ) {
-  logger.log("Opened notebook document", doc.notebookType);
+  logger.info("Opened notebook document", doc.notebookType);
   if (doc.notebookType !== NOTEBOOK_TYPE) {
-    logger.log("Not a marimo notebook", doc.notebookType);
+    logger.info("Not a marimo notebook", doc.notebookType);
     return;
   }
 
   const metadata = getNotebookMetadata(doc);
 
   if (metadata.loaded) {
-    logger.log("Notebook already loaded", metadata);
+    logger.info("Notebook already loaded", metadata);
     return;
   }
 
@@ -96,7 +96,7 @@ export async function handleOnOpenNotebookDocument(
     },
     async () => {
       // Start Marimo server
-      logger.log("Checking server...");
+      logger.info("Checking server...");
       const { port, skewToken, userConfig, version } =
         await serverManager.start();
       // If not new, try to hydrate existing notebooks

@@ -1,12 +1,12 @@
 import * as vscode from "vscode";
 import { logger } from "../logger";
 import { getNotebookMetadata } from "./common/metadata";
-import type { KernelManager } from "./kernel-manager";
+import type { IKernelManager } from "./kernel-manager";
 
 const LOADING_CELL_ID = "loading";
 
 export class MarimoNotebookSerializer implements vscode.NotebookSerializer {
-  constructor(private kernelManager: KernelManager) {}
+  constructor(private kernelManager: Pick<IKernelManager, "getKernel">) {}
 
   public async deserializeNotebook(
     _data: Uint8Array,

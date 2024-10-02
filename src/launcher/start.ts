@@ -1,6 +1,5 @@
 import { window } from "vscode";
 import { Config } from "../config";
-import { statusBarManager } from "../ui/status-bar";
 import { tryPort } from "../utils/network";
 import type { AppMode, MarimoController } from "./controller";
 
@@ -49,7 +48,6 @@ async function start({
 
 function stop(controller: MarimoController) {
   controller.dispose();
-  statusBarManager.update();
 }
 
 export const Launcher = {

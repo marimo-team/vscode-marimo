@@ -7,7 +7,22 @@ export function getConfig<T>(key: string, v?: T) {
   return workspace.getConfiguration().get(`marimo.${key}`, v);
 }
 
-export const Config = {
+export interface Config {
+  readonly root: string;
+  readonly browser: "system" | "embedded";
+  readonly showTerminal: boolean;
+  readonly debug: boolean;
+  readonly pythonPath: string | undefined;
+  readonly port: number;
+  readonly readPort: number;
+  readonly host: string;
+  readonly marimoPath: string;
+  readonly enableToken: boolean;
+  readonly tokenPassword: string | undefined;
+  readonly https: boolean;
+}
+
+export const Config: Config = {
   get root() {
     return workspace.workspaceFolders?.[0]?.uri?.fsPath || "";
   },
@@ -21,10 +36,10 @@ export const Config = {
     return getConfig("debug", false);
   },
   get pythonPath() {
-    return getConfig("pythonPath");
+    return getConfig<string>("pythonPath");
   },
   get port() {
-    return getConfig("port", 2718);
+    return getConfig("port", 2818);
   },
   get readPort() {
     if (typeof Config.port === "string") {
@@ -55,7 +70,7 @@ export async function composeUrl(port: number): Promise<string> {
     const externalUri = await env.asExternalUri(Uri.parse(url));
     const externalUrl = externalUri.toString();
     if (externalUrl !== url) {
-      logger.log("Mapping to external url", externalUrl, "from", url);
+      logger.info("Mapping to external url", externalUrl, "from", url);
     }
     return externalUrl;
   } catch (e) {
@@ -70,7 +85,7 @@ export async function composeWsUrl(port: number): Promise<string> {
     const externalUri = await env.asExternalUri(Uri.parse(url));
     const externalUrl = externalUri.toString();
     if (externalUrl !== url) {
-      logger.log("Mapping to external url", externalUrl, "from", url);
+      logger.info("Mapping to external url", externalUrl, "from", url);
     }
     return externalUrl;
   } catch (e) {

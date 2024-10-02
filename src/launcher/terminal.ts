@@ -53,7 +53,7 @@ export class MarimoTerminal implements IMarimoTerminal {
     this.endProcess();
     this.terminal?.dispose();
     this.terminal = undefined;
-    this.logger.log("terminal disposed");
+    this.logger.info("terminal disposed");
   }
 
   @LogMethodCalls()
@@ -76,16 +76,15 @@ export class MarimoTerminal implements IMarimoTerminal {
 
   @LogMethodCalls()
   async tryRecoverTerminal(): Promise<boolean> {
-    this.logger.debug("trying to recover terminal");
     if (this.terminal) {
       return false;
     }
 
     const pid = getGlobalState().get(this.keyFor("pid"));
-    this.logger.log("recovered pid", pid);
     if (!pid) {
       return false;
     }
+    this.logger.debug("recovered pid", pid);
 
     const terminals = await Promise.all(
       window.terminals.map(async (index) =>
@@ -96,7 +95,6 @@ export class MarimoTerminal implements IMarimoTerminal {
     const terminal = terminals.find(Boolean);
 
     if (terminal) {
-      this.logger.log("recovered terminal");
       this.terminal = terminal;
       return true;
     }

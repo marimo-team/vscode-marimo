@@ -20,7 +20,7 @@ interface CreateKernelOptions {
   notebookDoc: vscode.NotebookDocument;
 }
 
-interface IKernelManager extends vscode.Disposable {
+export interface IKernelManager extends vscode.Disposable {
   createKernel(opts: CreateKernelOptions): Kernel;
   getKernel(key: KernelKey | undefined): Kernel | undefined;
   getKernelByUri(uri: vscode.Uri): Kernel | undefined;
@@ -172,7 +172,7 @@ export class KernelManager implements IKernelManager {
     // Listen for closed notebooks
     this.otherDisposables.push(
       vscode.workspace.onDidCloseNotebookDocument((nb) => {
-        this.logger.log("notebook closed", nb.uri.toString());
+        this.logger.info("notebook closed", nb.uri.toString());
         const kernel = this.getKernelForNotebook(nb);
         if (!kernel) {
           return;

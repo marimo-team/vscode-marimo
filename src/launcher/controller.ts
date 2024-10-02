@@ -1,7 +1,6 @@
 import path from "node:path";
 import {
   type Disposable,
-  type ExtensionContext,
   type Terminal,
   type TextDocument,
   Uri,
@@ -14,12 +13,13 @@ import { Config, composeUrl } from "../config";
 import { getGlobalState } from "../ctx";
 import { MarimoRunningKernelsProvider } from "../explorer/explorer";
 import { logger } from "../logger";
-import { statusBarManager } from "../ui/status-bar";
+import type { ServerManager } from "../services/server-manager";
+import { StatusBar } from "../ui/status-bar";
 import { MarimoCmdBuilder } from "../utils/cmd";
+import { getInterpreter } from "../utils/exec";
 import { ping } from "../utils/network";
 import { getFocusedMarimoTextEditor, isMarimoApp } from "../utils/query";
 import { asURL } from "../utils/url";
-import { ServerManager } from "./server-manager";
 import { type IMarimoTerminal, MarimoTerminal } from "./terminal";
 
 export type AppMode = "edit" | "run";
@@ -48,7 +48,10 @@ export class MarimoController implements Disposable {
   public port: number | undefined;
   private logger = logger.createLogger(this.appName);
 
-  constructor(public file: TextDocument) {
+  constructor(
+    public file: TextDocument,
+    public serverManager: ServerManager,
+  ) {
     this.file = file;
     const workspaceFolder = workspace.workspaceFolders?.find((folder) =>
       file.uri.fsPath.startsWith(folder.uri.fsPath),
@@ -71,9 +74,8 @@ export class MarimoController implements Disposable {
 
   async start(mode: AppMode, port: number) {
     // If edit mode, use the existing server
-    const serverManager = ServerManager.instance;
     if (mode === "edit") {
-      const { port } = await serverManager.start();
+      const { port } = await this.serverManager.start();
       this.active = true;
       this.port = port;
       this.currentMode = mode;
@@ -98,16 +100,19 @@ export class MarimoController implements Disposable {
       .tokenPassword(Config.tokenPassword)
       .build();
 
-    await (Config.pythonPath
-      ? this.terminal.executeCommand(`${Config.pythonPath} -m ${cmd}`)
-      : this.terminal.executeCommand(cmd));
+    const interpreter = await getInterpreter();
+    if (interpreter) {
+      await this.terminal.executeCommand(`${interpreter} -m ${cmd}`);
+    } else {
+      await this.terminal.executeCommand(cmd);
+    }
 
     this.active = true;
     this.onUpdate();
   }
 
   private onUpdate() {
-    statusBarManager.update();
+    StatusBar.update();
   }
 
   isWebviewActive() {
@@ -144,7 +149,7 @@ export class MarimoController implements Disposable {
     if (!(await this.terminal.tryRecoverTerminal())) {
       return;
     }
-    this.logger.log("terminal recovered");
+    this.logger.info("terminal recovered");
 
     const port = +(getGlobalState().get<number>(this.keyFor("port")) || 0);
     if (!port) {
@@ -160,7 +165,7 @@ export class MarimoController implements Disposable {
     this.active = true;
     this.port = port;
     this.currentMode = getGlobalState().get(this.keyFor("mode")) || "edit";
-    this.logger.log("state recovered");
+    this.logger.info("state recovered");
 
     this.onUpdate();
     return true;
@@ -199,47 +204,66 @@ export class MarimoController implements Disposable {
   }
 }
 
-const all = new Map<string, MarimoController>();
+export class ControllerManager implements Disposable {
+  private controllers: Map<string, MarimoController> = new Map();
 
-export const Controllers = {
+  constructor(private serverManager: ServerManager) {}
+
   getControllerForActivePanel(): MarimoController | undefined {
-    return [...all.values()].find((c) => c.isWebviewActive());
-  },
+    return [...this.controllers.values()].find((c) => c.isWebviewActive());
+  }
+
   getOrCreate(file: TextDocument): MarimoController {
     const key = file.uri.fsPath;
-    let controller = all.get(key);
+    let controller = this.controllers.get(key);
     if (controller) {
       return controller;
     }
-    controller = new MarimoController(file);
-    all.set(key, controller);
+    controller = new MarimoController(file, this.serverManager);
+    this.controllers.set(key, controller);
     return controller;
-  },
+  }
+
   get(uri: Uri | undefined): MarimoController | undefined {
     if (!uri) {
       return;
     }
-    return all.get(uri.fsPath);
-  },
+    return this.controllers.get(uri.fsPath);
+  }
+
   findWithTerminal(term: Terminal): MarimoController | undefined {
-    return [...all.values()].find((c) => c.terminal.is(term));
-  },
-  disposeAll() {
-    for (const c of all.values()) c.dispose();
-    all.clear();
-  },
-};
-
-export function withController<T>(fn: (controller: MarimoController) => T) {
-  const activePanelController = Controllers.getControllerForActivePanel();
-  if (activePanelController) {
-    return fn(activePanelController);
+    return [...this.controllers.values()].find((c) => c.terminal.is(term));
   }
 
-  const file = getFocusedMarimoTextEditor({ toast: true });
-  if (!file) {
-    return;
+  dispose() {
+    for (const c of this.controllers.values()) c.dispose();
+    this.controllers.clear();
   }
-  const controller = Controllers.getOrCreate(file.document);
-  return fn(controller);
+
+  // Run a function an active or new controller
+  run<T>(fn: (controller: MarimoController) => T) {
+    return this.runOptional((c) => {
+      if (c) {
+        return fn(c);
+      }
+      return undefined;
+    });
+  }
+
+  runOptional<T>(fn: (controller: MarimoController | undefined) => T) {
+    // If we are focused on a panel, use that controller
+    const activePanelController = this.getControllerForActivePanel();
+    if (activePanelController) {
+      return fn(activePanelController);
+    }
+
+    // If the active file is a marimo file, use that controller
+    const file = getFocusedMarimoTextEditor({ toast: false });
+    if (!file) {
+      return fn(undefined);
+    }
+
+    const controller = this.getOrCreate(file.document);
+    return fn(controller);
+  }
 }

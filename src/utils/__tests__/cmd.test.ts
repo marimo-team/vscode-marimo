@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { MarimoCmdBuilder } from "../cmd";
 
 let b = new MarimoCmdBuilder();
@@ -85,6 +85,8 @@ describe("MarimoCmdBuilder", () => {
       .tokenPassword("")
       .build();
 
-    expect(b).toMatchInlineSnapshot(`"marimo edit path/to/file --host=0.0.0.0 --port=2718 --headless --no-token"`);
+    expect(b).toMatchInlineSnapshot(
+      `"marimo edit path/to/file --host=0.0.0.0 --port=2718 --headless --no-token"`,
+    );
   });
 });

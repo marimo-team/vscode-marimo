@@ -16,6 +16,16 @@ export function createVSCodeMock(vi: VitestUtils) {
     };
   });
 
+  vscode.window.createOutputChannel.mockImplementation(() => {
+    return {
+      debug: vi.fn(),
+      info: vi.fn(),
+      error: vi.fn(),
+      warn: vi.fn(),
+      createLogger: vi.fn(),
+    };
+  });
+
   vscode.env = vscode.env || {};
   vscode.env.asExternalUri = vi.fn().mockImplementation(async (uri) => uri);
   enum QuickPickItemKind {
