@@ -54,6 +54,7 @@ export class MarimoBridge implements ILifecycle {
     | vscode.Progress<{ message?: string; increment?: number }>
     | undefined;
   private progressCompletedDeferred: Deferred<void> | undefined;
+  private reconnectTimeout: NodeJS.Timeout | undefined;
 
   private FUNCTIONS_REGISTRY = new DeferredRequestRegistry<
     Omit<FunctionCallRequest, "functionCallId">,
@@ -77,6 +78,12 @@ export class MarimoBridge implements ILifecycle {
       onRestart: () => void;
     },
   ) {}
+
+  private closeSocket() {
+    if (this.socket && this.socket.readyState !== WebSocket.CLOSED) {
+      this.socket.close();
+    }
+  }
 
   @LogMethodCalls()
   async start(): Promise<void> {
@@ -144,18 +151,16 @@ export class MarimoBridge implements ILifecycle {
   }
 
   private async messageForRequest() {
-    await vscode.window
-      .showErrorMessage<vscode.MessageItem>(
-        "No longer connected to a marimo server",
-        { modal: true },
-        { title: "Restart kernel" },
-      )
-      .then(async (item) => {
-        if (item?.title === "Restart kernel") {
-          await this.restart();
-          await this.callbacks.onRestart();
-        }
-      });
+    const item = await vscode.window.showErrorMessage<vscode.MessageItem>(
+      "No longer connected to a marimo server",
+      { modal: true },
+      { title: "Restart kernel" },
+    );
+
+    if (item?.title === "Restart kernel") {
+      await this.restart();
+      await this.callbacks.onRestart();
+    }
   }
 
   @LogMethodCalls()
@@ -207,7 +212,13 @@ export class MarimoBridge implements ILifecycle {
 
   @LogMethodCalls()
   public async dispose(): Promise<void> {
-    this.socket.close();
+    this.closeSocket();
+    // Cancel any ongoing requests
+    this.FUNCTIONS_REGISTRY.rejectAll(new Error("Disconnected from server"));
+    // Clear any intervals or timeouts
+    if (this.reconnectTimeout) {
+      clearTimeout(this.reconnectTimeout);
+    }
   }
 
   @LogMethodCalls()

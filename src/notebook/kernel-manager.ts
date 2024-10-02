@@ -149,15 +149,18 @@ export class KernelManager implements IKernelManager {
   }
 
   async clearAllKernels(): Promise<void> {
-    for (const kernel of kernelMap.values()) {
-      await kernel.dispose();
-    }
+    const disposePromises = Array.from(kernelMap.values()).map((kernel) =>
+      kernel.dispose(),
+    );
+    await Promise.all(disposePromises);
     kernelMap.clear();
   }
 
   async dispose(): Promise<void> {
     this.otherDisposables.forEach((d) => d.dispose());
     await this.clearAllKernels();
+    // Ensure the controller is disposed
+    this.controller.dispose();
   }
 
   private listenForNotebookChanges(): void {

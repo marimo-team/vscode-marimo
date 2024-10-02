@@ -3,7 +3,7 @@ import { promisify } from "node:util";
 import { window } from "vscode";
 import { Config } from "../config";
 import { logger } from "../logger";
-import { getInterpreter } from "../utils/exec";
+import { execPython, getInterpreter } from "../utils/exec";
 import type { ServerManager } from "./server-manager";
 
 export class HealthService {
@@ -17,7 +17,8 @@ export class HealthService {
     const execAsync = promisify(exec);
 
     try {
-      const { stdout } = await execAsync(`"${Config.marimoPath}" --version`);
+      const bytes = await execPython([Config.marimoPath, "--version"]);
+      const stdout = bytes.toString();
       return {
         isInstalled: true,
         version: stdout.trim(),
@@ -53,20 +54,22 @@ export class HealthService {
   }
 
   public async printStatus(): Promise<string> {
-    const { isInstalled, version, path } = await this.isMarimoInstalled();
-    const pythonInterpreter = await getInterpreter();
+    const [{ isInstalled, version, path }, pythonInterpreter] =
+      await Promise.all([this.isMarimoInstalled(), getInterpreter()]);
 
     if (isInstalled) {
       const status = await this.isServerRunning();
       return [
         "marimo is installed",
-        `\tmarimo executable path: ${path}`,
+        path === "marimo" ? "" : `\tmarimo executable path: ${path}`,
         `\tpython interpreter: ${pythonInterpreter}`,
         `\tversion: ${version}`,
         status.isRunning
           ? `\tserver running: port ${status.port}`
           : "\tserver not running",
-      ].join("\n");
+      ]
+        .filter(Boolean)
+        .join("\n");
     }
 
     return `marimo does not appear to be installed at: ${path}`;

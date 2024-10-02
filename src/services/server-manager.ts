@@ -1,5 +1,6 @@
 import { join } from "node:path";
 import type * as vscode from "vscode";
+import { window } from "vscode";
 import { type Config, composeUrl } from "../config";
 import { MarimoTerminal } from "../launcher/terminal";
 import { fetchMarimoStartupValues } from "../launcher/utils";
@@ -46,6 +47,7 @@ export class ServerManager implements IServerManager {
   private port: number | undefined;
   private startedPromise: Deferred<StartupResult> = new Deferred();
   private contextManager = new VscodeContextManager();
+  private serverHealthCheckInterval: NodeJS.Timeout | null = null;
 
   private constructor(private config: Config) {}
 
@@ -105,10 +107,20 @@ export class ServerManager implements IServerManager {
           port: this.config.port,
           ...domValues,
         });
+        this.startHealthCheck(); // Start health check for recovered server
         return;
       }
       logger.warn("Recovered server is not healthy");
-      await this.stopServer();
+      const action = await window.showWarningMessage(
+        "The recovered marimo server is not healthy. Would you like to restart it?",
+        "Restart",
+        "Stop",
+      );
+      if (action === "Restart") {
+        await this.restartServer();
+      } else {
+        await this.stopServer();
+      }
     } else {
       this.logger.info("Could not recover any state");
     }
@@ -197,6 +209,43 @@ export class ServerManager implements IServerManager {
     throw new Error("Invalid state");
   }
 
+  private startHealthCheck() {
+    if (this.serverHealthCheckInterval) {
+      clearInterval(this.serverHealthCheckInterval);
+    }
+
+    this.serverHealthCheckInterval = setInterval(async () => {
+      await this.checkServerHealth();
+    }, 30000); // Check every 30 seconds
+  }
+
+  private async checkServerHealth() {
+    if (!this.port) {
+      return;
+    }
+
+    const isHealthy = await this.isHealthy(this.port);
+    if (!isHealthy) {
+      this.logger.warn("Server health check failed");
+      const action = await window.showWarningMessage(
+        "The marimo server is not responding. What would you like to do?",
+        "Restart Server",
+        "Ignore",
+      );
+
+      if (action === "Restart Server") {
+        await this.restartServer();
+      }
+    }
+  }
+
+  private async restartServer() {
+    this.logger.info("Restarting server...");
+    await this.stopServer();
+    await this.start();
+    window.showInformationMessage("marimo server has been restarted.");
+  }
+
   @LogMethodCalls()
   async restart(): Promise<void> {
     this.startedPromise = new Deferred();
@@ -253,6 +302,11 @@ export class ServerManager implements IServerManager {
       this.terminal.dispose();
     }
     this.updateState("stopped");
+
+    if (this.serverHealthCheckInterval) {
+      clearInterval(this.serverHealthCheckInterval);
+      this.serverHealthCheckInterval = null;
+    }
   }
 
   @LogMethodCalls()

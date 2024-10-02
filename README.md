@@ -10,7 +10,9 @@ Run [marimo](https://github.com/marimo-team/marimo), directly from VS Code.
   <img src="https://raw.githubusercontent.com/marimo-team/vscode-marimo/main/images/screenshot.png">
 </p>
 
-Note: This extension requires marimo to be installed on your system: `pip install marimo`.
+> [!NOTE]
+> This extension requires marimo to be installed on your system: `pip install marimo`.
+> See the [installation guide](https://docs.marimo.io/getting_started/index.html) for more details.
 
 Check out the marimo documentation at <https://docs.marimo.io/>.
 
@@ -37,7 +39,7 @@ This feature is experimental and may have some limitations. Some known limitatio
 - VSCode automatically includes "Run above" and "Run below" buttons in the notebook toolbar. While these work, they do not make sense with a reactive notebook.
 - Notebooks can still be edited even though there may not be an active marimo server. This can be confusing since saving or running will not work.
 - For autocomplete to work when using native VSCode notebooks for many packages (including `marimo`, `numpy`, and more) you may be required to include a `pyproject.toml` file at the root of the workspace. marimo's editor gets around this by default but unfortunately, the VSCode's native notebook does not.
-- You cannot access **many** marimo features in the native notebook (and need to use the marimo browser), such as the variable explorer, dependency viewer, grid mode (plus other layouts), and more.
+- You cannot access **many** marimo features in the native notebook (and need to use the marimo browser), such as the variable explorer, dependency viewer, grid mode (plus other layouts), and more - so we show the notebook in "Kiosk Mode" which is a read-only view of the outputs and helper panels.
 
 ## Extension Settings
 
@@ -45,6 +47,8 @@ You can configure the extension using the following settings:
 
 - `marimo.browserType`: Browser to open marimo app (`system` or `embedded`, default: `embedded`)
 - `marimo.port`: Default port for marimo server (default: `2818`)
+- `marimo.host`: Hostname for marimo server (default: `localhost`)
+- `marimo.https`: Enable HTTPS for marimo server (default: `false`)
 - `marimo.enableToken`: Enable token authentication (default: `false`)
 - `marimo.tokenPassword`: Token password (default: _empty_)
 - `marimo.showTerminal`: Open the terminal when the server starts (default: `false`)

@@ -285,7 +285,8 @@ export class Kernel implements IKernel {
     clearInterval(this.readyTimer);
     this.stopAutoSave();
     this.panel.dispose();
-    this.bridge.dispose();
+    await this.bridge.dispose(); // Ensure bridge is properly disposed
+    this.endAllExecutions();
     // Close open NotebookEditor that matches the document
     const editors = vscode.window.visibleNotebookEditors.filter(
       (editor) => editor.notebook === this.opts.notebookDoc,

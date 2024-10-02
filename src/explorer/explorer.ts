@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import type { Disposable } from "vscode";
+import type { Disposable, FileSystemWatcher } from "vscode";
 
 import {
   EventEmitter,
@@ -42,7 +42,28 @@ export class MarimoAppProvider
   private static _onDidChangeTreeData = new EventEmitter<Entry | undefined>();
   readonly onDidChangeTreeData = MarimoAppProvider._onDidChangeTreeData.event;
 
-  constructor(private controllerManager: ControllerManager) {}
+  private fileWatcher: FileSystemWatcher;
+  private cachedEntries: Entry[] | null = null;
+  private isRefreshing = false;
+
+  constructor(private controllerManager: ControllerManager) {
+    this.fileWatcher = this.setupFileWatcher();
+  }
+
+  private setupFileWatcher() {
+    const fileWatcher = workspace.createFileSystemWatcher("**/*.py");
+    fileWatcher.onDidCreate(() => this.invalidateCache());
+    fileWatcher.onDidDelete(() => this.invalidateCache());
+    fileWatcher.onDidChange(() => this.invalidateCache());
+    return fileWatcher;
+  }
+
+  private invalidateCache() {
+    this.cachedEntries = null;
+    // No need to refresh optimistically, we can be lazy
+    // this.debouncedRefresh();
+    // MarimoAppProvider.refresh()
+  }
 
   @LogMethodCalls()
   static refresh(): void {
@@ -50,29 +71,42 @@ export class MarimoAppProvider
   }
 
   async getChildren(): Promise<Entry[]> {
-    // Get all Python files in the workspace
-    const pythonFiles = await workspace.findFiles(
-      "**/*.py",
-      // ignore venv, node_modules, .git, __pycache__
-      "{**/venv/**,**/node_modules/**,**/.git/**,**/.venv/**,**/__pycache__/**}",
-    );
-
-    const entries: Entry[] = [];
-
-    for (const file of pythonFiles) {
-      // Open the file as a text document
-      const document = await workspace.openTextDocument(file);
-      if (document.getText().includes("app = marimo.App(")) {
-        entries.push({ uri: file, type: FileType.File });
-      }
+    if (this.cachedEntries && !this.isRefreshing) {
+      return this.cachedEntries;
     }
 
-    // Sort the entries by name
-    entries.sort((a, b) => {
-      return a.uri.fsPath.localeCompare(b.uri.fsPath);
-    });
+    if (this.isRefreshing) {
+      return this.cachedEntries || [];
+    }
 
-    return entries;
+    this.isRefreshing = true;
+    try {
+      const pythonFiles = await workspace.findFiles(
+        "**/*.py",
+        "{**/venv/**,**/node_modules/**,**/.git/**,**/.venv/**,**/__pycache__/**}",
+        1000, // Limit the number of files to search
+      );
+
+      const entries: Entry[] = [];
+
+      await Promise.all(
+        pythonFiles.map(async (file) => {
+          const stats = await workspace.fs.stat(file);
+          if (stats.type === FileType.File) {
+            const content = await workspace.fs.readFile(file);
+            if (content.toString().includes("app = marimo.App(")) {
+              entries.push({ uri: file, type: FileType.File });
+            }
+          }
+        }),
+      );
+
+      entries.sort((a, b) => a.uri.fsPath.localeCompare(b.uri.fsPath));
+      this.cachedEntries = entries;
+      return entries;
+    } finally {
+      this.isRefreshing = false;
+    }
   }
 
   getCommands(): Record<string, (arg: Entry) => void | Promise<void>> {
@@ -146,10 +180,14 @@ export class MarimoAppProvider
   private openResource(resource: Uri): void {
     window.showTextDocument(resource);
   }
+
+  dispose() {
+    this.fileWatcher.dispose();
+  }
 }
 
 export class MarimoRunningKernelsProvider
-  implements TreeDataProvider<MarimoFile>, WithCommands<MarimoFile>
+  implements TreeDataProvider<MarimoFile>, WithCommands<MarimoFile>, Disposable
 {
   private static _onDidChangeTreeData = new EventEmitter<
     MarimoFile | undefined
@@ -180,7 +218,12 @@ export class MarimoRunningKernelsProvider
       };
     }
     treeItem.contextValue = "app";
-    treeItem.label = element.name;
+    try {
+      const relativePath = workspace.asRelativePath(element.path);
+      treeItem.label = relativePath;
+    } catch (error) {
+      treeItem.label = element.path;
+    }
     treeItem.iconPath = new ThemeIcon("server-process");
     treeItem.tooltip = element.path;
     return treeItem;
@@ -233,6 +276,10 @@ export class MarimoRunningKernelsProvider
     }
     await this.serverManager.shutdownSession(file);
     MarimoRunningKernelsProvider.refresh();
+  }
+
+  dispose() {
+    // No-op
   }
 }
 
@@ -299,5 +346,7 @@ export class MarimoExplorer implements Disposable {
     for (const disposable of this.disposables) {
       disposable.dispose();
     }
+    this.marimoFilesProvider.dispose();
+    this.runningKernelsProvider.dispose();
   }
 }

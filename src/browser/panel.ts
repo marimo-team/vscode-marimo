@@ -20,25 +20,7 @@ export class MarimoPanelManager {
     return this.nativePanel?.active ?? false;
   }
 
-  @LogMethodCalls()
-  public reload(): void {
-    if (this.nativePanel && this.url) {
-      this.nativePanel.webview.html = MarimoPanelManager.getWebviewContent(
-        this.url,
-      );
-    } else {
-      this.logger.warn("Cannot reload: panel or URL not set");
-    }
-  }
-
-  public async create(url: string): Promise<void> {
-    this.logger.info("Creating panel at", url);
-
-    if (this.nativePanel) {
-      this.logger.warn("Panel already exists");
-      return;
-    }
-
+  private createWebviewPanel(url: string): WebviewPanel {
     this.nativePanel = window.createWebviewPanel(
       MarimoPanelManager.WEBVIEW_TYPE,
       `marimo: ${this.appName}`,
@@ -50,12 +32,34 @@ export class MarimoPanelManager {
     );
 
     this.nativePanel.webview.html = MarimoPanelManager.getWebviewContent(url);
-    this.url = url;
 
     this.nativePanel.onDidDispose(() => {
       this.nativePanel = undefined;
     });
 
+    return this.nativePanel;
+  }
+
+  @LogMethodCalls()
+  public reload(): void {
+    if (this.nativePanel && this.url) {
+      this.nativePanel.dispose();
+      this.nativePanel = this.createWebviewPanel(this.url);
+    } else {
+      this.logger.warn("Cannot reload: panel or URL not set");
+    }
+  }
+
+  public async create(url: string): Promise<void> {
+    this.logger.info("Creating panel at", url);
+    this.url = url;
+
+    if (this.nativePanel) {
+      this.logger.warn("Panel already exists");
+      return;
+    }
+
+    this.nativePanel = this.createWebviewPanel(url);
     this.setupMessageHandler();
   }
 

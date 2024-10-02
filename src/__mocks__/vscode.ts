@@ -16,6 +16,8 @@ export function createVSCodeMock(vi: VitestUtils) {
     };
   });
 
+  vscode.workspace = vscode.workspace || {};
+
   vscode.window.createOutputChannel.mockImplementation(() => {
     return {
       debug: vi.fn(),

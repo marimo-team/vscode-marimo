@@ -10,15 +10,9 @@
     "vscode": "^1.93.1"
   },
   "private": true,
-  "categories": [
-    "Notebooks",
-    "Machine Learning",
-    "Data Science"
-  ],
+  "categories": ["Notebooks", "Machine Learning", "Data Science"],
   "icon": "resources/marimo.png",
-  "activationEvents": [
-    "onLanguage"
-  ],
+  "activationEvents": ["onLanguage"],
   "repository": {
     "type": "git",
     "url": "https://github.com/marimo-team/vscode-marimo"
@@ -26,10 +20,7 @@
   "bugs": {
     "url": "https://github.com/marimo-team/vscode-marimo/issues"
   },
-  "files": [
-    "dist",
-    "resources"
-  ],
+  "files": ["dist", "resources", "LICENSE"],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
@@ -70,13 +61,6 @@
         "category": "marimo",
         "title": "Restart kernel",
         "icon": "$(refresh)"
-      },
-      {
-        "command": "vscode-marimo.startKernel",
-        "enablement": "notebookType == marimo-notebook",
-        "category": "marimo",
-        "title": "Start kernel",
-        "icon": "$(play)"
       },
       {
         "command": "marimo-explorer.restartKernel",
@@ -197,13 +181,13 @@
       "marimo-explorer": [
         {
           "id": "marimo-explorer-running-applications",
-          "name": "Running Applications",
+          "name": "Running Notebooks",
           "initialSize": 1,
           "icon": "resources/icon.svg"
         },
         {
           "id": "marimo-explorer-applications",
-          "name": "Applications",
+          "name": "Notebooks",
           "initialSize": 2,
           "icon": "resources/icon.svg"
         }
@@ -333,47 +317,54 @@
       "properties": {
         "marimo.browserType": {
           "type": "string",
-          "enum": [
-            "embedded",
-            "system"
-          ],
+          "enum": ["embedded", "system"],
           "default": "embedded",
-          "description": "Browser to open marimo app"
+          "description": "The type of browser to use for opening marimo apps."
         },
         "marimo.port": {
           "type": "number",
           "default": 2818,
-          "description": "Default port for marimo server"
+          "description": "The port to use for the marimo server."
+        },
+        "marimo.host": {
+          "type": "string",
+          "default": "localhost",
+          "description": "The hostname to use for the marimo server."
+        },
+        "marimo.https": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether to use HTTPS for the marimo server."
         },
         "marimo.enableToken": {
           "type": "boolean",
           "default": false,
-          "description": "Enable token authentication"
+          "description": "Whether to enable token authentication for the marimo server."
         },
         "marimo.tokenPassword": {
           "type": "string",
           "default": "",
-          "description": "Password for token authentication"
-        },
-        "marimo.showTerminal": {
-          "type": "boolean",
-          "default": false,
-          "description": "Open the terminal when the server starts"
+          "description": "The token password to use for authentication."
         },
         "marimo.debug": {
           "type": "boolean",
           "default": false,
-          "description": "Enable debug mode"
+          "description": "Whether to enable debug mode."
         },
         "marimo.pythonPath": {
           "type": "string",
-          "default": "",
-          "description": "Path to python interpreter. By default, it will use the one from python extension"
+          "default": null,
+          "description": "The path to the Python interpreter to use. If not set, the default Python interpreter will be used."
         },
         "marimo.marimoPath": {
           "type": "string",
-          "default": "marimo",
-          "description": "Path to marimo executable"
+          "default": null,
+          "description": "The path to the marimo executable to use. If not set, the default marimo executable will be used."
+        },
+        "marimo.showTerminal": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether to show the terminal when the server starts."
         }
       }
     }
