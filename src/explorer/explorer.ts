@@ -83,7 +83,7 @@ export class MarimoAppProvider
     try {
       const pythonFiles = await workspace.findFiles(
         "**/*.py",
-        "{**/venv/**,**/node_modules/**,**/.git/**,**/.venv/**,**/__pycache__/**}",
+        "{**/venv/**,**/node_modules/**,**/__pycache__/**,**/.*/**}", // Excluded folders, including all .dot folders
         1000, // Limit the number of files to search
       );
 
