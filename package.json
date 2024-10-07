@@ -7,7 +7,7 @@
   "packageManager": "pnpm@8.15.9",
   "version": "0.4.4",
   "engines": {
-    "vscode": "^1.93.1"
+    "vscode": "^1.94.0"
   },
   "private": true,
   "categories": ["Notebooks", "Machine Learning", "Data Science"],
@@ -396,13 +396,13 @@
     "jest-mock-vscode": "^3.0.5",
     "node-fetch": "^3.3.2",
     "node-html-parser": "^6.1.13",
-    "openapi-fetch": "^0.9.7",
+    "openapi-fetch": "^0.12.2",
     "openapi-typescript": "^7.4.1",
     "tempy": "^3.1.0",
     "tsup": "^8.3.0",
     "typescript": "^5.5.2",
-    "vitest": "^2.1.1",
-    "ws": "^8.17.0"
+    "vitest": "^2.1.2",
+    "ws": "^8.18.0"
   },
   "dependencies": {}
 }
