@@ -40,16 +40,16 @@ devDependencies:
     version: 0.9.8
   openapi-typescript:
     specifier: ^7.4.1
-    version: 7.4.1(typescript@5.6.2)
+    version: 7.4.1(typescript@5.6.3)
   tempy:
     specifier: ^3.1.0
     version: 3.1.0
   tsup:
     specifier: ^8.3.0
-    version: 8.3.0(typescript@5.6.2)
+    version: 8.3.0(typescript@5.6.3)
   typescript:
-    specifier: ^5.5.2
-    version: 5.6.2
+    specifier: ^5.6.3
+    version: 5.6.3
   vitest:
     specifier: ^2.1.1
     version: 2.1.2(@types/node@20.16.10)
@@ -2060,7 +2060,7 @@ packages:
     resolution: {integrity: sha512-1eNjQtbfNi5Z/kFhagDIaIRj6qqDzhjNJKz8cmMW0CVdGwT6e1GLbAfgI0d28VTJa1A8jz82jm/4dG8qNoNS8g==}
     dev: true
 
-  /openapi-typescript@7.4.1(typescript@5.6.2):
+  /openapi-typescript@7.4.1(typescript@5.6.3):
     resolution: {integrity: sha512-HrRoWveViADezHCNgQqZmPKmQ74q7nuH/yg9ursFucZaYQNUqsX38fE/V2sKBHVM+pws4tAHpuh/ext2UJ/AoQ==}
     hasBin: true
     peerDependencies:
@@ -2071,7 +2071,7 @@ packages:
       change-case: 5.4.4
       parse-json: 8.1.0
       supports-color: 9.4.0
-      typescript: 5.6.2
+      typescript: 5.6.3
       yargs-parser: 21.1.1
     transitivePeerDependencies:
       - encoding
@@ -2579,7 +2579,7 @@ packages:
     resolution: {integrity: sha512-Y/arvbn+rrz3JCKl9C4kVNfTfSm2/mEp5FSz5EsZSANGPSlQrpRI5M4PKF+mJnE52jOO90PnPSc3Ur3bTQw0gA==}
     dev: true
 
-  /tsup@8.3.0(typescript@5.6.2):
+  /tsup@8.3.0(typescript@5.6.3):
     resolution: {integrity: sha512-ALscEeyS03IomcuNdFdc0YWGVIkwH1Ws7nfTbAPuoILvEV2hpGQAY72LIOjglGo4ShWpZfpBqP/jpQVCzqYQag==}
     engines: {node: '>=18'}
     hasBin: true
@@ -2614,7 +2614,7 @@ packages:
       sucrase: 3.35.0
       tinyglobby: 0.2.9
       tree-kill: 1.2.2
-      typescript: 5.6.2
+      typescript: 5.6.3
     transitivePeerDependencies:
       - jiti
       - supports-color
@@ -2637,8 +2637,8 @@ packages:
     engines: {node: '>=16'}
     dev: true
 
-  /typescript@5.6.2:
-    resolution: {integrity: sha512-NW8ByodCSNCwZeghjN3o+JX5OFH0Ojg6sadjEKY4huZ52TqbJTJnDo5+Tw98lSy63NZvi4n+ez5m2u5d4PkZyw==}
+  /typescript@5.6.3:
+    resolution: {integrity: sha512-hjcS1mhfuyi4WW8IWtjP7brDrG2cuDZukyrYrSauoXGNgx0S7zceP07adYkJycEr56BOUTNPzbInooiN3fn1qw==}
     engines: {node: '>=14.17'}
     hasBin: true
     dev: true
