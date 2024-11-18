@@ -17,7 +17,7 @@ describe("showCommands", () => {
   const serverManager = ServerManager.getInstance(Config);
 
   it("should show commands for Kernel", async () => {
-    const commands = await showKernelCommands(mockKernel, serverManager);
+    const commands = await showKernelCommands(mockKernel);
     expect(commands.map((c) => c.label)).toMatchInlineSnapshot(`
       [
         "$(split-horizontal) Open outputs in embedded browser",
@@ -26,20 +26,13 @@ describe("showCommands", () => {
         "$(refresh) Restart kernel",
         "$(export) Export notebook as...",
         "",
-        "$(question) View marimo documentation",
-        "$(comment-discussion) Join Discord community",
-        "$(settings) Edit settings",
-        "$(info) Server status: stopped",
       ]
     `);
   });
 
   it("should show commands for non active Controller", async () => {
     const commands = (
-      await showMarimoControllerCommands(
-        await createMockController(),
-        serverManager,
-      )
+      await showMarimoControllerCommands(await createMockController())
     ).filter((index) => index.if !== false);
     expect(commands.map((c) => c.label)).toMatchInlineSnapshot(`
       [
@@ -49,10 +42,6 @@ describe("showCommands", () => {
         "",
         "$(export) Export notebook as...",
         "",
-        "$(question) View marimo documentation",
-        "$(comment-discussion) Join Discord community",
-        "$(settings) Edit settings",
-        "$(info) Server status: stopped",
       ]
     `);
   });
@@ -61,9 +50,9 @@ describe("showCommands", () => {
     const controller = await createMockController();
     controller.active = true;
     controller.currentMode = "run";
-    const commands = (
-      await showMarimoControllerCommands(controller, serverManager)
-    ).filter((index) => index.if !== false);
+    const commands = (await showMarimoControllerCommands(controller)).filter(
+      (index) => index.if !== false,
+    );
     expect(commands.map((c) => c.label)).toMatchInlineSnapshot(`
       [
         "",
@@ -75,10 +64,6 @@ describe("showCommands", () => {
         "$(close) Stop kernel",
         "$(export) Export notebook as...",
         "",
-        "$(question) View marimo documentation",
-        "$(comment-discussion) Join Discord community",
-        "$(settings) Edit settings",
-        "$(info) Server status: stopped",
       ]
     `);
   });
@@ -87,9 +72,9 @@ describe("showCommands", () => {
     const controller = await createMockController();
     controller.active = true;
     controller.currentMode = "edit";
-    const commands = (
-      await showMarimoControllerCommands(controller, serverManager)
-    ).filter((index) => index.if !== false);
+    const commands = (await showMarimoControllerCommands(controller)).filter(
+      (index) => index.if !== false,
+    );
     expect(commands.map((c) => c.label)).toMatchInlineSnapshot(`
       [
         "",
@@ -101,10 +86,6 @@ describe("showCommands", () => {
         "$(close) Stop kernel",
         "$(export) Export notebook as...",
         "",
-        "$(question) View marimo documentation",
-        "$(comment-discussion) Join Discord community",
-        "$(settings) Edit settings",
-        "$(info) Server status: stopped",
       ]
     `);
   });
@@ -116,6 +97,7 @@ describe("showCommands", () => {
     expect(commands.map((c) => c.label)).toMatchInlineSnapshot(`
       [
         "$(question) View marimo documentation",
+        "$(bookmark) View tutorials",
         "$(comment-discussion) Join Discord community",
         "$(settings) Edit settings",
         "$(info) Server status: stopped",

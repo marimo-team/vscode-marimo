@@ -1,4 +1,4 @@
-import { exec, execSync } from "node:child_process";
+import { execFile, execSync } from "node:child_process";
 import { workspace } from "vscode";
 import { Config } from "../config";
 import { logger } from "../logger";
@@ -10,9 +10,32 @@ import { getInterpreterDetails } from "./python";
  * We prefix the command with the path to the python executable
  */
 export async function execPython(command: string[]) {
-  const interpreter = (await getInterpreter()) || "python";
+  let interpreter = (await getInterpreter()) || "python";
   logger.info(`Using interpreter: ${interpreter}`);
+  // if interpreter has spaces, wrap in quotes
+  if (interpreter.includes(" ")) {
+    interpreter = `"${interpreter}"`;
+  }
   return execSync(`${interpreter} -m ${command.join(" ")}`);
+}
+
+export async function hasPythonModule(module: string) {
+  let interpreter = (await getInterpreter()) || "python";
+  logger.info(`Using interpreter: ${interpreter}`);
+  // if interpreter has spaces, wrap in quotes
+  if (interpreter.includes(" ")) {
+    interpreter = `"${interpreter}"`;
+  }
+  return execSync(`${interpreter} -c 'import ${module}'`);
+}
+
+export async function hasExecutable(executable: string): Promise<boolean> {
+  try {
+    await execFile(executable, ["--help"]);
+    return true;
+  } catch (error) {
+    return false;
+  }
 }
 
 export async function getInterpreter(): Promise<string | undefined> {

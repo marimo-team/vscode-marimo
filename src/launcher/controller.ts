@@ -18,7 +18,7 @@ import { StatusBar } from "../ui/status-bar";
 import { MarimoCmdBuilder } from "../utils/cmd";
 import { getInterpreter } from "../utils/exec";
 import { ping } from "../utils/network";
-import { getFocusedMarimoTextEditor, isMarimoApp } from "../utils/query";
+import { getFocusedMarimoTextEditor } from "../utils/query";
 import { asURL } from "../utils/url";
 import { type IMarimoTerminal, MarimoTerminal } from "./terminal";
 

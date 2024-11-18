@@ -14,8 +14,6 @@ export class HealthService {
     version: string;
     path: string;
   }> {
-    const execAsync = promisify(exec);
-
     try {
       const bytes = await execPython([Config.marimoPath, "--version"]);
       const stdout = bytes.toString();
