@@ -331,6 +331,11 @@
           "default": "localhost",
           "description": "The hostname to use for the marimo server."
         },
+        "marimo.sandbox": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether to always start marimo in a sandbox. Requires `uv` to be installed."
+        },
         "marimo.https": {
           "type": "boolean",
           "default": false,

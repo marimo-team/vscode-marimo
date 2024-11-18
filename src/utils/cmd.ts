@@ -57,6 +57,13 @@ export class MarimoCmdBuilder {
     return this;
   }
 
+  sandbox(value: boolean) {
+    if (value) {
+      this.cmd.push("--sandbox");
+    }
+    return this;
+  }
+
   build() {
     return this.cmd.join(" ");
   }

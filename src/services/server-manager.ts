@@ -282,6 +282,7 @@ export class ServerManager implements IServerManager {
       .headless(true)
       .enableToken(this.config.enableToken)
       .tokenPassword(this.config.tokenPassword)
+      .sandbox(this.config.sandbox)
       .build();
   }
 
