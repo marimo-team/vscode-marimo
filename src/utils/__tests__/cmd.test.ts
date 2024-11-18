@@ -89,4 +89,20 @@ describe("MarimoCmdBuilder", () => {
       `"marimo --yes edit path/to/file --host=0.0.0.0 --port=2718 --headless --no-token"`,
     );
   });
+
+  it("should support sandbox mode", () => {
+    const cmd = new MarimoCmdBuilder()
+      .debug(false)
+      .mode("edit")
+      .fileOrDir("path/to/file")
+      .host("localhost")
+      .port(2718)
+      .headless(true)
+      .enableToken(false)
+      .sandbox(true)
+      .build();
+    expect(cmd).toMatchInlineSnapshot(
+      `"marimo --yes edit path/to/file --host=localhost --port=2718 --headless --no-token --sandbox"`
+    );
+  });
 });

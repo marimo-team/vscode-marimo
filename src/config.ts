@@ -20,6 +20,7 @@ export interface Config {
   readonly enableToken: boolean;
   readonly tokenPassword: string | undefined;
   readonly https: boolean;
+  readonly sandbox: boolean;
 }
 
 /**
@@ -121,6 +122,14 @@ export const Config = {
    */
   get showTerminal(): boolean {
     return getConfig("showTerminal", false);
+  },
+
+  /**
+   * Whether to always start marimo in sandbox mode.
+   * @default false
+   */
+  get sandbox(): boolean {
+    return getConfig("sandbox", false);
   },
 };
 

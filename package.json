@@ -10,9 +10,15 @@
     "vscode": "^1.95.0"
   },
   "private": true,
-  "categories": ["Notebooks", "Machine Learning", "Data Science"],
+  "categories": [
+    "Notebooks",
+    "Machine Learning",
+    "Data Science"
+  ],
   "icon": "resources/marimo.png",
-  "activationEvents": ["onLanguage"],
+  "activationEvents": [
+    "onLanguage"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/marimo-team/vscode-marimo"
@@ -20,7 +26,11 @@
   "bugs": {
     "url": "https://github.com/marimo-team/vscode-marimo/issues"
   },
-  "files": ["dist", "resources", "LICENSE"],
+  "files": [
+    "dist",
+    "resources",
+    "LICENSE"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
@@ -317,7 +327,10 @@
       "properties": {
         "marimo.browserType": {
           "type": "string",
-          "enum": ["embedded", "system"],
+          "enum": [
+            "embedded",
+            "system"
+          ],
           "default": "embedded",
           "description": "The type of browser to use for opening marimo apps."
         },
@@ -330,6 +343,11 @@
           "type": "string",
           "default": "localhost",
           "description": "The hostname to use for the marimo server."
+        },
+        "marimo.sandbox": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether to always start marimo in a sandbox. Requires `uv` to be installed."
         },
         "marimo.https": {
           "type": "boolean",
