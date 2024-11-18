@@ -42,7 +42,7 @@ export interface NotebookMetadata {
 export function getNotebookMetadata(
   notebook: vscode.NotebookDocument | vscode.NotebookData,
 ): NotebookMetadata {
-  return notebook.metadata as NotebookMetadata;
+  return (notebook.metadata || {}) as NotebookMetadata;
 }
 
 export function setNotebookMetadata(
