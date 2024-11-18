@@ -7,6 +7,7 @@ import {
   window,
 } from "vscode";
 import {
+  DISCORD_URL,
   DOCUMENTATION_URL,
   EXTENSION_DISPLAY_NAME,
   EXTENSION_PACKAGE,
@@ -20,6 +21,7 @@ import {
 } from "../notebook/extension";
 import { Kernel } from "../notebook/kernel";
 import type { ServerManager } from "../services/server-manager";
+import { tutorialCommands } from "./tutorial-commands";
 
 interface CommandPickItem extends QuickPickItem {
   handler: () => void;
@@ -39,14 +41,13 @@ export async function showCommands(
   let commands: CommandPickItem[] = [];
 
   if (controller instanceof Kernel) {
-    commands = await showKernelCommands(controller, serverManager);
+    commands = await showKernelCommands(controller);
   }
   if (controller instanceof MarimoController) {
-    commands = await showMarimoControllerCommands(controller, serverManager);
+    commands = await showMarimoControllerCommands(controller);
   }
-  if (!controller) {
-    commands = miscCommands(serverManager);
-  }
+
+  commands.push(...miscCommands(serverManager));
 
   const filteredCommands = commands.filter((index) => index.if !== false);
   const result = await window.showQuickPick<CommandPickItem>(filteredCommands);
@@ -56,10 +57,7 @@ export async function showCommands(
   }
 }
 
-export function showKernelCommands(
-  kernel: Kernel,
-  serverManager: ServerManager,
-): CommandPickItem[] {
+export function showKernelCommands(kernel: Kernel): CommandPickItem[] {
   return [
     {
       label: "$(split-horizontal) Open outputs in embedded browser",
@@ -90,13 +88,11 @@ export function showKernelCommands(
       },
     },
     SEPARATOR,
-    ...miscCommands(serverManager),
   ];
 }
 
 export async function showMarimoControllerCommands(
   controller: MarimoController,
-  serverManager: ServerManager,
 ): Promise<CommandPickItem[]> {
   return [
     // Non-active commands
@@ -186,7 +182,6 @@ export async function showMarimoControllerCommands(
     },
 
     SEPARATOR,
-    ...miscCommands(serverManager),
   ];
 }
 
@@ -199,9 +194,15 @@ export function miscCommands(serverManager: ServerManager): CommandPickItem[] {
       },
     },
     {
+      label: "$(bookmark) View tutorials",
+      async handler() {
+        await tutorialCommands();
+      },
+    },
+    {
       label: "$(comment-discussion) Join Discord community",
       handler() {
-        env.openExternal(Uri.parse("https://marimo.io/discord"));
+        env.openExternal(Uri.parse(DISCORD_URL));
       },
     },
     {

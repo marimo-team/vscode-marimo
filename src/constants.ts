@@ -1,4 +1,5 @@
 export const DOCUMENTATION_URL = "https://docs.marimo.io";
+export const DISCORD_URL = "https://marimo.io/discord?ref=vscode";
 
 export const EXTENSION_PACKAGE = {
   publisher: "marimo-team",

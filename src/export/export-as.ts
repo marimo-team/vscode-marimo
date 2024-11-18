@@ -1,11 +1,10 @@
-import { execSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { Uri, ViewColumn, window, workspace } from "vscode";
 import { Config } from "../config";
 import { logger } from "../logger";
 import { printError } from "../utils/errors";
-import { execPython } from "../utils/exec";
+import { execPython, hasPythonModule } from "../utils/exec";
 
 export type ExportType =
   | "ipynb"
@@ -105,11 +104,11 @@ export async function exportNotebookAs(
   }
 }
 
-function checkRequirements(format: ExportType) {
+async function checkRequirements(format: ExportType) {
   if (format === "ipynb") {
     // Check that nbformat is installed
     try {
-      execSync("nbformat --version", { stdio: "ignore" });
+      await hasPythonModule("nbformat");
     } catch {
       throw new Error(
         "nbformat is not installed. Please install nbformat, e.g. `pip install nbformat`",
