@@ -102,7 +102,7 @@ describe("MarimoCmdBuilder", () => {
       .sandbox(true)
       .build();
     expect(cmd).toMatchInlineSnapshot(
-      `"marimo --yes edit path/to/file --host=localhost --port=2718 --headless --no-token --sandbox"`
+      `"marimo --yes edit path/to/file --host=localhost --port=2718 --headless --no-token --sandbox"`,
     );
   });
 });
