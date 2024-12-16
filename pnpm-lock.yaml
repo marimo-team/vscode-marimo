@@ -12,8 +12,8 @@ devDependencies:
     specifier: 22.9.0
     version: 22.9.0
   '@types/vscode':
-    specifier: ^1.95.0
-    version: 1.95.0
+    specifier: ^1.96.0
+    version: 1.96.0
   '@types/ws':
     specifier: ^8.5.12
     version: 8.5.12
@@ -830,8 +830,8 @@ packages:
       undici-types: 6.19.8
     dev: true
 
-  /@types/vscode@1.95.0:
-    resolution: {integrity: sha512-0LBD8TEiNbet3NvWsmn59zLzOFu/txSlGxnv5yAFHCrhG9WvAnR3IvfHzMOs2aeWqgvNjq9pO99IUw8d3n+unw==}
+  /@types/vscode@1.96.0:
+    resolution: {integrity: sha512-qvZbSZo+K4ZYmmDuaodMbAa67Pl6VDQzLKFka6rq+3WUTY4Kro7Bwoi0CuZLO/wema0ygcmpwow7zZfPJTs5jg==}
     dev: true
 
   /@types/ws@8.5.12:
