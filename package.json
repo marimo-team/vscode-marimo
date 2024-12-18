@@ -7,7 +7,7 @@
   "packageManager": "pnpm@8.15.9",
   "version": "0.4.8",
   "engines": {
-    "vscode": "^1.95.0"
+    "vscode": "^1.96.1"
   },
   "private": true,
   "categories": ["Notebooks", "Machine Learning", "Data Science"],
@@ -391,23 +391,23 @@
     "vscode:prepublish": "pnpm run build"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.9.3",
-    "@types/node": "22.9.0",
+    "@biomejs/biome": "^1.9.4",
+    "@types/node": "22.10.2",
     "@types/vscode": "^1.95.0",
-    "@types/ws": "^8.5.12",
+    "@types/ws": "^8.5.13",
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.4.1",
     "@vscode/python-extension": "^1.0.5",
     "jest-mock-vscode": "^3.0.5",
     "node-fetch": "^3.3.2",
     "node-html-parser": "^6.1.13",
-    "openapi-fetch": "^0.9.7",
-    "openapi-typescript": "^7.4.1",
+    "openapi-fetch": "^0.13.3",
+    "openapi-typescript": "^7.4.4",
     "tempy": "^3.1.0",
-    "tsup": "^8.3.0",
+    "tsup": "^8.3.5",
     "typescript": "^5.6.3",
-    "vitest": "^2.1.1",
-    "ws": "^8.17.0"
+    "vitest": "^2.1.8",
+    "ws": "^8.18.0"
   },
   "dependencies": {}
 }
