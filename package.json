@@ -400,7 +400,7 @@
     "@vscode/python-extension": "^1.0.5",
     "jest-mock-vscode": "^3.0.5",
     "node-fetch": "^3.3.2",
-    "node-html-parser": "^6.1.13",
+    "node-html-parser": "^7.0.1",
     "openapi-fetch": "^0.9.7",
     "openapi-typescript": "^7.4.1",
     "tempy": "^3.1.0",
