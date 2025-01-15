@@ -41,7 +41,6 @@ export async function hasExecutable(executable: string): Promise<boolean> {
 export async function getInterpreter(): Promise<string | undefined> {
   try {
     if (Config.pythonPath) {
-      logger.info("Using python interpreter at", Config.pythonPath);
       return Config.pythonPath;
     }
     const activeWorkspace = workspace.workspaceFolders?.[0];
@@ -58,7 +57,6 @@ export async function getInterpreter(): Promise<string | undefined> {
       logger.debug("Found interpreters", interpreters);
 
       if (interpreters.length > 0) {
-        logger.info("Using python interpreter at", interpreters[0]);
         return interpreters[0];
       }
     }
