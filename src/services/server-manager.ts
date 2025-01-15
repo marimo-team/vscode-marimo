@@ -283,6 +283,7 @@ export class ServerManager implements IServerManager {
       .enableToken(this.config.enableToken)
       .tokenPassword(this.config.tokenPassword)
       .sandbox(this.config.sandbox)
+      .watch(this.config.watch)
       .build();
   }
 

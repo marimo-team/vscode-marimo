@@ -21,6 +21,7 @@ export interface Config {
   readonly tokenPassword: string | undefined;
   readonly https: boolean;
   readonly sandbox: boolean;
+  readonly watch: boolean;
 }
 
 /**
@@ -130,6 +131,14 @@ export const Config = {
    */
   get sandbox(): boolean {
     return getConfig("sandbox", false);
+  },
+
+  /**
+   * Whether to always start marimo with the --watch flag.
+   * @default true
+   */
+  get watch(): boolean {
+    return getConfig("watch", true);
   },
 };
 

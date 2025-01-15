@@ -48,6 +48,7 @@ You can configure the extension using the following settings:
 - `marimo.browserType`: Browser to open marimo app (`system` or `embedded`, default: `embedded`)
 - `marimo.port`: Default port for marimo server (default: `2818`)
 - `marimo.sandbox`: Always start marimo in a sandbox, e.g. `marimo edit --sandbox` (default: `false`). Requires [`uv`](https://docs.astral.sh/uv/) to be installed.
+- `marimo.watch`: Always start marimo with the `--watch` flag (default: `true`).
 - `marimo.host`: Hostname for marimo server (default: `localhost`)
 - `marimo.https`: Enable HTTPS for marimo server (default: `false`)
 - `marimo.enableToken`: Enable token authentication (default: `false`)
