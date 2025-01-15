@@ -151,7 +151,7 @@ export class MarimoPanelManager {
       <body style="${styles}">
           <iframe
             id="preview-panel"
-            allow="clipboard-read; clipboard-write;"
+            allow="clipboard-read; clipboard-write self *"
             src="${url.toString()}"
             style="${iframeStyles}"
           ></iframe>
