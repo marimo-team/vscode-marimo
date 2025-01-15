@@ -20,7 +20,7 @@ describe("MarimoCmdBuilder", () => {
       .tokenPassword("")
       .build();
     expect(cmd).toMatchInlineSnapshot(
-      `"marimo --yes edit path/to/file --host=localhost --port=2718 --headless --no-token --watch"`,
+      `"marimo --yes edit path/to/file --host=localhost --port=2718 --headless --no-token"`,
     );
   });
 
@@ -36,7 +36,7 @@ describe("MarimoCmdBuilder", () => {
       .tokenPassword("secret")
       .build();
     expect(cmd).toMatchInlineSnapshot(
-      `"marimo --yes -d edit path/to/file --host=localhost --port=2718 --headless --token-password=secret --watch"`,
+      `"marimo --yes -d edit path/to/file --host=localhost --port=2718 --headless --token-password=secret"`,
     );
   });
 
@@ -52,7 +52,7 @@ describe("MarimoCmdBuilder", () => {
       .tokenPassword("")
       .build();
     expect(cmd).toMatchInlineSnapshot(
-      `"marimo --yes run path/to/file --host=localhost --port=2718 --headless --no-token --watch"`,
+      `"marimo --yes run path/to/file --host=localhost --port=2718 --headless --no-token"`,
     );
   });
 
@@ -69,7 +69,7 @@ describe("MarimoCmdBuilder", () => {
       .build();
 
     expect(b).toMatchInlineSnapshot(
-      `"marimo --yes edit "path/to/some file" --host=localhost --port=2718 --headless --no-token --watch"`,
+      `"marimo --yes edit "path/to/some file" --host=localhost --port=2718 --headless --no-token"`,
     );
   });
 
@@ -86,7 +86,7 @@ describe("MarimoCmdBuilder", () => {
       .build();
 
     expect(b).toMatchInlineSnapshot(
-      `"marimo --yes edit path/to/file --host=0.0.0.0 --port=2718 --headless --no-token --watch"`,
+      `"marimo --yes edit path/to/file --host=0.0.0.0 --port=2718 --headless --no-token"`,
     );
   });
 
@@ -102,7 +102,7 @@ describe("MarimoCmdBuilder", () => {
       .sandbox(true)
       .build();
     expect(cmd).toMatchInlineSnapshot(
-      `"marimo --yes edit path/to/file --host=localhost --port=2718 --headless --no-token --sandbox --watch"`,
+      `"marimo --yes edit path/to/file --host=localhost --port=2718 --headless --no-token --sandbox"`,
     );
   });
 
@@ -119,22 +119,6 @@ describe("MarimoCmdBuilder", () => {
       .build();
     expect(cmd).toMatchInlineSnapshot(
       `"marimo --yes edit path/to/file --host=localhost --port=2718 --headless --no-token --watch"`,
-    );
-  });
-
-  it("should support disabling watch mode", () => {
-    const cmd = new MarimoCmdBuilder()
-      .debug(false)
-      .mode("edit")
-      .fileOrDir("path/to/file")
-      .host("localhost")
-      .port(2718)
-      .headless(true)
-      .enableToken(false)
-      .watch(false)
-      .build();
-    expect(cmd).toMatchInlineSnapshot(
-      `"marimo --yes edit path/to/file --host=localhost --port=2718 --headless --no-token"`,
     );
   });
 });
