@@ -46,9 +46,42 @@ export class HealthService {
    * Shows an alert with the status of the server
    */
   public async showStatus() {
-    await window.showInformationMessage(await this.printStatus(), {
+    await window.showInformationMessage(await this.printStatusVerbose(), {
       modal: true,
     });
+  }
+
+  public async printStatusVerbose(): Promise<string> {
+    const [{ isInstalled, version, path }, pythonInterpreter] =
+      await Promise.all([this.isMarimoInstalled(), getInterpreter()]);
+
+    if (isInstalled) {
+      const status = await this.isServerRunning();
+      return [
+        "marimo configuration:",
+        `\tpython interpreter: ${pythonInterpreter}`,
+        path === "marimo" ? "" : `\tmarimo executable path: ${path}`, // don't show if default
+        `\tversion: ${version}`,
+        "",
+        "server status:",
+        status.isRunning ? `\trunning on port ${status.port}` : "\tnot running",
+        "",
+        "configuration:",
+        `\thost: ${Config.host}`,
+        `\tdefault port: ${Config.port}`,
+        `\tread port: ${Config.readPort}`,
+        `\thttps enabled: ${Config.https}`,
+        `\ttoken auth enabled: ${Config.enableToken}`,
+        `\tsandbox mode: ${Config.sandbox}`,
+        `\tbrowser type: ${Config.browser}`,
+        `\tshow terminal: ${Config.showTerminal}`,
+        `\tdebug mode: ${Config.debug}`,
+      ]
+        .filter(Boolean)
+        .join("\n");
+    }
+
+    return troubleShootingMessage(path, pythonInterpreter);
   }
 
   public async printStatus(): Promise<string> {
@@ -59,7 +92,7 @@ export class HealthService {
       const status = await this.isServerRunning();
       return [
         "marimo is installed",
-        path === "marimo" ? "" : `\tmarimo executable path: ${path}`,
+        path === "marimo" ? "" : `\tmarimo executable path: ${path}`, // don't show if default
         `\tpython interpreter: ${pythonInterpreter}`,
         `\tversion: ${version}`,
         status.isRunning
@@ -70,6 +103,26 @@ export class HealthService {
         .join("\n");
     }
 
-    return `marimo does not appear to be installed at: ${path}`;
+    return troubleShootingMessage(path, pythonInterpreter);
   }
+}
+
+function troubleShootingMessage(
+  marimoPath: string,
+  pythonInterpreter: string | undefined,
+) {
+  return [
+    "marimo does not appear to be installed.",
+    "",
+    "Current configuration:",
+    `\tpython interpreter: ${pythonInterpreter || "not set"}`,
+    marimoPath === "marimo" ? "" : `\tmarimo executable path: ${marimoPath}`, // don't show if default
+    "",
+    "Troubleshooting steps:",
+    `\t1. Verify installation: ${pythonInterpreter} -m ${marimoPath}`,
+    "\t2. Install marimo: pip install marimo",
+    "\t3. Check python.defaultInterpreterPath in VS Code settings",
+    "\t4. Try creating a new virtual environment",
+    "\t5. If using a virtual environment, ensure it's activated",
+  ].join("\n");
 }

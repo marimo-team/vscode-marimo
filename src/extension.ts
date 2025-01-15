@@ -128,8 +128,12 @@ class MarimoExtension {
         cancellable: false,
       },
       async () => {
-        const response = await this.serverManager.start();
-        await this.kernelManager.hydrateExistingNotebooks(response);
+        try {
+          const response = await this.serverManager.start();
+          await this.kernelManager.hydrateExistingNotebooks(response);
+        } catch (e) {
+          window.showErrorMessage(`Failed to start marimo server: ${e}`);
+        }
       },
     );
   }

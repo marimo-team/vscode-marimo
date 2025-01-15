@@ -41,6 +41,47 @@ This feature is experimental and may have some limitations. Some known limitatio
 - For autocomplete to work when using native VSCode notebooks for many packages (including `marimo`, `numpy`, and more) you may be required to include a `pyproject.toml` file at the root of the workspace. marimo's editor gets around this by default but unfortunately, the VSCode's native notebook does not.
 - You cannot access **many** marimo features in the native notebook (and need to use the marimo browser), such as the variable explorer, dependency viewer, grid mode (plus other layouts), and more - so we show the notebook in "Kiosk Mode" which is a read-only view of the outputs and helper panels.
 
+## Python Configuration
+
+To ensure marimo works correctly with your Python environment, you have several options:
+
+1. **Workspace Settings (Recommended)**
+   Create or edit `.vscode/settings.json` in your workspace:
+
+   ```json
+   {
+     "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+     "marimo.marimoPath": "${workspaceFolder}/.venv/bin/marimo"
+   }
+   ```
+
+2. **Global Settings**
+   You can also configure these settings globally in VS Code's settings:
+
+   - Set `python.defaultInterpreterPath` to your preferred Python interpreter
+   - (Likely not needed) Set `marimo.marimoPath` to the path of your marimo installation
+   - Verify that marimo is available in your Python interpreter: `value/of/defaultInterpreterPath -m marimo`
+
+3. **Virtual Environments**
+   If using a virtual environment:
+   - Create and activate your virtual environment
+   - Install marimo: `pip install marimo`
+   - VS Code should automatically detect the Python interpreter
+
+4. **uv and package environment sandboxes**
+   You can use `uvx` with `marimo edit --sandbox` to run marimo in a sandbox.
+
+   ```json
+   {
+     "marimo.pythonPath": "uv run python",
+     "marimo.marimoPath": "marimo",
+     "marimo.sandbox": true
+   }
+   ```
+
+> [!TIP]
+> The extension will use the Python interpreter from the Python extension by default. Make sure you have the [Python extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python) installed and configured.
+
 ## Extension Settings
 
 You can configure the extension using the following settings:
@@ -56,3 +97,9 @@ You can configure the extension using the following settings:
 - `marimo.debug`: Enable debug logging (default: `false`)
 - `marimo.pythonPath`: Path to python interpreter (default: the one from python extension)
 - `marimo.marimoPath`: Path to marimo executable (default: `marimo`)
+
+## Troubleshooting
+
+If you encounter issues, you can open the marimo extension logs by running the `marimo: Show marimo status` command from the command palette.
+
+You can also hover over the marimo status bar item in the bottom left of the VSCode window to see the status of the marimo extension.
