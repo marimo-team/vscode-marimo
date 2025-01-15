@@ -102,6 +102,7 @@ export class MarimoController implements Disposable {
 
     const interpreter = await getInterpreter();
     if (interpreter) {
+      logger.info(`Using interpreter ${interpreter}`);
       await this.terminal.executeCommand(`${interpreter} -m ${cmd}`);
     } else {
       await this.terminal.executeCommand(cmd);

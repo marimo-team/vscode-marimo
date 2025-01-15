@@ -1,5 +1,6 @@
 import { parse } from "node-html-parser";
 import { composeUrl } from "../config";
+import { logger } from "../logger";
 import type { MarimoConfig, SkewToken } from "../notebook/marimo/types";
 import { asURL } from "../utils/url";
 
@@ -16,7 +17,13 @@ export async function fetchMarimoStartupValues(port: number): Promise<{
   userConfig: MarimoConfig;
 }> {
   const url = asURL(await composeUrl(port));
-  const response = await fetch(url.toString());
+  let response: Response;
+  try {
+    response = await fetch(url.toString());
+  } catch (e) {
+    logger.error(`Could not fetch ${url}. Is ${url} healthy?`);
+    throw new Error(`Could not fetch ${url}. Is ${url} healthy?`);
+  }
 
   if (!response.ok) {
     throw new Error(

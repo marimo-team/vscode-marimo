@@ -359,7 +359,7 @@
         "marimo.pythonPath": {
           "type": "string",
           "default": null,
-          "description": "The path to the Python interpreter to use. If not set, the default Python interpreter will be used."
+          "description": "The path to the Python interpreter to use. If not set, the active Python interpreter will be used, then the default interpreter (python.defaultInterpreterPath) will be used."
         },
         "marimo.marimoPath": {
           "type": "string",

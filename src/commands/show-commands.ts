@@ -216,7 +216,7 @@ export function miscCommands(serverManager: ServerManager): CommandPickItem[] {
       handler: async () => {
         // Open output panel with channel 'marimo'
         await commands.executeCommand(
-          `workbench.action.output.show.extension-output-${EXTENSION_PACKAGE.fullName}-#1-${EXTENSION_DISPLAY_NAME}`,
+          `workbench.action.output.show.${EXTENSION_PACKAGE.fullName}.${EXTENSION_DISPLAY_NAME}`,
         );
         await commands.executeCommand(
           "marimo-explorer-running-applications.focus",
