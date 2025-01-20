@@ -406,7 +406,7 @@
     "tempy": "^3.1.0",
     "tsup": "^8.3.0",
     "typescript": "^5.7.3",
-    "vitest": "^2.1.1",
+    "vitest": "^3.0.2",
     "ws": "^8.17.0"
   },
   "dependencies": {}
