@@ -105,4 +105,20 @@ describe("MarimoCmdBuilder", () => {
       `"marimo --yes edit path/to/file --host=localhost --port=2718 --headless --no-token --sandbox"`,
     );
   });
+
+  it("should support watch mode", () => {
+    const cmd = new MarimoCmdBuilder()
+      .debug(false)
+      .mode("edit")
+      .fileOrDir("path/to/file")
+      .host("localhost")
+      .port(2718)
+      .headless(true)
+      .enableToken(false)
+      .watch(true)
+      .build();
+    expect(cmd).toMatchInlineSnapshot(
+      `"marimo --yes edit path/to/file --host=localhost --port=2718 --headless --no-token --watch"`,
+    );
+  });
 });

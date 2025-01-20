@@ -64,6 +64,13 @@ export class MarimoCmdBuilder {
     return this;
   }
 
+  watch(value: boolean) {
+    if (value) {
+      this.cmd.push("--watch");
+    }
+    return this;
+  }
+
   build() {
     return this.cmd.join(" ");
   }

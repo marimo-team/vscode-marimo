@@ -336,6 +336,11 @@
           "default": false,
           "description": "Whether to always start marimo in a sandbox. Requires `uv` to be installed."
         },
+        "marimo.watch": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether to always start marimo with the --watch flag."
+        },
         "marimo.https": {
           "type": "boolean",
           "default": false,
