@@ -24,9 +24,9 @@ import {
   type SkewToken,
   type UpdateCellIdsRequest,
 } from "./marimo/types";
-import { Strings } from "../utils/strings";
 import { maybeMarkdown, toMarkdown } from "./md";
 import { toArray } from "../utils/arrays";
+import { deepEqual } from "../utils/deepEqual";
 
 const DEFAULT_NAME = "__";
 
