@@ -1,9 +1,7 @@
-import { exec } from "node:child_process";
-import { promisify } from "node:util";
 import { window } from "vscode";
 import { Config } from "../config";
 import { logger } from "../logger";
-import { execPython, getInterpreter } from "../utils/exec";
+import { execMarimoCommand, getInterpreter } from "../utils/exec";
 import type { ServerManager } from "./server-manager";
 
 export class HealthService {
@@ -12,10 +10,10 @@ export class HealthService {
   public async isMarimoInstalled(): Promise<{
     isInstalled: boolean;
     version: string;
-    path: string;
+    path: string | undefined;
   }> {
     try {
-      const bytes = await execPython([Config.marimoPath, "--version"]);
+      const bytes = await execMarimoCommand(["--version"]);
       const stdout = bytes.toString();
       return {
         isInstalled: true,
@@ -60,7 +58,7 @@ export class HealthService {
       return [
         "marimo configuration:",
         `\tpython interpreter: ${pythonInterpreter}`,
-        path === "marimo" ? "" : `\tmarimo executable path: ${path}`, // don't show if default
+        isDefaultMarimoPath(path) ? "" : `\tmarimo executable path: ${path}`, // don't show if default
         `\tversion: ${version}`,
         "",
         "server status:",
@@ -108,7 +106,7 @@ export class HealthService {
 }
 
 function troubleShootingMessage(
-  marimoPath: string,
+  marimoPath: string | undefined,
   pythonInterpreter: string | undefined,
 ) {
   return [
@@ -116,13 +114,19 @@ function troubleShootingMessage(
     "",
     "Current configuration:",
     `\tpython interpreter: ${pythonInterpreter || "not set"}`,
-    marimoPath === "marimo" ? "" : `\tmarimo executable path: ${marimoPath}`, // don't show if default
+    isDefaultMarimoPath(marimoPath)
+      ? ""
+      : `\tmarimo executable path: ${marimoPath}`, // don't show if default
     "",
     "Troubleshooting steps:",
-    `\t1. Verify installation: ${pythonInterpreter} -m ${marimoPath}`,
+    `\t1. Verify installation: ${pythonInterpreter} -m marimo`,
     "\t2. Install marimo: pip install marimo",
     "\t3. Check python.defaultInterpreterPath in VS Code settings",
     "\t4. Try creating a new virtual environment",
     "\t5. If using a virtual environment, ensure it's activated",
   ].join("\n");
+}
+
+function isDefaultMarimoPath(path: string | undefined) {
+  return path === "marimo" || path === undefined;
 }

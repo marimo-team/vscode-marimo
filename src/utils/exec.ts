@@ -4,29 +4,58 @@ import { Config } from "../config";
 import { logger } from "../logger";
 import { getInterpreterDetails } from "./python";
 
+export async function execMarimoCommand(command: string[]) {
+  // When marimoPath is set, use that directly
+  let cmd = Config.marimoPath;
+  if (cmd && cmd !== "marimo") {
+    cmd = maybeQuotes(cmd);
+    return execSync(`${cmd} ${command.join(" ")}`);
+  }
+  // Otherwise, use python -m marimo
+  return execPythonModule(["marimo", ...command]);
+}
+
 /**
- * Execute a python executable command
- *
- * We prefix the command with the path to the python executable
+ * Execute a python module
+ * e.g. /usr/bin/python -m marimo edit
+ * or
+ * e.g. uv run python -m marimo edit
  */
-export async function execPython(command: string[]) {
+export async function execPythonModule(command: string[]) {
+  // Otherwise use python interpreter
   let interpreter = (await getInterpreter()) || "python";
   logger.info(`Using interpreter: ${interpreter}`);
-  // Only quote if it has spaces and is not a command like "uv run python"
-  if (interpreter.includes(" ") && !interpreter.startsWith("uv run")) {
-    interpreter = `"${interpreter}"`;
-  }
+  // Maybe quote if it has spaces
+  interpreter = maybeQuotes(interpreter);
   return execSync(`${interpreter} -m ${command.join(" ")}`);
+}
+
+export async function execPythonFile(command: string[]) {
+  let interpreter = (await getInterpreter()) || "python";
+  logger.info(`Using interpreter: ${interpreter}`);
+  // Maybe quote if it has spaces
+  interpreter = maybeQuotes(interpreter);
+  return execSync(`${interpreter} ${command.join(" ")}`);
 }
 
 export async function hasPythonModule(module: string) {
   let interpreter = (await getInterpreter()) || "python";
   logger.info(`Using interpreter: ${interpreter}`);
-  // Only quote if it has spaces and is not a command like "uv run python"
-  if (interpreter.includes(" ") && !interpreter.startsWith("uv run")) {
-    interpreter = `"${interpreter}"`;
-  }
+  // Maybe quote if it has spaces
+  interpreter = maybeQuotes(interpreter);
   return execSync(`${interpreter} -c 'import ${module}'`);
+}
+
+// Quote if it has spaces and is not a command like "uv run"
+export function maybeQuotes(command: string) {
+  if (
+    command.includes(" ") &&
+    !command.startsWith("uv ") &&
+    !command.startsWith("uvx ")
+  ) {
+    return `"${command}"`;
+  }
+  return command;
 }
 
 export async function hasExecutable(executable: string): Promise<boolean> {

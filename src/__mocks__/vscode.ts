@@ -1,3 +1,4 @@
+import { spawn } from "node:child_process";
 import { createVSCodeMock as create } from "jest-mock-vscode";
 import type { VitestUtils } from "vitest";
 import type { NotebookController } from "vscode";
@@ -17,7 +18,22 @@ export function createVSCodeMock(vi: VitestUtils) {
   });
 
   vscode.workspace = vscode.workspace || {};
-  const configMap: Record<string, unknown> = {};
+  let configMap: Record<string, unknown> = {};
+
+  // Add createTerminal mock
+  vscode.window.createTerminal = vi.fn().mockImplementation(() => {
+    return {
+      processId: Promise.resolve(1),
+      dispose: vi.fn(),
+      sendText: vi.fn().mockImplementation((args: string) => {
+        const proc = spawn(args, { shell: true });
+        proc.on("data", (data) => {
+          console.log(data.toString());
+        });
+      }),
+      show: vi.fn(),
+    };
+  });
 
   vscode.workspace.getConfiguration = vi.fn().mockImplementation(() => {
     return {
@@ -28,15 +44,18 @@ export function createVSCodeMock(vi: VitestUtils) {
       set: vi.fn().mockImplementation((key, value) => {
         configMap[key] = value;
       }),
+      reset: vi.fn().mockImplementation(() => {
+        configMap = {};
+      }),
     };
   });
 
   vscode.window.createOutputChannel.mockImplementation(() => {
     return {
-      debug: vi.fn(),
-      info: vi.fn(),
-      error: vi.fn(),
-      warn: vi.fn(),
+      debug: vi.fn().mockImplementation((...args) => console.log(...args)),
+      info: vi.fn().mockImplementation((...args) => console.log(...args)),
+      error: vi.fn().mockImplementation((...args) => console.error(...args)),
+      warn: vi.fn().mockImplementation((...args) => console.warn(...args)),
       createLogger: vi.fn(),
     };
   });

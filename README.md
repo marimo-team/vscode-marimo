@@ -46,22 +46,36 @@ This feature is experimental and may have some limitations. Some known limitatio
 
 To ensure marimo works correctly with your Python environment, you have several options:
 
+> [!TIP]
+> The extension will use the Python interpreter from the Python extension by default. Make sure you have the [Python extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python) installed and configured.
+
 1. **Workspace Settings (Recommended)**
-   Create or edit `.vscode/settings.json` in your workspace:
+   Create or edit `.vscode/settings.json` in your workspace. You can set the default Python interpreter for your entire workspace, or just for marimo.
+
+   For setting the workspace Python interpreter, you can set:
 
    ```json
    {
-     "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
-     "marimo.marimoPath": "${workspaceFolder}/.venv/bin/marimo"
+     "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python"
    }
    ```
+
+   For setting the Python interpreter only for marimo, you can set:
+
+   ```json
+   {
+     "marimo.pythonPath": "${workspaceFolder}/.venv/bin/python"
+   }
+   ```
+
+   If you set `marimo.pythonPath`, the extension will use that interpreter with `-m marimo` to invoke marimo.
 
 2. **Global Settings**
    You can also configure these settings globally in VS Code's settings:
 
    - Set `python.defaultInterpreterPath` to your preferred Python interpreter
-   - (Likely not needed) Set `marimo.marimoPath` to the path of your marimo installation
-   - Verify that marimo is available in your Python interpreter: `value/of/defaultInterpreterPath -m marimo`
+   - Verify that marimo is available in your Python interpreter: `/value/of/defaultInterpreterPath -m marimo`
+   - (Likely not needed) Set `marimo.marimoPath` to the path of your marimo installation. When set, the extension will use this path directly `/path/to/marimo` instead of `python -m marimo`.
 
 3. **Virtual Environments**
    If using a virtual environment:
@@ -69,23 +83,27 @@ To ensure marimo works correctly with your Python environment, you have several 
    - Install marimo: `pip install marimo`
    - VS Code should automatically detect the Python interpreter
 
-4. **uv and package environment sandboxes**
-   You can use `uvx` with `marimo edit --sandbox` to run marimo in a sandbox.
+4. **uv projects and package environment sandboxes**
+   If you are using `uv` to manage your Python project (e.g. with a `pyproject.toml` file). You can run `uv add marimo` to install marimo in your project's environment. Then update your settings to use:
 
    ```json
    {
-     "marimo.pythonPath": "uv run python",
-     "marimo.marimoPath": "marimo",
+     "marimo.marimoPath": "uv run marimo",
+     "marimo.sandbox": true // optional
+   }
+   ```
+
+5. **uvx and package environment sandboxes**
+   If you are not creating Python projects and don't want to create virtual environments, you can use `uvx` with `marimo edit --sandbox` to run marimo in a sandbox.
+
+   ```json
+   {
+     "marimo.marimoPath": "uvx marimo",
      "marimo.sandbox": true
    }
    ```
 
-> [!TIP]
-> The extension will use the Python interpreter from the Python extension by default. Make sure you have the [Python extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python) installed and configured.
-
-## Extension Settings
-
-You can configure the extension using the following settings:
+## Configuration
 
 - `marimo.browserType`: Browser to open marimo app (`system` or `embedded`, default: `embedded`)
 - `marimo.port`: Default port for marimo server (default: `2818`)
@@ -97,8 +115,8 @@ You can configure the extension using the following settings:
 - `marimo.tokenPassword`: Token password (default: _empty_)
 - `marimo.showTerminal`: Open the terminal when the server starts (default: `false`)
 - `marimo.debug`: Enable debug logging (default: `false`)
-- `marimo.pythonPath`: Path to python interpreter (default: the one from python extension)
-- `marimo.marimoPath`: Path to marimo executable (default: `marimo`)
+- `marimo.pythonPath`: Path to python interpreter (default: the one from python extension). Will be used with `/path/to/python -m marimo` to invoke marimo.
+- `marimo.marimoPath`: Path to a marimo executable (default: None). This will override use of the `pythonPath` setting, and instead invoke commands like `/path/to/marimo edit` instead of `python -m marimo edit`.
 
 ## Troubleshooting
 

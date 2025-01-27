@@ -16,7 +16,7 @@ export interface Config {
   readonly port: number;
   readonly readPort: number;
   readonly host: string;
-  readonly marimoPath: string;
+  readonly marimoPath: string | undefined;
   readonly enableToken: boolean;
   readonly tokenPassword: string | undefined;
   readonly https: boolean;
@@ -110,10 +110,15 @@ export const Config = {
 
   /**
    * The path to the marimo package to use.
-   * @default "marimo"
+   * @default undefined (use the default marimo package)
    */
-  get marimoPath() {
-    return getConfig("marimoPath", "marimo");
+  get marimoPath(): string | undefined {
+    const path: string | undefined = getConfig("marimoPath");
+    // Ignore just 'marimo'
+    if (path === "marimo") {
+      return undefined;
+    }
+    return path;
   },
 
   // UI settings

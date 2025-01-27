@@ -60,6 +60,10 @@ describe("Config", () => {
 
     mockGet.mockReturnValueOnce("custom-marimo");
     expect(Config.marimoPath).toBe("custom-marimo");
+    mockGet.mockReturnValueOnce("uvx run marimo");
+    expect(Config.marimoPath).toBe("uvx run marimo");
+    mockGet.mockReturnValueOnce("marimo");
+    expect(Config.marimoPath).toBe(undefined);
 
     mockGet.mockReturnValueOnce(true);
     expect(Config.showTerminal).toBe(true);

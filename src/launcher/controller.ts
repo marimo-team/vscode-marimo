@@ -16,7 +16,7 @@ import { logger } from "../logger";
 import type { ServerManager } from "../services/server-manager";
 import { StatusBar } from "../ui/status-bar";
 import { MarimoCmdBuilder } from "../utils/cmd";
-import { getInterpreter } from "../utils/exec";
+import { getInterpreter, maybeQuotes } from "../utils/exec";
 import { ping } from "../utils/network";
 import { getFocusedMarimoTextEditor } from "../utils/query";
 import { asURL } from "../utils/url";
@@ -101,10 +101,18 @@ export class MarimoController implements Disposable {
       .build();
 
     const interpreter = await getInterpreter();
-    if (interpreter) {
+    if (Config.marimoPath) {
+      logger.info(`Using marimo path ${Config.marimoPath}`);
+      await this.terminal.executeCommand(
+        `${maybeQuotes(Config.marimoPath)} ${cmd}`,
+      );
+    } else if (interpreter) {
       logger.info(`Using interpreter ${interpreter}`);
-      await this.terminal.executeCommand(`${interpreter} -m ${cmd}`);
+      await this.terminal.executeCommand(
+        `${maybeQuotes(interpreter)} -m marimo ${cmd}`,
+      );
     } else {
+      logger.info("Using default interpreter");
       await this.terminal.executeCommand(cmd);
     }
 

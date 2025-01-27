@@ -104,13 +104,17 @@ export class MarimoTerminal implements IMarimoTerminal {
   @LogMethodCalls()
   async executeCommand(cmd: string) {
     await this.ensureTerminal();
-    this.terminal?.sendText(cmd);
+    if (!this.terminal) {
+      this.logger.error("terminal not found");
+      return;
+    }
+    this.terminal.sendText(cmd);
 
     if (Config.showTerminal) {
-      this.terminal?.show(false);
+      this.terminal.show(false);
     }
     await wait(2000);
-    const pid = await this.terminal?.processId;
+    const pid = await this.terminal.processId;
     if (pid) {
       getGlobalState().update(this.keyFor("pid"), pid);
     }

@@ -1,10 +1,9 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { Uri, ViewColumn, window, workspace } from "vscode";
-import { Config } from "../config";
 import { logger } from "../logger";
 import { printError } from "../utils/errors";
-import { execPython, hasPythonModule } from "../utils/exec";
+import { execMarimoCommand, hasPythonModule } from "../utils/exec";
 
 export type ExportType =
   | "ipynb"
@@ -62,8 +61,7 @@ export async function exportNotebookAs(
 
     // Run export via marimo CLI
     const directory = path.dirname(filePath);
-    const response = await execPython([
-      Config.marimoPath,
+    const response = await execMarimoCommand([
       "export",
       getExportCommand(exportType),
       `'${filePath}'`, // Wrap in single quotes to handle spaces in path

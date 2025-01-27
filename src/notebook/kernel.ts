@@ -3,6 +3,8 @@ import { MarimoPanelManager } from "../browser/panel";
 import { Config, composeUrl } from "../config";
 import { logger as l, logger } from "../logger";
 import type { ILifecycle } from "../types";
+import { toArray } from "../utils/arrays";
+import { deepEqual } from "../utils/deepEqual";
 import { Deferred } from "../utils/deferred";
 import { invariant } from "../utils/invariant";
 import { LogMethodCalls } from "../utils/log";
@@ -25,8 +27,6 @@ import {
   type UpdateCellIdsRequest,
 } from "./marimo/types";
 import { maybeMarkdown, toMarkdown } from "./md";
-import { toArray } from "../utils/arrays";
-import { deepEqual } from "../utils/deepEqual";
 
 const DEFAULT_NAME = "__";
 
