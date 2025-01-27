@@ -24,6 +24,9 @@ import {
   type SkewToken,
   type UpdateCellIdsRequest,
 } from "./marimo/types";
+import { Strings } from "../utils/strings";
+import { maybeMarkdown, toMarkdown } from "./md";
+import { toArray } from "../utils/arrays";
 
 const DEFAULT_NAME = "__";
 
@@ -705,75 +708,4 @@ function handleCellOutput(
   return new vscode.NotebookCellOutput([...prevItems, ...items], {
     channel: channel,
   });
-}
-
-function toArray<T>(value: T | ReadonlyArray<T>): T[] {
-  if (Array.isArray(value)) {
-    return [...value];
-  }
-  if (value == null) {
-    return [];
-  }
-  return [value] as T[];
-}
-
-// biome-ignore lint/suspicious/noExplicitAny: any is ok
-function deepEqual(a: any, b: any): boolean {
-  if (a === b) {
-    return true;
-  }
-  if (typeof a !== "object" || typeof b !== "object") {
-    return false;
-  }
-  if (Object.keys(a).length !== Object.keys(b).length) {
-    return false;
-  }
-  for (const key in a) {
-    if (!(key in b)) {
-      return false;
-    }
-    if (!deepEqual(a[key], b[key])) {
-      return false;
-    }
-  }
-  return true;
-}
-
-function toMarkdown(text: string): string {
-  // Trim
-  const value = text.trim();
-
-  const isMultiline = value.includes("\n");
-  if (!isMultiline) {
-    return `mo.md("${value}")`;
-  }
-
-  return `mo.md("""\n${value}\n""")`;
-}
-
-// Consider replacing with the dedent library marimo uses, if this logic stays.
-function dedent(str: string) {
-  const match = str.match(/^[ \t]*(?=\S)/gm);
-  if (!match) {
-    return str; // If no indentation, return original string
-  }
-  const minIndent = Math.min(...match.map((el) => el.length));
-  const re = new RegExp(`^[ \t]{${minIndent}}`, "gm");
-  return str.replace(re, "");
-}
-
-function maybeMarkdown(text: string): string | null {
-  // TODO: Python can safely extract the string value with the
-  // AST, anything done here is a bit of a hack, data should come from server.
-  const value = text.trim();
-  // Regular expression to match the function calls
-  const regex = /^mo\.md\(\s*r?((["'])(?:\2\2)?)(.*?)\1\s*\)$/gms; // 'g' flag to check all occurrences
-  const matches = [...value.matchAll(regex)];
-
-  // Check if there is exactly one match
-  if (matches.length === 1) {
-    const extractedString = matches[0][3]; // Extract the string content
-    return dedent(extractedString);
-  }
-  return null;
 }

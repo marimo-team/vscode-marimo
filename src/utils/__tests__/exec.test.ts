@@ -5,8 +5,8 @@ vi.mock("@vscode/python-extension", () => ({}));
 
 import * as child_process from "node:child_process";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { execPython, hasPythonModule } from "../exec";
 import { workspace } from "vscode";
+import { execPython, hasPythonModule } from "../exec";
 
 vi.mock("node:child_process", () => ({
   execSync: vi.fn(),
