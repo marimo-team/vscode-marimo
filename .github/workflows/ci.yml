@@ -91,7 +91,9 @@ jobs:
           cache: pnpm
 
       - name: 📥 Install dependencies
-        run: pnpm install
+        run: |
+          uv pip install marimo --system
+          pnpm install
 
       - name: 🧪 Run tests
         run: pnpm test
