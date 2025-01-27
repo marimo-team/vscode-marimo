@@ -40,6 +40,7 @@ This feature is experimental and may have some limitations. Some known limitatio
 - Notebooks can still be edited even though there may not be an active marimo server. This can be confusing since saving or running will not work.
 - For autocomplete to work when using native VSCode notebooks for many packages (including `marimo`, `numpy`, and more) you may be required to include a `pyproject.toml` file at the root of the workspace. marimo's editor gets around this by default but unfortunately, the VSCode's native notebook does not.
 - You cannot access **many** marimo features in the native notebook (and need to use the marimo browser), such as the variable explorer, dependency viewer, grid mode (plus other layouts), and more - so we show the notebook in "Kiosk Mode" which is a read-only view of the outputs and helper panels.
+- VSCode's native notebook does not support different string quoting styles (e.g. `r"""`, `"""`, `f"""`, etc.), so we default all markdown cells to use `r"""`.
 
 ## Python Configuration
 
