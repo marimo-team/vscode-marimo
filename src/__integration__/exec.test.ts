@@ -38,7 +38,7 @@ describe("execMarimoCommand integration tests", () => {
   it("path path gets overridden by marimoPath", async () => {
     workspace.getConfiguration().set("marimo.pythonPath", "doesnotexist");
     expect(() => execMarimoCommand(["--version"])).rejects.toThrow(
-      /command not found/,
+      /doesnotexist/,
     );
 
     workspace.getConfiguration().set("marimo.marimoPath", "uv run marimo");
