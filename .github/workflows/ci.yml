@@ -1,5 +1,8 @@
 name: CI
 
+env:
+  MARIMO_SKIP_UPDATE_CHECK: true
+
 on:
   push:
     branches: [main]
@@ -58,3 +61,34 @@ jobs:
 
       - name: ʦ Typecheck
         run: pnpm typecheck
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🛑 Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.12.1
+
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v4
+
+      - name: ⎔ Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: ⎔ Setup uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: ⎔ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: pnpm
+
+      - name: 📥 Install dependencies
+        run: pnpm install
+
+      - name: 🧪 Run tests
+        run: pnpm test
+
+

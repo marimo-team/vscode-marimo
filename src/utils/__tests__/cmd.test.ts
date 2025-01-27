@@ -20,7 +20,7 @@ describe("MarimoCmdBuilder", () => {
       .tokenPassword("")
       .build();
     expect(cmd).toMatchInlineSnapshot(
-      `"marimo --yes edit path/to/file --host=localhost --port=2718 --headless --no-token"`,
+      `"--yes edit path/to/file --host=localhost --port=2718 --headless --no-token"`,
     );
   });
 
@@ -36,7 +36,7 @@ describe("MarimoCmdBuilder", () => {
       .tokenPassword("secret")
       .build();
     expect(cmd).toMatchInlineSnapshot(
-      `"marimo --yes -d edit path/to/file --host=localhost --port=2718 --headless --token-password=secret"`,
+      `"--yes -d edit path/to/file --host=localhost --port=2718 --headless --token-password=secret"`,
     );
   });
 
@@ -52,7 +52,7 @@ describe("MarimoCmdBuilder", () => {
       .tokenPassword("")
       .build();
     expect(cmd).toMatchInlineSnapshot(
-      `"marimo --yes run path/to/file --host=localhost --port=2718 --headless --no-token"`,
+      `"--yes run path/to/file --host=localhost --port=2718 --headless --no-token"`,
     );
   });
 
@@ -69,7 +69,7 @@ describe("MarimoCmdBuilder", () => {
       .build();
 
     expect(b).toMatchInlineSnapshot(
-      `"marimo --yes edit "path/to/some file" --host=localhost --port=2718 --headless --no-token"`,
+      `"--yes edit "path/to/some file" --host=localhost --port=2718 --headless --no-token"`,
     );
   });
 
@@ -86,7 +86,7 @@ describe("MarimoCmdBuilder", () => {
       .build();
 
     expect(b).toMatchInlineSnapshot(
-      `"marimo --yes edit path/to/file --host=0.0.0.0 --port=2718 --headless --no-token"`,
+      `"--yes edit path/to/file --host=0.0.0.0 --port=2718 --headless --no-token"`,
     );
   });
 
@@ -102,7 +102,7 @@ describe("MarimoCmdBuilder", () => {
       .sandbox(true)
       .build();
     expect(cmd).toMatchInlineSnapshot(
-      `"marimo --yes edit path/to/file --host=localhost --port=2718 --headless --no-token --sandbox"`,
+      `"--yes edit path/to/file --host=localhost --port=2718 --headless --no-token --sandbox"`,
     );
   });
 
@@ -118,7 +118,7 @@ describe("MarimoCmdBuilder", () => {
       .watch(true)
       .build();
     expect(cmd).toMatchInlineSnapshot(
-      `"marimo --yes edit path/to/file --host=localhost --port=2718 --headless --no-token --watch"`,
+      `"--yes edit path/to/file --host=localhost --port=2718 --headless --no-token --watch"`,
     );
   });
 });

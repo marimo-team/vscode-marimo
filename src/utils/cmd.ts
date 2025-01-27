@@ -1,5 +1,5 @@
 export class MarimoCmdBuilder {
-  private cmd: string[] = ["marimo", "--yes"];
+  private cmd: string[] = ["--yes"];
 
   debug(value: boolean) {
     if (value) {

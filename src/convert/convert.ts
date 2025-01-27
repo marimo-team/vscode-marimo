@@ -1,10 +1,9 @@
 import path from "node:path";
 import { Uri, window, workspace } from "vscode";
-import { Config } from "../config";
 import { getUniqueFilename } from "../export/export-as";
 import { logger } from "../logger";
 import { printError } from "../utils/errors";
-import { execPython } from "../utils/exec";
+import { execMarimoCommand } from "../utils/exec";
 
 export async function convertIPyNotebook(filePath: string) {
   return convertNotebook(filePath, "ipynb");
@@ -22,8 +21,7 @@ async function convertNotebook(
     // convert
     const directory = path.dirname(filePath);
     // Execute marimo via python
-    const response = await execPython([
-      Config.marimoPath,
+    const response = await execMarimoCommand([
       "convert",
       `'${filePath}'`, // Wrap in single quotes to handle spaces in path
     ]);

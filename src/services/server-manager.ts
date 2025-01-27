@@ -1,10 +1,10 @@
 import { join } from "node:path";
 import type * as vscode from "vscode";
 import { window } from "vscode";
-import { type Config, composeUrl } from "../config";
+import { Config, composeUrl } from "../config";
 import { MarimoTerminal } from "../launcher/terminal";
 import { fetchMarimoStartupValues } from "../launcher/utils";
-import { logger as l, logger } from "../logger";
+import { logger } from "../logger";
 import { MarimoBridge } from "../notebook/marimo/bridge";
 import type {
   MarimoConfig,
@@ -15,7 +15,7 @@ import type {
 import type { ServerStatus, StartupResult } from "../types";
 import { MarimoCmdBuilder } from "../utils/cmd";
 import { Deferred } from "../utils/deferred";
-import { getInterpreter } from "../utils/exec";
+import { getInterpreter, maybeQuotes } from "../utils/exec";
 import { LogMethodCalls } from "../utils/log";
 import { tryPort } from "../utils/network";
 import { VscodeContextManager } from "./context-manager";
@@ -129,7 +129,7 @@ export class ServerManager implements IServerManager {
   /**
    * Check if the server is healthy
    */
-  private async isHealthy(port: number): Promise<boolean> {
+  public async isHealthy(port: number): Promise<boolean> {
     try {
       const baseUrl = await composeUrl(port);
       const health = await fetch(join(baseUrl, "health"));
@@ -288,12 +288,22 @@ export class ServerManager implements IServerManager {
   }
 
   private async executeServerCommand(cmd: string): Promise<void> {
+    if (Config.marimoPath) {
+      logger.info(`Using marimo path ${Config.marimoPath}`);
+      await this.terminal.executeCommand(
+        `${maybeQuotes(Config.marimoPath)} ${cmd}`,
+      );
+      return;
+    }
+
     const interpreter = await getInterpreter();
     if (interpreter) {
       logger.info(`Using interpreter ${interpreter}`);
-      await this.terminal.executeCommand(`${interpreter} -m ${cmd}`);
+      await this.terminal.executeCommand(
+        `${maybeQuotes(interpreter)} -m marimo ${cmd}`,
+      );
     } else {
-      await this.terminal.executeCommand(cmd);
+      await this.terminal.executeCommand(`marimo ${cmd}`);
     }
   }
 
