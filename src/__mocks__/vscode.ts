@@ -17,6 +17,19 @@ export function createVSCodeMock(vi: VitestUtils) {
   });
 
   vscode.workspace = vscode.workspace || {};
+  const configMap: Record<string, unknown> = {};
+
+  vscode.workspace.getConfiguration = vi.fn().mockImplementation(() => {
+    return {
+      get: vi.fn().mockImplementation((key) => configMap[key]),
+      update: vi.fn().mockImplementation((key, value) => {
+        configMap[key] = value;
+      }),
+      set: vi.fn().mockImplementation((key, value) => {
+        configMap[key] = value;
+      }),
+    };
+  });
 
   vscode.window.createOutputChannel.mockImplementation(() => {
     return {

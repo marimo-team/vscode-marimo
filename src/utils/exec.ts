@@ -12,8 +12,8 @@ import { getInterpreterDetails } from "./python";
 export async function execPython(command: string[]) {
   let interpreter = (await getInterpreter()) || "python";
   logger.info(`Using interpreter: ${interpreter}`);
-  // if interpreter has spaces, wrap in quotes
-  if (interpreter.includes(" ")) {
+  // Only quote if it has spaces and is not a command like "uv run python"
+  if (interpreter.includes(" ") && !interpreter.startsWith("uv run")) {
     interpreter = `"${interpreter}"`;
   }
   return execSync(`${interpreter} -m ${command.join(" ")}`);
@@ -22,8 +22,8 @@ export async function execPython(command: string[]) {
 export async function hasPythonModule(module: string) {
   let interpreter = (await getInterpreter()) || "python";
   logger.info(`Using interpreter: ${interpreter}`);
-  // if interpreter has spaces, wrap in quotes
-  if (interpreter.includes(" ")) {
+  // Only quote if it has spaces and is not a command like "uv run python"
+  if (interpreter.includes(" ") && !interpreter.startsWith("uv run")) {
     interpreter = `"${interpreter}"`;
   }
   return execSync(`${interpreter} -c 'import ${module}'`);

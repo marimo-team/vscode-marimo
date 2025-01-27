@@ -1,10 +1,10 @@
 import { type Mock, beforeEach, describe, expect, test, vi } from "vitest";
-import { createVSCodeMock } from "./__mocks__/vscode";
+import { createVSCodeMock } from "../../__mocks__/vscode";
 
 vi.mock("vscode", () => createVSCodeMock(vi));
 
 import * as vscode from "vscode";
-import { Config, composeUrl, composeWsUrl, getConfig } from "./config";
+import { Config, composeUrl, composeWsUrl, getConfig } from "../../config";
 
 describe("Config", () => {
   beforeEach(() => {

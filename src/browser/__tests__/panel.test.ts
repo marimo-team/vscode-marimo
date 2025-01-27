@@ -38,7 +38,7 @@ describe("Panel", () => {
           ">
                 <iframe
                   id="preview-panel"
-                  allow="clipboard-read; clipboard-write;"
+                  allow="clipboard-read; clipboard-write self *"
                   src="https://example.com/?vscode=true"
                   style="
             flex: 1;
