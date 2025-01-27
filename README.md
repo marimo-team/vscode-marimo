@@ -50,7 +50,7 @@ To ensure marimo works correctly with your Python environment, you have several 
 > The extension will use the Python interpreter from the Python extension by default. Make sure you have the [Python extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python) installed and configured.
 
 1. **Workspace Settings (Recommended)**
-   Create or edit `.vscode/settings.json` in your workspace. You can set the default Python interpreter for your workspace, or just for marimo.
+   Create or edit `.vscode/settings.json` in your workspace. You can set the default Python interpreter for your entire workspace, or just for marimo.
 
    For setting the workspace Python interpreter, you can set:
 
@@ -60,7 +60,7 @@ To ensure marimo works correctly with your Python environment, you have several 
    }
    ```
 
-   For setting the marimo Python interpreter, you can set:
+   For setting the Python interpreter only for marimo, you can set:
 
    ```json
    {
@@ -83,8 +83,18 @@ To ensure marimo works correctly with your Python environment, you have several 
    - Install marimo: `pip install marimo`
    - VS Code should automatically detect the Python interpreter
 
-4. **uv and package environment sandboxes**
-   You can use `uvx` with `marimo edit --sandbox` to run marimo in a sandbox.
+4. **uv projects and package environment sandboxes**
+   If you are using `uv` to manage your Python project (e.g. with a `pyproject.toml` file). You can run `uv add marimo` to install marimo in your project's environment. Then update your settings to use:
+
+   ```json
+   {
+     "marimo.marimoPath": "uv run marimo",
+     "marimo.sandbox": true // optional
+   }
+   ```
+
+5. **uvx and package environment sandboxes**
+   If you are not creating Python projects and don't want to create virtual environments, you can use `uvx` with `marimo edit --sandbox` to run marimo in a sandbox.
 
    ```json
    {
@@ -106,7 +116,7 @@ To ensure marimo works correctly with your Python environment, you have several 
 - `marimo.showTerminal`: Open the terminal when the server starts (default: `false`)
 - `marimo.debug`: Enable debug logging (default: `false`)
 - `marimo.pythonPath`: Path to python interpreter (default: the one from python extension). Will be used with `/path/to/python -m marimo` to invoke marimo.
-- `marimo.marimoPath`: Path to marimo executable (default: `marimo`). This will override use of the `pythonPath` setting, and instead invoke commands like `/path/to/marimo edit` instead of `python -m marimo edit`.
+- `marimo.marimoPath`: Path to a marimo executable (default: None). This will override use of the `pythonPath` setting, and instead invoke commands like `/path/to/marimo edit` instead of `python -m marimo edit`.
 
 ## Troubleshooting
 

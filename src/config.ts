@@ -16,7 +16,7 @@ export interface Config {
   readonly port: number;
   readonly readPort: number;
   readonly host: string;
-  readonly marimoPath: string;
+  readonly marimoPath: string | undefined;
   readonly enableToken: boolean;
   readonly tokenPassword: string | undefined;
   readonly https: boolean;
