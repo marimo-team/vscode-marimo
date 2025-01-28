@@ -386,7 +386,7 @@
         },
         "marimo.showTerminal": {
           "type": "boolean",
-          "default": false,
+          "default": true,
           "description": "Whether to show the terminal when the server starts."
         }
       }

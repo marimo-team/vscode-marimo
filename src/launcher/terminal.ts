@@ -108,15 +108,21 @@ export class MarimoTerminal implements IMarimoTerminal {
       this.logger.error("terminal not found");
       return;
     }
-    this.terminal.sendText(cmd);
+    try {
+      this.terminal.sendText(cmd);
 
-    if (Config.showTerminal) {
-      this.terminal.show(false);
-    }
-    await wait(2000);
-    const pid = await this.terminal.processId;
-    if (pid) {
-      getGlobalState().update(this.keyFor("pid"), pid);
+      if (Config.showTerminal) {
+        this.terminal.show(true);
+      }
+      await wait(2_000);
+      const pid = await this.terminal.processId;
+      if (pid) {
+        getGlobalState().update(this.keyFor("pid"), pid);
+      }
+    } catch (error) {
+      this.terminal.show(true);
+      window.showErrorMessage(`Command failed: ${error}`);
+      throw error;
     }
   }
 
