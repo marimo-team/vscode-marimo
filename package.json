@@ -7,7 +7,7 @@
   "packageManager": "pnpm@8.15.9",
   "version": "0.5.0",
   "engines": {
-    "vscode": "^1.95.0"
+    "vscode": "^1.97.2"
   },
   "private": true,
   "categories": [
@@ -408,23 +408,23 @@
     "vscode:prepublish": "pnpm run build"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.9.3",
-    "@types/node": "22.9.0",
+    "@biomejs/biome": "^1.9.4",
+    "@types/node": "22.13.4",
     "@types/vscode": "^1.95.0",
-    "@types/ws": "^8.5.12",
+    "@types/ws": "^8.5.14",
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.4.1",
     "@vscode/python-extension": "^1.0.5",
     "jest-mock-vscode": "^3.0.5",
     "node-fetch": "^3.3.2",
     "node-html-parser": "^7.0.1",
-    "openapi-fetch": "^0.9.7",
-    "openapi-typescript": "^7.4.1",
+    "openapi-fetch": "^0.13.4",
+    "openapi-typescript": "^7.6.1",
     "tempy": "^3.1.0",
-    "tsup": "^8.3.0",
+    "tsup": "^8.3.6",
     "typescript": "^5.7.3",
     "vitest": "^3.0.2",
-    "ws": "^8.17.0"
+    "ws": "^8.18.0"
   },
   "dependencies": {}
 }
