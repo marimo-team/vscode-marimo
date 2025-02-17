@@ -12,6 +12,8 @@ import { setExtension } from "../ctx";
 import { ServerManager } from "../services/server-manager";
 import { sleep } from "../utils/async";
 
+const TEST_TIMEOUT = 10_000;
+
 describe("ServerManager integration tests", () => {
   let config: Config;
   let manager: ServerManager;
@@ -50,82 +52,141 @@ describe("ServerManager integration tests", () => {
     await manager.stopServer();
   });
 
-  it("should start and stop server", async () => {
-    expect(manager.getStatus()).toBe("stopped");
+  it(
+    "should start and stop server",
+    async () => {
+      expect(manager.getStatus()).toBe("stopped");
 
-    const result = await manager.start();
-    expect(result.port).toBeGreaterThan(0);
-    expect(result.skewToken).toBeDefined();
-    expect(result.version).toMatch(/\d+\.\d+\.\d+/);
-    expect(manager.getStatus()).toBe("started");
+      const result = await manager.start();
+      expect(result.port).toBeGreaterThan(0);
+      expect(result.skewToken).toBeDefined();
+      expect(result.version).toMatch(/\d+\.\d+\.\d+/);
+      expect(manager.getStatus()).toBe("started");
 
-    await manager.stopServer();
-    expect(manager.getStatus()).toBe("stopped");
-  });
+      await manager.stopServer();
+      expect(manager.getStatus()).toBe("stopped");
+    },
+    TEST_TIMEOUT,
+  );
 
-  it("should start and stop a server with custom python path", async () => {
-    workspace.getConfiguration().set("marimo.pythonPath", "uv run python");
-    const result = await manager.start();
-    expect(result.port).toBeGreaterThan(0);
-    expect(result.skewToken).toBeDefined();
-    expect(result.version).toMatch(/\d+\.\d+\.\d+/);
-    expect(manager.getStatus()).toBe("started");
+  it(
+    "should start and stop a server with custom python path",
+    async () => {
+      workspace.getConfiguration().set("marimo.pythonPath", "uv run python");
+      const result = await manager.start();
+      expect(result.port).toBeGreaterThan(0);
+      expect(result.skewToken).toBeDefined();
+      expect(result.version).toMatch(/\d+\.\d+\.\d+/);
+      expect(manager.getStatus()).toBe("started");
 
-    await manager.stopServer();
-    expect(manager.getStatus()).toBe("stopped");
-  });
+      await manager.stopServer();
+      expect(manager.getStatus()).toBe("stopped");
+    },
+    TEST_TIMEOUT,
+  );
 
-  it("should start and stop a server with custom marimo path", async () => {
-    workspace.getConfiguration().set("marimo.marimoPath", "uv run marimo");
-    const result = await manager.start();
-    expect(result.port).toBeGreaterThan(0);
-    expect(result.skewToken).toBeDefined();
-    expect(result.version).toMatch(/\d+\.\d+\.\d+/);
-    expect(manager.getStatus()).toBe("started");
+  it(
+    "should start and stop a server with custom marimo path",
+    async () => {
+      workspace.getConfiguration().set("marimo.marimoPath", "uv run marimo");
+      const result = await manager.start();
+      expect(result.port).toBeGreaterThan(0);
+      expect(result.skewToken).toBeDefined();
+      expect(result.version).toMatch(/\d+\.\d+\.\d+/);
+      expect(manager.getStatus()).toBe("started");
 
-    await manager.stopServer();
-    expect(manager.getStatus()).toBe("stopped");
-  });
+      await manager.stopServer();
+      expect(manager.getStatus()).toBe("stopped");
+    },
+    TEST_TIMEOUT,
+  );
 
-  it("should reuse existing server if healthy", async () => {
-    const firstStart = await manager.start();
-    const secondStart = await manager.start();
+  it(
+    "should reuse existing server if healthy",
+    async () => {
+      console.warn("Starting server");
+      const firstStart = await manager.start();
+      console.warn("Starting server again");
+      const secondStart = await manager.start();
 
-    expect(secondStart.port).toBe(firstStart.port);
-    expect(secondStart.skewToken).toBe(firstStart.skewToken);
+      expect(secondStart.port).toBe(firstStart.port);
+      expect(secondStart.skewToken).toBe(firstStart.skewToken);
 
-    // Check if healthy
-    const isHealthy = await manager.isHealthy(firstStart.port);
-    expect(isHealthy).toBe(true);
-  });
+      // Check if healthy
+      const isHealthy = await manager.isHealthy(firstStart.port);
+      expect(isHealthy).toBe(true);
+    },
+    TEST_TIMEOUT,
+  );
 
-  it.skip("should restart unhealthy server", async () => {
-    const firstStart = await manager.start();
+  it.skip(
+    "should start a server and cancel it",
+    async () => {
+      const subscribers = new Set<() => void>();
+      const token = {
+        isCancellationRequested: false,
+        onCancellationRequested: vi.fn().mockImplementation((fn) => {
+          subscribers.add(fn);
+        }),
+        cancel: vi.fn().mockImplementation(() => {
+          subscribers.forEach(async (fn) => {
+            try {
+              fn();
+            } catch (e) {
+              // pass
+            }
+          });
+        }),
+      };
 
-    // Force server into unhealthy state by stopping it directly
-    await manager.stopServer();
+      await expect(async () => {
+        await Promise.all([manager.start(token), token.cancel(), sleep(100)]);
+      }).rejects.toThrow("Server start was cancelled");
+      expect(token.onCancellationRequested).toHaveBeenCalledTimes(1);
+      expect(manager.getStatus()).toBe("stopped");
+    },
+    TEST_TIMEOUT,
+  );
 
-    // Should detect unhealthy state and restart
-    const secondStart = await manager.start();
-    expect(secondStart.port).not.toBe(firstStart.port);
-  });
+  it(
+    "should restart unhealthy server",
+    async () => {
+      const firstStart = await manager.start();
 
-  it("should handle multiple start requests while starting", async () => {
-    const startPromise1 = manager.start();
-    const startPromise2 = manager.start();
+      // Force server into unhealthy state by stopping it directly
+      await manager.stopServer();
 
-    const [result1, result2] = await Promise.all([
-      startPromise1,
-      startPromise2,
-    ]);
-    expect(result1.port).toBe(result2.port);
-  });
+      // Should detect unhealthy state and restart
+      const secondStart = await manager.start();
+      expect(secondStart.port).not.toBe(firstStart.port);
+    },
+    TEST_TIMEOUT,
+  );
 
-  it("should get active sessions", async () => {
-    await manager.start();
-    const sessions = await manager.getActiveSessions();
-    expect(Array.isArray(sessions)).toBe(true);
-  });
+  it(
+    "should handle multiple start requests while starting",
+    async () => {
+      const startPromise1 = manager.start();
+      const startPromise2 = manager.start();
+
+      const [result1, result2] = await Promise.all([
+        startPromise1,
+        startPromise2,
+      ]);
+      expect(result1.port).toBe(result2.port);
+    },
+    TEST_TIMEOUT,
+  );
+
+  it(
+    "should get active sessions",
+    async () => {
+      await manager.start();
+      const sessions = await manager.getActiveSessions();
+      expect(Array.isArray(sessions)).toBe(true);
+    },
+    TEST_TIMEOUT,
+  );
 
   it.skip("should show warning and handle restart on unhealthy server", async () => {
     await manager.start();

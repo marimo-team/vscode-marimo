@@ -10,15 +10,9 @@
     "vscode": "^1.95.0"
   },
   "private": true,
-  "categories": [
-    "Notebooks",
-    "Machine Learning",
-    "Data Science"
-  ],
+  "categories": ["Notebooks", "Machine Learning", "Data Science"],
   "icon": "resources/marimo.png",
-  "activationEvents": [
-    "onLanguage"
-  ],
+  "activationEvents": ["onLanguage"],
   "repository": {
     "type": "git",
     "url": "https://github.com/marimo-team/vscode-marimo"
@@ -26,11 +20,7 @@
   "bugs": {
     "url": "https://github.com/marimo-team/vscode-marimo/issues"
   },
-  "files": [
-    "dist",
-    "resources",
-    "LICENSE"
-  ],
+  "files": ["dist", "resources", "LICENSE"],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
@@ -327,10 +317,7 @@
       "properties": {
         "marimo.browserType": {
           "type": "string",
-          "enum": [
-            "embedded",
-            "system"
-          ],
+          "enum": ["embedded", "system"],
           "default": "embedded",
           "description": "The type of browser to use for opening marimo apps."
         },
@@ -395,7 +382,7 @@
   "scripts": {
     "build": "tsup src/extension.ts --external=vscode",
     "dev": "pnpm run build --watch",
-    "lint": "biome check --apply .",
+    "lint": "biome check --write .",
     "pack": "vsce package --no-dependencies",
     "codegen": "npx openapi-typescript https://raw.githubusercontent.com/marimo-team/marimo/0.8.22/openapi/api.yaml --immutable -o ./src/generated/api.ts",
     "publish": "vsce publish --no-dependencies",

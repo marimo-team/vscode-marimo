@@ -1,5 +1,5 @@
-import { createVSCodeMock } from "jest-mock-vscode";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { createVSCodeMock } from "../../__mocks__/vscode";
 
 vi.mock("vscode", () => createVSCodeMock(vi));
 
@@ -56,7 +56,7 @@ describe("fetchMarimoStartupValues", () => {
     };
     vi.mocked(parse).mockReturnValue(mockRoot as any);
 
-    const result = await fetchMarimoStartupValues(1234);
+    const result = await fetchMarimoStartupValues({ port: 1234, backoff: 1 });
 
     expect(result).toEqual({
       skewToken: "mock-skew-token",
@@ -65,7 +65,11 @@ describe("fetchMarimoStartupValues", () => {
     });
 
     expect(composeUrl).toHaveBeenCalledWith(1234);
-    expect(mockFetch).toHaveBeenCalledWith("http://localhost:1234/");
+    expect(mockFetch).toHaveBeenCalledWith("http://localhost:1234/", {
+      headers: {
+        Accept: "text/html",
+      },
+    });
     expect(parse).toHaveBeenCalledWith(mockHtml);
   });
 
@@ -77,8 +81,10 @@ describe("fetchMarimoStartupValues", () => {
       statusText: "Not Found",
     });
 
-    await expect(fetchMarimoStartupValues(1234)).rejects.toThrow(
-      "Could not fetch http://localhost:1234/. Is http://localhost:1234/ healthy? 404 Not Found",
+    await expect(
+      fetchMarimoStartupValues({ port: 1234, backoff: 1 }),
+    ).rejects.toThrow(
+      "Could not fetch http://localhost:1234/. Is http://localhost:1234/ healthy?",
     );
   });
 
@@ -89,7 +95,9 @@ describe("fetchMarimoStartupValues", () => {
       url: "http://localhost:1234/auth/login",
     });
 
-    await expect(fetchMarimoStartupValues(1234)).rejects.toThrow(
+    await expect(
+      fetchMarimoStartupValues({ port: 1234, backoff: 1 }),
+    ).rejects.toThrow(
       "An existing marimo server created outside of vscode is running at this url: http://localhost:1234/",
     );
   });
@@ -106,7 +114,9 @@ describe("fetchMarimoStartupValues", () => {
       querySelector: () => null,
     } as any);
 
-    await expect(fetchMarimoStartupValues(1234)).rejects.toThrow(
+    await expect(
+      fetchMarimoStartupValues({ port: 1234, backoff: 1 }),
+    ).rejects.toThrow(
       "Could not find marimo-server-token. Is http://localhost:1234/ healthy?",
     );
   });

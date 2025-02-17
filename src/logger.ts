@@ -1,4 +1,4 @@
-import { LogOutputChannel, window } from "vscode";
+import { window } from "vscode";
 import { Config } from "./config";
 import { EXTENSION_DISPLAY_NAME } from "./constants";
 
@@ -14,33 +14,35 @@ class Logger {
       return;
     }
     if (this.prefix) {
-      channel.debug(`[${this.prefix}]: ${args.join(" ")}`);
+      channel.debug(`[${this.prefix}]: ${args.map(stringify).join(" ")}`);
     } else {
-      channel.debug(`${args.join(" ")}`);
+      channel.debug(args.map(stringify).join(" "));
     }
   }
 
   info(...args: unknown[]) {
     if (this.prefix) {
-      channel.info(`[${this.prefix}]: ${args.join(" ")}`);
+      channel.info(`[${this.prefix}]: ${args.map(stringify).join(" ")}`);
     } else {
-      channel.info(args.join(" "));
+      channel.info(args.map(stringify).join(" "));
     }
   }
 
   error(...args: unknown[]) {
     if (this.prefix) {
-      channel.error(`[${this.prefix}] ${args.join(" ")}`);
+      channel.error(`[${this.prefix}] ${args.map(stringify).join(" ")}`);
     } else {
-      channel.error(args.join(" "));
+      channel.error(args.map(stringify).join(" "));
     }
   }
 
   warn(...args: unknown[]) {
     if (this.prefix) {
-      channel.warn(`[⚠️ warn] [${this.prefix}] ${args.join(" ")}`);
+      channel.warn(
+        `[⚠️ warn] [${this.prefix}] ${args.map(stringify).join(" ")}`,
+      );
     } else {
-      channel.warn(args.join(" "));
+      channel.warn(args.map(stringify).join(" "));
     }
   }
 
@@ -50,6 +52,13 @@ class Logger {
     }
     return new Logger(`${this.prefix} > ${prefix}`);
   }
+}
+
+function stringify(value: unknown) {
+  if (typeof value === "string") {
+    return value;
+  }
+  return JSON.stringify(value);
 }
 
 export const logger = new Logger("");

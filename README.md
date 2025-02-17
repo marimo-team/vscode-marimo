@@ -113,7 +113,7 @@ To ensure marimo works correctly with your Python environment, you have several 
 - `marimo.https`: Enable HTTPS for marimo server (default: `false`)
 - `marimo.enableToken`: Enable token authentication (default: `false`)
 - `marimo.tokenPassword`: Token password (default: _empty_)
-- `marimo.showTerminal`: Open the terminal when the server starts (default: `false`)
+- `marimo.showTerminal`: Open the terminal when the server starts (default: `true`)
 - `marimo.debug`: Enable debug logging (default: `false`)
 - `marimo.pythonPath`: Path to python interpreter (default: the one from python extension). Will be used with `/path/to/python -m marimo` to invoke marimo.
 - `marimo.marimoPath`: Path to a marimo executable (default: None). This will override use of the `pythonPath` setting, and instead invoke commands like `/path/to/marimo edit` instead of `python -m marimo edit`.

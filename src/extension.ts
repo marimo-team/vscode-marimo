@@ -125,11 +125,11 @@ class MarimoExtension {
       {
         location: ProgressLocation.Notification,
         title: "Starting marimo server...",
-        cancellable: false,
+        cancellable: true,
       },
-      async () => {
+      async (_, cancellationToken) => {
         try {
-          const response = await this.serverManager.start();
+          const response = await this.serverManager.start(cancellationToken);
           await this.kernelManager.hydrateExistingNotebooks(response);
         } catch (e) {
           window.showErrorMessage(`Failed to start marimo server: ${e}`);
@@ -185,10 +185,10 @@ class MarimoExtension {
         {
           location: ProgressLocation.Notification,
           title: "Restarting marimo kernel...",
-          cancellable: false,
+          cancellable: true,
         },
-        async () => {
-          await this.serverManager.start();
+        async (_, cancellationToken) => {
+          await this.serverManager.start(cancellationToken);
           await maybeKernel.restart();
           await maybeKernel.openKiosk();
         },

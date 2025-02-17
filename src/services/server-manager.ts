@@ -48,6 +48,7 @@ export class ServerManager implements IServerManager {
   private startedPromise: Deferred<StartupResult> = new Deferred();
   private contextManager = new VscodeContextManager();
   private serverHealthCheckInterval: NodeJS.Timeout | null = null;
+  private currentStartAttempt: AbortController | null = null;
 
   private constructor(private config: Config) {}
 
@@ -102,7 +103,9 @@ export class ServerManager implements IServerManager {
         this.updateState("started");
 
         this.port = this.config.port;
-        const domValues = await fetchMarimoStartupValues(this.config.port);
+        const domValues = await fetchMarimoStartupValues({
+          port: this.config.port,
+        });
         this.startedPromise.resolve({
           port: this.config.port,
           ...domValues,
@@ -147,66 +150,111 @@ export class ServerManager implements IServerManager {
    * - If the server is stopped, start it
    */
   @LogMethodCalls()
-  async start(): Promise<{
+  async start(cancellationToken?: vscode.CancellationToken): Promise<{
     port: number;
     skewToken: SkewToken;
     version: string;
     userConfig: MarimoConfig;
   }> {
-    if (this.state === "starting") {
+    // If its starting and didn't reject,
+    // wait for it to start by returning the promise
+    if (this.state === "starting" && !this.startedPromise.hasRejected) {
       this.logger.info("marimo server already starting");
-      // If its starting, wait for it to start
       return this.startedPromise.promise;
     }
 
-    if (this.state === "started") {
-      if (!this.port) {
-        logger.warn("Port not set. Restarting...");
-        this.startedPromise = new Deferred();
-        await this.stopServer();
-        const port = await this.startServer();
-        const domValues = await fetchMarimoStartupValues(port);
-        this.startedPromise.resolve({
+    const inProgressPromise = new Deferred<StartupResult>({
+      onRejected: (reason: unknown) => {
+        this.logger.error("Unexpected error starting server", {
+          error: reason,
+          state: this.state,
+        });
+        // Set to stopped, if we failed to start and it's the same promise
+        if (this.startedPromise === inProgressPromise) {
+          console.warn("Setting to stopped");
+          this.updateState("stopped");
+        }
+      },
+    });
+
+    cancellationToken?.onCancellationRequested(() => {
+      this.logger.info("Server start was cancelled");
+      inProgressPromise.reject(new Error("Server start was cancelled"));
+    });
+
+    try {
+      // If its started, check if it is healthy
+      if (this.state === "started") {
+        if (!this.port) {
+          logger.warn("Port not set. Restarting...");
+          // Assign _this_ in progress promise to singleton
+          this.startedPromise = inProgressPromise;
+          await this.stopServer();
+          const port = await this.startServer(cancellationToken);
+          const domValues = await fetchMarimoStartupValues({
+            port,
+            cancellationToken,
+          });
+          inProgressPromise.resolve({
+            port,
+            ...domValues,
+          });
+          return await inProgressPromise.promise;
+        }
+
+        // Check it is health, otherwise shutdown and restart
+        this.logger.info("Checking server health...");
+        if (!(await this.isHealthy(this.port))) {
+          logger.warn("Server not healthy. Restarting...");
+          // Assign _this_ in progress promise to singleton
+          this.startedPromise = inProgressPromise;
+          await this.stopServer();
+          const port = await this.startServer(cancellationToken);
+          const domValues = await fetchMarimoStartupValues({
+            port,
+            cancellationToken,
+          });
+          inProgressPromise.resolve({
+            port,
+            ...domValues,
+          });
+          return await inProgressPromise.promise;
+        }
+
+        // Otherwise, it is already running
+        this.logger.info("Server health check passed");
+        const result = await this.startedPromise.promise;
+        this.logger.info("Server already running at port", this.port, {
+          marimoVersion: result.version,
+          skewToken: result.skewToken,
+        });
+        return result;
+      }
+
+      // If its stopped, start it
+      if (this.state === "stopped") {
+        this.logger.info("Starting server...");
+        // Assign _this_ in progress promise to singleton
+        this.startedPromise = inProgressPromise;
+        const port = await this.startServer(cancellationToken);
+        const domValues = await fetchMarimoStartupValues({
+          port,
+          cancellationToken,
+        });
+        inProgressPromise.resolve({
           port,
           ...domValues,
         });
-        return this.startedPromise.promise;
+        return await inProgressPromise.promise;
       }
 
-      // Check it is health, otherwise shutdown and restart
-      this.logger.info("Checking server health...");
-      if (!(await this.isHealthy(this.port))) {
-        logger.warn("Server not healthy. Restarting...");
-        this.startedPromise = new Deferred();
-        await this.stopServer();
-        const port = await this.startServer();
-        const domValues = await fetchMarimoStartupValues(port);
-        this.startedPromise.resolve({
-          port,
-          ...domValues,
-        });
-        return this.startedPromise.promise;
-      }
-
-      // Otherwise, it is already running
-      this.logger.info("Server already running at port", this.port);
-      return this.startedPromise.promise;
+      logger.error("Invalid state", this.state);
+      throw new Error("Invalid state");
+    } catch (error) {
+      this.logger.error("Unexpected error starting server", { error });
+      inProgressPromise.reject(error);
+      throw error;
     }
-
-    if (this.state === "stopped") {
-      this.logger.info("Starting server...");
-      this.startedPromise = new Deferred();
-      const port = await this.startServer();
-      const domValues = await fetchMarimoStartupValues(port);
-      this.startedPromise.resolve({
-        port,
-        ...domValues,
-      });
-      return this.startedPromise.promise;
-    }
-
-    logger.error("Invalid state", this.state);
-    throw new Error("Invalid state");
   }
 
   private startHealthCheck() {
@@ -226,7 +274,7 @@ export class ServerManager implements IServerManager {
 
     const isHealthy = await this.isHealthy(this.port);
     if (!isHealthy) {
-      this.logger.warn("Server health check failed");
+      this.logger.warn(`Server health check failed on port ${this.port}`);
       const action = await window.showWarningMessage(
         "The marimo server is not responding. What would you like to do?",
         "Restart Server",
@@ -254,7 +302,9 @@ export class ServerManager implements IServerManager {
     });
   }
 
-  private async startServer(): Promise<number> {
+  private async startServer(
+    cancellationToken?: vscode.CancellationToken,
+  ): Promise<number> {
     this.updateState("starting");
     const port = await tryPort(this.config.port);
     this.port = port;
@@ -265,7 +315,7 @@ export class ServerManager implements IServerManager {
     }
 
     const cmd = this.buildServerCommand(port);
-    await this.executeServerCommand(cmd);
+    await this.executeServerCommand(cmd, cancellationToken);
 
     this.logger.info("Server started at port", port);
     this.updateState("started");
@@ -287,23 +337,43 @@ export class ServerManager implements IServerManager {
       .build();
   }
 
-  private async executeServerCommand(cmd: string): Promise<void> {
-    if (Config.marimoPath) {
-      logger.info(`Using marimo path ${Config.marimoPath}`);
-      await this.terminal.executeCommand(
-        `${maybeQuotes(Config.marimoPath)} ${cmd}`,
-      );
-      return;
-    }
+  private async executeServerCommand(
+    cmd: string,
+    cancellationToken?: vscode.CancellationToken,
+  ): Promise<void> {
+    try {
+      if (Config.marimoPath) {
+        this.logger.info(`Using marimo path ${Config.marimoPath}`);
+        await this.terminal.executeCommand(
+          `${maybeQuotes(Config.marimoPath)} ${cmd}`,
+          cancellationToken,
+        );
+        return;
+      }
 
-    const interpreter = await getInterpreter();
-    if (interpreter) {
-      logger.info(`Using interpreter ${interpreter}`);
-      await this.terminal.executeCommand(
-        `${maybeQuotes(interpreter)} -m marimo ${cmd}`,
-      );
-    } else {
-      await this.terminal.executeCommand(`marimo ${cmd}`);
+      const interpreter = await getInterpreter();
+      if (interpreter) {
+        this.logger.info(`Using interpreter ${interpreter}`);
+        await this.terminal.executeCommand(
+          `${maybeQuotes(interpreter)} -m marimo ${cmd}`,
+          cancellationToken,
+        );
+      } else {
+        this.logger.info("Using system marimo command");
+        await this.terminal.executeCommand(`marimo ${cmd}`, cancellationToken);
+      }
+    } catch (error) {
+      // If cancelled, don't log as an error
+      if (cancellationToken?.isCancellationRequested) {
+        this.logger.info("Server start was cancelled");
+        return;
+      }
+      this.logger.error("Failed to execute server command", {
+        error,
+        cmd,
+        marimoPath: Config.marimoPath,
+      });
+      throw error;
     }
   }
 
@@ -314,6 +384,11 @@ export class ServerManager implements IServerManager {
       this.logger.info("Stopping server...");
       this.terminal.dispose();
     }
+
+    if (!this.startedPromise.hasCompleted) {
+      this.startedPromise.reject(new Error("Server stopped"));
+    }
+
     this.updateState("stopped");
 
     if (this.serverHealthCheckInterval) {
@@ -333,16 +408,28 @@ export class ServerManager implements IServerManager {
     if (this.state === "stopped") {
       return [];
     }
-    const { port, skewToken } = await this.startedPromise.promise;
-    const runningNotebooks = await MarimoBridge.getRunningNotebooks(
-      port,
-      skewToken,
-    );
-    if (runningNotebooks.error) {
-      this.logger.error("Error getting running notebooks", runningNotebooks);
+    try {
+      const { port, skewToken } = await this.startedPromise.promise;
+      const runningNotebooks = await MarimoBridge.getRunningNotebooks(
+        port,
+        skewToken,
+      );
+      if (runningNotebooks.error) {
+        this.logger.error("Failed to get running notebooks", {
+          error: (runningNotebooks as { error: string }).error,
+          port,
+          state: this.state,
+        });
+        return [];
+      }
+      return [...(runningNotebooks.data?.files ?? [])];
+    } catch (error) {
+      this.logger.error("Unexpected error getting active sessions", {
+        error,
+        state: this.state,
+      });
       return [];
     }
-    return [...(runningNotebooks.data?.files ?? [])];
   }
 
   @LogMethodCalls()
@@ -350,14 +437,26 @@ export class ServerManager implements IServerManager {
     if (this.state === "stopped" || file.sessionId === undefined) {
       return;
     }
-    const { port, skewToken } = await this.startedPromise.promise;
-    const response = await MarimoBridge.shutdownSession(
-      port,
-      skewToken,
-      file.sessionId as SessionId,
-    );
-    if (response.error) {
-      this.logger.error("Error shutting down session", response);
+    try {
+      const { port, skewToken } = await this.startedPromise.promise;
+      const response = await MarimoBridge.shutdownSession(
+        port,
+        skewToken,
+        file.sessionId as SessionId,
+      );
+      if (response.error) {
+        this.logger.error("Failed to shutdown session", {
+          error: (response as { error: string }).error,
+          sessionId: file.sessionId,
+          port,
+        });
+      }
+    } catch (error) {
+      this.logger.error("Unexpected error shutting down session", {
+        error,
+        sessionId: file.sessionId,
+        state: this.state,
+      });
     }
   }
 }

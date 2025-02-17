@@ -1,7 +1,9 @@
 import { parse } from "node-html-parser";
+import type { CancellationToken } from "vscode";
 import { composeUrl } from "../config";
 import { logger } from "../logger";
 import type { MarimoConfig, SkewToken } from "../notebook/marimo/types";
+import { retry } from "../utils/retry";
 import { asURL } from "../utils/url";
 
 /**
@@ -11,7 +13,15 @@ import { asURL } from "../utils/url";
  * - version
  * - userConfig
  */
-export async function fetchMarimoStartupValues(port: number): Promise<{
+export async function fetchMarimoStartupValues({
+  port,
+  backoff,
+  cancellationToken,
+}: {
+  port: number;
+  backoff?: number;
+  cancellationToken?: CancellationToken;
+}): Promise<{
   skewToken: SkewToken;
   version: string;
   userConfig: MarimoConfig;
@@ -19,7 +29,24 @@ export async function fetchMarimoStartupValues(port: number): Promise<{
   const url = asURL(await composeUrl(port));
   let response: Response;
   try {
-    response = await fetch(url.toString());
+    response = await retry(
+      async () => {
+        if (cancellationToken?.isCancellationRequested) {
+          throw new Error("Cancelled");
+        }
+        const resp = await fetch(url.toString(), {
+          headers: {
+            Accept: "text/html",
+          },
+        });
+        if (!resp.ok) {
+          throw new Error(`HTTP error ${resp.status}`);
+        }
+        return resp;
+      },
+      5, // retries
+      backoff ?? 1000, // 1s exponential backoff
+    );
   } catch (e) {
     logger.error(`Could not fetch ${url}. Is ${url} healthy?`);
     throw new Error(`Could not fetch ${url}. Is ${url} healthy?`);
@@ -33,9 +60,9 @@ export async function fetchMarimoStartupValues(port: number): Promise<{
 
   // If was redirected to /auth/login, then show a message that an existing server is running
   if (asURL(response.url).pathname.startsWith("/auth/login")) {
-    throw new Error(
-      `An existing marimo server created outside of vscode is running at this url: ${url.toString()}`,
-    );
+    const msg = `An existing marimo server created outside of vscode is running at this url: ${url.toString()}`;
+    logger.warn(msg);
+    throw new Error(msg);
   }
 
   const html = await response.text();
