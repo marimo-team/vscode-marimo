@@ -1,5 +1,6 @@
 import { Uri, ViewColumn, type WebviewPanel, env, window } from "vscode";
 import { logger } from "../logger";
+import { invariant } from "../utils/invariant";
 import { LogMethodCalls } from "../utils/log";
 
 export class MarimoPanelManager {
@@ -30,6 +31,7 @@ export class MarimoPanelManager {
         enableCommandUris: true,
       },
     );
+    invariant(this.nativePanel, "Failed to create webview panel");
 
     this.nativePanel.webview.html = MarimoPanelManager.getWebviewContent(url);
 

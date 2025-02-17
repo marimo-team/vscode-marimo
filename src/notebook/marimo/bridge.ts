@@ -16,9 +16,11 @@ import {
   DeferredRequestRegistry,
   type RequestId,
 } from "../../utils/DeferredRequestRegistry";
+import { unique } from "../../utils/arrays";
 import { Deferred } from "../../utils/deferred";
 import { logNever } from "../../utils/invariant";
 import { LogMethodCalls } from "../../utils/log";
+import { retry } from "../../utils/retry";
 import { SingleMessage } from "../../utils/single-promise";
 import { asURL } from "../../utils/url";
 import type { KernelKey } from "../common/key";
@@ -101,10 +103,18 @@ export class MarimoBridge implements ILifecycle {
       this.logger.info("connected");
     };
     this.socket.onclose = (evt) => {
-      this.logger.info("disconnected", evt.code, evt.reason);
+      this.logger.info("disconnected", {
+        code: evt.code,
+        reason: evt.reason || "No reason provided",
+        wasClean: evt.wasClean,
+      });
     };
     this.socket.onerror = (error) => {
-      this.logger.info("error", error);
+      this.logger.error("WebSocket error", {
+        error,
+        readyState: this.socket.readyState,
+        url: wsURL.toString(),
+      });
     };
     this.socket.onmessage = (message) => {
       this.handleMessage(
@@ -123,17 +133,29 @@ export class MarimoBridge implements ILifecycle {
       onResponse: async (res, _options) => {
         // Log errors
         if (!res.ok) {
-          // If error is 401 and message includes 'Invalid server token' fetch a new token
           const text = await res.text();
+          const errorContext = {
+            status: res.status,
+            statusText: res.statusText,
+            url: res.url,
+            message: text,
+          };
+
+          // If error is 401 and message includes 'Invalid server token' fetch a new token
           if (res.status === 401 && text.includes("Invalid server token")) {
-            logger.error("Invalid server token");
-            const { skewToken } = await fetchMarimoStartupValues(this.port);
+            this.logger.error(
+              "Authentication failed - invalid server token",
+              errorContext,
+            );
+            const { skewToken } = await fetchMarimoStartupValues({
+              port: this.port,
+            });
             this.skewToken = skewToken;
             // TODO: Retry the request
           }
           // No longer connected to a kernel
-          if (res.status >= 500 && text.includes("Invalid session id")) {
-            // Show action to restart kernel
+          else if (res.status >= 500 && text.includes("Invalid session id")) {
+            this.logger.error("Session invalidated", errorContext);
             this.socket.close();
             await SingleMessage.instance.gate(
               "marimo-bridge.restart",
@@ -141,9 +163,9 @@ export class MarimoBridge implements ILifecycle {
                 await this.messageForRequest();
               },
             );
+          } else {
+            this.logger.error("HTTP request failed", errorContext);
           }
-
-          logger.error(`HTTP error: ${res.status} ${res.statusText}`, text);
         }
         return res;
       },
@@ -246,9 +268,17 @@ export class MarimoBridge implements ILifecycle {
 
   @LogMethodCalls()
   public async functionRequest(request: FunctionCallRequest): Promise<void> {
-    await this.client.POST("/api/kernel/function_call", {
-      body: request,
-    });
+    try {
+      await this.client.POST("/api/kernel/function_call", {
+        body: request,
+      });
+    } catch (error) {
+      this.logger.error("Function call failed", {
+        functionId: request.functionCallId,
+        error,
+      });
+      throw error;
+    }
   }
 
   @LogMethodCalls()
@@ -410,6 +440,14 @@ export class MarimoBridge implements ILifecycle {
         const installing = Object.entries(message.data.packages).filter(
           ([_, value]) => value === "installing",
         );
+
+        if (failed.length > 0) {
+          this.logger.error("Package installation failures", {
+            failed: failed.map(([pkg]) => pkg),
+            message: message.data,
+          });
+        }
+
         const messages = (
           [
             ["Installed", installed.length],
@@ -445,17 +483,4 @@ export class MarimoBridge implements ILifecycle {
         return logNever(message);
     }
   }
-}
-
-function retry(fn: () => Promise<void>, retries = 3): Promise<void> {
-  return fn().catch((error) => {
-    if (retries === 0) {
-      throw error;
-    }
-    return retry(fn, retries - 1);
-  });
-}
-
-function unique<T>(arr: T[]): T[] {
-  return Array.from(new Set(arr));
 }

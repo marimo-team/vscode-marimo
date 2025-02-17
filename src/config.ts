@@ -124,10 +124,10 @@ export const Config = {
   // UI settings
   /**
    * Whether to show the terminal when the server starts.
-   * @default false
+   * @default true or when debug is enabled
    */
   get showTerminal(): boolean {
-    return getConfig("showTerminal", false);
+    return getConfig("showTerminal", true) || Config.debug;
   },
 
   /**

@@ -1,10 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 import { createVSCodeMock } from "../../__mocks__/vscode";
-import { MarimoPanelManager } from "../panel";
 
 vi.mock("vscode", async () => {
   return createVSCodeMock(vi);
 });
+
+import { MarimoPanelManager } from "../panel";
 
 describe("Panel", () => {
   it("should be created", async () => {

@@ -1,5 +1,11 @@
 import path from "node:path";
-import { type Disposable, type Terminal, type Uri, window } from "vscode";
+import {
+  type CancellationToken,
+  type Disposable,
+  type Terminal,
+  type Uri,
+  window,
+} from "vscode";
 import { Config } from "../config";
 import { getGlobalState } from "../ctx";
 import { logger } from "../logger";
@@ -11,7 +17,7 @@ export interface IMarimoTerminal extends Disposable {
   relativePathFor(file: Uri): string;
   is(term: Terminal): boolean;
   tryRecoverTerminal(): Promise<boolean>;
-  executeCommand(cmd: string): Promise<void>;
+  executeCommand(cmd: string, token?: CancellationToken): Promise<void>;
 }
 
 export class MarimoTerminal implements IMarimoTerminal {
@@ -102,12 +108,24 @@ export class MarimoTerminal implements IMarimoTerminal {
   }
 
   @LogMethodCalls()
-  async executeCommand(cmd: string) {
+  async executeCommand(cmd: string, token?: CancellationToken) {
     await this.ensureTerminal();
     if (!this.terminal) {
       this.logger.error("terminal not found");
       return;
     }
+
+    // Set up abort handler
+    if (token) {
+      if (token.isCancellationRequested) {
+        throw new Error("Command aborted before execution");
+      }
+      token.onCancellationRequested(() => {
+        this.logger.info("Command aborted");
+        this.endProcess();
+      });
+    }
+
     try {
       this.terminal.sendText(cmd);
 

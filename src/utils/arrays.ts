@@ -7,3 +7,7 @@ export function toArray<T>(value: T | ReadonlyArray<T>): T[] {
   }
   return [value] as T[];
 }
+
+export function unique<T>(arr: T[]): T[] {
+  return Array.from(new Set(arr));
+}

@@ -92,13 +92,13 @@ export async function handleOnOpenNotebookDocument(
     {
       location: vscode.ProgressLocation.Notification,
       title: "Starting marimo server...",
-      cancellable: false,
+      cancellable: true,
     },
-    async () => {
+    async (_, cancellationToken) => {
       // Start Marimo server
       logger.info("Checking server...");
       const { port, skewToken, userConfig, version } =
-        await serverManager.start();
+        await serverManager.start(cancellationToken);
       // If not new, try to hydrate existing notebooks
       if (!metadata.isNew) {
         await kernelManager.hydrateExistingNotebooks({
