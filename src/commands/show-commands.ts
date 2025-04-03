@@ -213,15 +213,19 @@ export function miscCommands(serverManager: ServerManager): CommandPickItem[] {
     },
     {
       label: `$(info) Server status: ${serverManager.getStatus()}`,
-      handler: async () => {
-        // Open output panel with channel 'marimo'
-        await commands.executeCommand(
-          `workbench.action.output.show.${EXTENSION_PACKAGE.fullName}.${EXTENSION_DISPLAY_NAME}`,
-        );
-        await commands.executeCommand(
-          "marimo-explorer-running-applications.focus",
-        );
-      },
+      handler: goToLogs,
+    },
+    {
+      label: "$(info) View extension logs",
+      handler: goToLogs,
     },
   ];
+}
+
+async function goToLogs() {
+  // Open output panel with channel 'marimo'
+  await commands.executeCommand(
+    `workbench.action.output.show.${EXTENSION_PACKAGE.fullName}.${EXTENSION_DISPLAY_NAME}`,
+  );
+  await commands.executeCommand("marimo-explorer-running-applications.focus");
 }

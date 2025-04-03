@@ -95,24 +95,33 @@ export class MarimoPanelManager {
     text?: string;
     url?: string;
   }): Promise<void> => {
+    logger.info("Received message from webview", message);
     switch (message.command) {
       case "copy":
       case "cut":
         if (!message.text) {
           break;
         }
-        await env.clipboard.writeText(message.text);
+        await env.clipboard.writeText(message.text).then(() => {
+          logger.info("Copied text to clipboard", message.text);
+        });
         break;
       case "paste": {
         const text = await env.clipboard.readText();
-        this.nativePanel?.webview.postMessage({ command: "paste", text });
+        await this.nativePanel?.webview
+          .postMessage({ command: "paste", text })
+          .then(() => {
+            logger.info("Pasted text from clipboard", text);
+          });
         break;
       }
       case "external_link":
         if (!message.url) {
           break;
         }
-        await env.openExternal(Uri.parse(message.url));
+        await env.openExternal(Uri.parse(message.url)).then(() => {
+          logger.info("Opened external link", message.url);
+        });
         break;
       case "context_menu":
         // Context menu is not supported yet
@@ -171,6 +180,7 @@ export class MarimoPanelManager {
             iframe.onload = focusIframe;
 
             window.addEventListener('message', (event) => {
+              console.log('Received message from iframe: ' + 'source=' + event.origin, event.data);
               if (event.source === iframe.contentWindow) {
                 vscode.postMessage(event.data);
               } else if (event.origin.startsWith('vscode-webview://')) {
