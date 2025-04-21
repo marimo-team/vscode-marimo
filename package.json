@@ -4,10 +4,10 @@
   "author": "marimo team",
   "publisher": "marimo-team",
   "description": "Run marimo in VSCode",
-  "packageManager": "pnpm@10.4.1",
+  "packageManager": "pnpm@10.9.0",
   "version": "0.5.1",
   "engines": {
-    "vscode": "^1.95.0"
+    "vscode": "^1.99.3"
   },
   "private": true,
   "categories": ["Notebooks", "Machine Learning", "Data Science"],
@@ -395,23 +395,23 @@
     "vscode:prepublish": "pnpm run build"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.9.3",
-    "@types/node": "22.9.0",
+    "@biomejs/biome": "^1.9.4",
+    "@types/node": "22.14.1",
     "@types/vscode": "^1.98.0",
-    "@types/ws": "^8.5.12",
+    "@types/ws": "^8.18.1",
     "@vscode/test-cli": "^0.0.10",
-    "@vscode/test-electron": "^2.4.1",
+    "@vscode/test-electron": "^2.5.2",
     "@vscode/python-extension": "^1.0.5",
     "jest-mock-vscode": "^3.0.5",
     "node-fetch": "^3.3.2",
     "node-html-parser": "^7.0.1",
-    "openapi-fetch": "^0.9.7",
-    "openapi-typescript": "^7.4.1",
+    "openapi-fetch": "^0.13.5",
+    "openapi-typescript": "^7.6.1",
     "tempy": "^3.1.0",
-    "tsup": "^8.3.0",
+    "tsup": "^8.4.0",
     "typescript": "^5.8.2",
-    "vitest": "^3.0.2",
-    "ws": "^8.17.0"
+    "vitest": "^3.1.2",
+    "ws": "^8.18.1"
   },
   "dependencies": {}
 }
