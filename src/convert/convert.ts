@@ -21,10 +21,7 @@ async function convertNotebook(
     // convert
     const directory = path.dirname(filePath);
     // Execute marimo via python
-    const response = await execMarimoCommand([
-      "convert",
-      `'${filePath}'`, // Wrap in single quotes to handle spaces in path
-    ]);
+    const response = await execMarimoCommand(["convert", filePath]);
     const appCode = response.toString();
 
     try {

@@ -64,7 +64,7 @@ export async function exportNotebookAs(
     const response = await execMarimoCommand([
       "export",
       getExportCommand(exportType),
-      `'${filePath}'`, // Wrap in single quotes to handle spaces in path
+      filePath,
       getExportArgs(exportType),
     ]);
 

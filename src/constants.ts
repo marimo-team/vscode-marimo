@@ -18,6 +18,8 @@ export const CommandsKeys = {
   edit: "vscode-marimo.edit",
   // Start marimo kernel (run)
   run: "vscode-marimo.run",
+  // Refresh marimo explorer
+  refresh: "vscode-marimo.refresh",
   // Restart marimo kernel
   restartKernel: "vscode-marimo.restartKernel",
   // Stop kernel
@@ -47,4 +49,6 @@ export const CommandsKeys = {
 
   // Show marimo status
   showStatus: "vscode-marimo.showStatus",
+  // Show marimo help
+  showHelp: "vscode-marimo.showHelp",
 };

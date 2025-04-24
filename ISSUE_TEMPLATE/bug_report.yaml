@@ -1,0 +1,39 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SchemaStore/schemastore/refs/heads/master/src/schemas/json/github-issue-forms.json
+name: '🐞 Bug report'
+description: Report an issue with vscode-marimo
+labels: [bug]
+type: Bug
+body:
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: Describe the bug
+      description: |
+        A clear and concise description of the bug. If you have a workaround or plan to submit a PR for this issue, please let us know.
+        You may also include a stack trace or screenshots here.
+      placeholder: What happened?
+    validations:
+      required: true
+  - type: textarea
+    id: env
+    attributes:
+      label: Environment
+      description: Open the command palette and paste the output of "Show marimo status"
+      value: |
+        <details>
+
+        ```
+        Replace this line with the output. Leave the backticks in place.
+        ```
+
+        </details>
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction-steps
+    attributes:
+      label: Steps to reproduce
+      description: |
+        Help us help you!
+        If possible, provide steps to reproduce the bug.
+        If you have a workaround, please let us know.

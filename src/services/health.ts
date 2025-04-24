@@ -1,5 +1,11 @@
-import { window } from "vscode";
+import {
+  extensions,
+  version as vscodeVersion,
+  window,
+  workspace,
+} from "vscode";
 import { Config } from "../config";
+import { EXTENSION_PACKAGE } from "../constants";
 import { logger } from "../logger";
 import { execMarimoCommand, getInterpreter } from "../utils/exec";
 import type { ServerManager } from "./server-manager";
@@ -44,9 +50,20 @@ export class HealthService {
    * Shows an alert with the status of the server
    */
   public async showStatus() {
-    await window.showInformationMessage(await this.printStatusVerbose(), {
-      modal: true,
+    let statusText = "";
+    try {
+      statusText = await this.printStatusVerbose();
+    } catch (error) {
+      logger.error("Error showing status:", error);
+      statusText = `Error showing status: ${error}`;
+    }
+
+    const document = await workspace.openTextDocument({
+      content: statusText,
+      language: "plaintext",
     });
+    await window.showTextDocument(document);
+    return document;
   }
 
   public async printStatusVerbose(): Promise<string> {
@@ -55,31 +72,58 @@ export class HealthService {
 
     if (isInstalled) {
       const status = await this.isServerRunning();
+      const serverUrl = `${Config.https ? "https" : "http"}://${Config.host}:${status.port}`;
+
       return [
         "marimo configuration:",
         `\tpython interpreter: ${pythonInterpreter}`,
         isDefaultMarimoPath(path) ? "" : `\tmarimo executable path: ${path}`, // don't show if default
-        `\tversion: ${version}`,
-        "",
-        "server status:",
-        status.isRunning ? `\trunning on port ${status.port}` : "\tnot running",
-        "",
-        "configuration:",
+        `\tmarimo version: ${version}`,
+        `\textension version: ${this.printExtensionVersion()}`,
+        "\nserver status:",
+        status.isRunning
+          ? [
+              `\trunning on port ${status.port}`,
+              `\turl: ${serverUrl}`,
+              `\tread port: ${Config.readPort}`,
+            ].join("\n")
+          : "\tnot running",
+        "\nserver configuration:",
         `\thost: ${Config.host}`,
         `\tdefault port: ${Config.port}`,
-        `\tread port: ${Config.readPort}`,
         `\thttps enabled: ${Config.https}`,
         `\ttoken auth enabled: ${Config.enableToken}`,
+        Config.enableToken
+          ? `\ttoken password: ${Config.tokenPassword ? "set" : "not set"}`
+          : "",
+        "\nenvironment settings:",
         `\tsandbox mode: ${Config.sandbox}`,
+        `\twatch mode: ${Config.watch}`,
+        "\nUI settings:",
         `\tbrowser type: ${Config.browser}`,
         `\tshow terminal: ${Config.showTerminal}`,
         `\tdebug mode: ${Config.debug}`,
+        "\nsystem information:",
+        `\tplatform: ${process.platform}`,
+        `\tarchitecture: ${process.arch}`,
+        `\tnode version: ${process.version}`,
+        `\tvscode version: ${vscodeVersion}`,
       ]
         .filter(Boolean)
         .join("\n");
     }
 
     return troubleShootingMessage(path, pythonInterpreter);
+  }
+
+  public printExtensionVersion(): string {
+    try {
+      const extension = extensions.getExtension(EXTENSION_PACKAGE.fullName);
+      return extension?.packageJSON.version || "unknown";
+    } catch (error) {
+      logger.error("Error getting extension version:", error);
+      return "unknown";
+    }
   }
 
   public async printStatus(): Promise<string> {

@@ -1,15 +1,27 @@
-import { execFile, execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { workspace } from "vscode";
 import { Config } from "../config";
 import { logger } from "../logger";
 import { getInterpreterDetails } from "./python";
 
-export async function execMarimoCommand(command: string[]) {
+function execWithLogger(command: string, args: string[]) {
+  const cleanedArgs = args.map((arg) => arg.trim()).filter(Boolean);
+  logger.info(`Executing: ${command} ${JSON.stringify(cleanedArgs)}`);
+  return execFileSync(command, cleanedArgs, {
+    shell: false,
+    encoding: "utf8",
+  });
+}
+
+export async function execMarimoCommand(command: string[]): Promise<string> {
   // When marimoPath is set, use that directly
-  let cmd = Config.marimoPath;
+  const cmd = Config.marimoPath;
   if (cmd && cmd !== "marimo") {
-    cmd = maybeQuotes(cmd);
-    return execSync(`${cmd} ${command.join(" ")}`);
+    if (cmd.startsWith("uv ") || cmd.startsWith("uvx ")) {
+      const [uvCmd, ...uvArgs] = cmd.split(" ");
+      return execWithLogger(uvCmd, [...uvArgs, ...command]);
+    }
+    return execWithLogger(cmd, command);
   }
   // Otherwise, use python -m marimo
   return execPythonModule(["marimo", ...command]);
@@ -23,27 +35,42 @@ export async function execMarimoCommand(command: string[]) {
  */
 export async function execPythonModule(command: string[]) {
   // Otherwise use python interpreter
-  let interpreter = (await getInterpreter()) || "python";
+  const interpreter = (await getInterpreter()) || "python";
   logger.info(`Using interpreter: ${interpreter}`);
-  // Maybe quote if it has spaces
-  interpreter = maybeQuotes(interpreter);
-  return execSync(`${interpreter} -m ${command.join(" ")}`);
+
+  // Handle uv/uvx commands specially
+  if (interpreter.startsWith("uv ") || interpreter.startsWith("uvx ")) {
+    const [uvCmd, ...uvArgs] = interpreter.split(" ");
+    return execWithLogger(uvCmd, [...uvArgs, "-m", ...command]);
+  }
+
+  return execWithLogger(interpreter, ["-m", ...command]);
 }
 
 export async function execPythonFile(command: string[]) {
-  let interpreter = (await getInterpreter()) || "python";
+  const interpreter = (await getInterpreter()) || "python";
   logger.info(`Using interpreter: ${interpreter}`);
-  // Maybe quote if it has spaces
-  interpreter = maybeQuotes(interpreter);
-  return execSync(`${interpreter} ${command.join(" ")}`);
+
+  // Handle uv/uvx commands specially
+  if (interpreter.startsWith("uv ") || interpreter.startsWith("uvx ")) {
+    const [uvCmd, ...uvArgs] = interpreter.split(" ");
+    return execWithLogger(uvCmd, [...uvArgs, ...command]);
+  }
+
+  return execWithLogger(interpreter, command);
 }
 
 export async function hasPythonModule(module: string) {
-  let interpreter = (await getInterpreter()) || "python";
+  const interpreter = (await getInterpreter()) || "python";
   logger.info(`Using interpreter: ${interpreter}`);
-  // Maybe quote if it has spaces
-  interpreter = maybeQuotes(interpreter);
-  return execSync(`${interpreter} -c 'import ${module}'`);
+
+  // Handle uv/uvx commands specially
+  if (interpreter.startsWith("uv ") || interpreter.startsWith("uvx ")) {
+    const [uvCmd, ...uvArgs] = interpreter.split(" ");
+    return execWithLogger(uvCmd, [...uvArgs, "-c", `import ${module}`]);
+  }
+
+  return execWithLogger(interpreter, ["-c", `import ${module}`]);
 }
 
 // Quote if it has spaces and is not a command like "uv run"
@@ -60,7 +87,7 @@ export function maybeQuotes(command: string) {
 
 export async function hasExecutable(executable: string): Promise<boolean> {
   try {
-    await execFile(executable, ["--help"]);
+    await execWithLogger(executable, ["--help"]);
     return true;
   } catch (error) {
     return false;

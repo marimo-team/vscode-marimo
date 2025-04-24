@@ -14,6 +14,7 @@ import { CommandsKeys, DOCUMENTATION_URL } from "./constants";
 import { convertIPyNotebook, convertMarkdownNotebook } from "./convert/convert";
 import { setExtension } from "./ctx";
 import {
+  MarimoAppProvider,
   MarimoExplorer,
   MarimoRunningKernelsProvider,
 } from "./explorer/explorer";
@@ -94,6 +95,7 @@ class MarimoExtension {
     commands.registerCommand(CommandsKeys.showCommands, () =>
       this.showCommands(),
     );
+    commands.registerCommand(CommandsKeys.showHelp, () => this.showCommands());
     commands.registerCommand(CommandsKeys.exportAsCommands, () =>
       this.exportAsCommands(),
     );

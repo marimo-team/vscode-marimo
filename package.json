@@ -10,15 +10,9 @@
     "vscode": "^1.99.3"
   },
   "private": true,
-  "categories": [
-    "Notebooks",
-    "Machine Learning",
-    "Data Science"
-  ],
+  "categories": ["Notebooks", "Machine Learning", "Data Science"],
   "icon": "resources/marimo.png",
-  "activationEvents": [
-    "onLanguage"
-  ],
+  "activationEvents": ["onLanguage"],
   "repository": {
     "type": "git",
     "url": "https://github.com/marimo-team/vscode-marimo"
@@ -26,11 +20,7 @@
   "bugs": {
     "url": "https://github.com/marimo-team/vscode-marimo/issues"
   },
-  "files": [
-    "dist",
-    "resources",
-    "LICENSE"
-  ],
+  "files": ["dist", "resources", "LICENSE"],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
@@ -135,7 +125,13 @@
         "command": "vscode-marimo.showStatus",
         "category": "marimo",
         "title": "Show marimo status",
-        "icon": "$(status-bar)"
+        "icon": "$(info)"
+      },
+      {
+        "command": "vscode-marimo.showHelp",
+        "category": "marimo",
+        "title": "Show marimo help",
+        "icon": "$(more)"
       },
       {
         "command": "vscode-marimo.openInBrowser",
@@ -295,29 +291,39 @@
       ],
       "view/title": [
         {
+          "command": "vscode-marimo.showHelp",
+          "when": "view == marimo-explorer-running-applications",
+          "group": "navigation@9"
+        },
+        {
+          "command": "vscode-marimo.showStatus",
+          "when": "view == marimo-explorer-running-applications",
+          "group": "navigation@8"
+        },
+        {
           "command": "vscode-marimo.startServer",
           "when": "view == marimo-explorer-running-applications && marimo.isMarimoServerRunning === false",
-          "group": "navigation"
+          "group": "navigation@7"
         },
         {
           "command": "vscode-marimo.stopServer",
           "when": "view == marimo-explorer-running-applications && marimo.isMarimoServerRunning === true",
-          "group": "navigation"
+          "group": "navigation@6"
         },
         {
           "command": "vscode-marimo.refresh",
           "when": "view == marimo-explorer-applications || view == marimo-explorer-running-applications",
-          "group": "navigation"
+          "group": "navigation@0"
         },
         {
           "command": "vscode-marimo.openDocumentation",
           "when": "view == marimo-explorer-applications",
-          "group": "navigation"
+          "group": "navigation@8"
         },
         {
           "command": "vscode-marimo.newMarimoFile",
           "when": "view == marimo-explorer-applications",
-          "group": "navigation"
+          "group": "navigation@1"
         }
       ]
     },
@@ -327,10 +333,7 @@
       "properties": {
         "marimo.browserType": {
           "type": "string",
-          "enum": [
-            "embedded",
-            "system"
-          ],
+          "enum": ["embedded", "system"],
           "default": "embedded",
           "description": "The type of browser to use for opening marimo apps."
         },

@@ -101,6 +101,7 @@ describe("showCommands", () => {
         "$(comment-discussion) Join Discord community",
         "$(settings) Edit settings",
         "$(info) Server status: stopped",
+        "$(info) View extension logs",
       ]
     `);
   });

@@ -5,15 +5,24 @@ interface CommandPickItem extends QuickPickItem {
 }
 
 const TUTORIALS = [
-  ["Intro", "https://marimo.app/l/c7h6pz", "book"],
-  ["Dataflow", "https://marimo.app/l/grhuve", "repo-forked"],
-  ["UI Elements", "https://marimo.app/l/ia3872", "layout"],
-  ["Markdown", "https://marimo.app/l/pzxdmn", "markdown"],
-  ["Plotting", "https://marimo.app/l/lxp1jk", "graph"],
-  ["SQL", "https://marimo.app/l/7n5flc", "database"],
-  ["Layout", "https://marimo.app/l/14ovyr", "layout-panel-left"],
-  ["File Format", "https://marimo.app/l/8n55fd", "file"],
-  ["Coming from Jupyter", "https://marimo.app/l/z0aerp", "code"],
+  // Get started with marimo basics
+  ["Intro", "https://links.marimo.app/tutorial-intro", "book"],
+  // Learn how cells interact with each other
+  ["Dataflow", "https://links.marimo.app/tutorial-dataflow", "repo-forked"],
+  // Create interactive UI components
+  ["UI Elements", "https://links.marimo.app/tutorial-ui", "layout"],
+  // Format text with parameterized markdown
+  ["Markdown", "https://links.marimo.app/tutorial-markdown", "markdown"],
+  // Create interactive visualizations
+  ["Plotting", "https://links.marimo.app/tutorial-plotting", "graph"],
+  // Query databases directly in marimo
+  ["SQL", "https://links.marimo.app/tutorial-sql", "database"],
+  // Customize the layout of your cells' output
+  ["Layout", "https://links.marimo.app/tutorial-layout", "layout-panel-left"],
+  // Understand marimo's pure-Python file format
+  ["File Format", "https://links.marimo.app/tutorial-fileformat", "file"],
+  // Transiting from Jupyter to marimo
+  ["Coming from Jupyter", "https://links.marimo.app/tutorial-jupyter", "code"],
 ];
 
 export async function tutorialCommands() {

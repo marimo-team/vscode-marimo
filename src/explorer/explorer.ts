@@ -16,6 +16,7 @@ import {
   workspace,
 } from "vscode";
 import { Config } from "../config";
+import { CommandsKeys } from "../constants";
 import type { ControllerManager } from "../launcher/controller";
 import { Launcher } from "../launcher/start";
 import { logger } from "../logger";
@@ -316,7 +317,7 @@ export class MarimoExplorer implements Disposable {
   private registerCommands() {
     this.disposables.push(
       commands.registerCommand(
-        "vscode-marimo.refresh",
+        CommandsKeys.refresh,
         () => MarimoRunningKernelsProvider.refresh(),
         MarimoAppProvider.refresh(),
       ),

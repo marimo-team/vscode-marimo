@@ -60,6 +60,7 @@ describe("Panel", () => {
                   iframe.onload = focusIframe;
 
                   window.addEventListener('message', (event) => {
+                    console.log('Received message from iframe: ' + 'source=' + event.origin, event.data);
                     if (event.source === iframe.contentWindow) {
                       vscode.postMessage(event.data);
                     } else if (event.origin.startsWith('vscode-webview://')) {

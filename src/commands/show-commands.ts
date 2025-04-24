@@ -7,6 +7,7 @@ import {
   window,
 } from "vscode";
 import {
+  CommandsKeys,
   DISCORD_URL,
   DOCUMENTATION_URL,
   EXTENSION_DISPLAY_NAME,
@@ -213,7 +214,10 @@ export function miscCommands(serverManager: ServerManager): CommandPickItem[] {
     },
     {
       label: `$(info) Server status: ${serverManager.getStatus()}`,
-      handler: goToLogs,
+      handler: () => {
+        void commands.executeCommand(CommandsKeys.showStatus);
+        goToLogs();
+      },
     },
     {
       label: "$(info) View extension logs",
