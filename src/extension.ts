@@ -34,6 +34,7 @@ import { MarimoNotebookSerializer } from "./notebook/serializer";
 import { HealthService } from "./services/health";
 import { ServerManager } from "./services/server-manager";
 import { StatusBar } from "./ui/status-bar";
+import { setupConfigTelemetry, trackEvent } from "./telemetry";
 
 class MarimoExtension {
   private extension: ExtensionContext;
@@ -61,6 +62,7 @@ class MarimoExtension {
   public async activate() {
     setExtension(this.extension);
     logger.info("marimo extension is now active!");
+    trackEvent("vscode-lifecycle", { action: "activate" });
 
     this.serverManager.init();
     this.addDisposable(this.kernelManager, this.serverManager, this.explorer);
@@ -81,45 +83,49 @@ class MarimoExtension {
     await this.statusBar.update();
   }
 
-  private registerCommands() {
-    commands.registerCommand(CommandsKeys.startServer, () =>
-      this.startServer(),
+  private registerCommand(command: string, handler: () => void) {
+    this.extension.subscriptions.push(
+      commands.registerCommand(command, () => {
+        trackEvent("vscode-command", { command });
+        handler();
+      }),
     );
-    commands.registerCommand(CommandsKeys.stopServer, () => this.stopServer());
-    commands.registerCommand(CommandsKeys.edit, () => this.edit());
-    commands.registerCommand(CommandsKeys.run, () => this.run());
-    commands.registerCommand(CommandsKeys.restartKernel, () =>
+  }
+
+  private registerCommands() {
+    this.registerCommand(CommandsKeys.startServer, () => this.startServer());
+    this.registerCommand(CommandsKeys.stopServer, () => this.stopServer());
+    this.registerCommand(CommandsKeys.edit, () => this.edit());
+    this.registerCommand(CommandsKeys.run, () => this.run());
+    this.registerCommand(CommandsKeys.restartKernel, () =>
       this.restartKernel(),
     );
-    commands.registerCommand(CommandsKeys.stopKernel, () => this.stopKernel());
-    commands.registerCommand(CommandsKeys.showCommands, () =>
-      this.showCommands(),
-    );
-    commands.registerCommand(CommandsKeys.showHelp, () => this.showCommands());
-    commands.registerCommand(CommandsKeys.exportAsCommands, () =>
+    this.registerCommand(CommandsKeys.stopKernel, () => this.stopKernel());
+    this.registerCommand(CommandsKeys.showCommands, () => this.showCommands());
+    this.registerCommand(CommandsKeys.showHelp, () => this.showCommands());
+    this.registerCommand(CommandsKeys.exportAsCommands, () =>
       this.exportAsCommands(),
     );
-    commands.registerCommand(CommandsKeys.openInBrowser, () =>
+    this.registerCommand(CommandsKeys.openInBrowser, () =>
       this.openInBrowser(),
     );
-    commands.registerCommand(CommandsKeys.reloadBrowser, () =>
+    this.registerCommand(CommandsKeys.reloadBrowser, () =>
       this.reloadBrowser(),
     );
-    commands.registerCommand(CommandsKeys.openNotebook, () =>
-      this.openNotebook(),
-    );
-    commands.registerCommand(CommandsKeys.openDocumentation, () =>
+    this.registerCommand(CommandsKeys.openNotebook, () => this.openNotebook());
+    this.registerCommand(CommandsKeys.openDocumentation, () =>
       this.openDocumentation(),
     );
-    commands.registerCommand(CommandsKeys.newMarimoFile, () =>
+    this.registerCommand(CommandsKeys.newMarimoFile, () =>
       this.newMarimoFile(),
     );
-    commands.registerCommand(CommandsKeys.convertToMarimoApp, () =>
+    this.registerCommand(CommandsKeys.convertToMarimoApp, () =>
       this.convertToMarimoApp(),
     );
-    commands.registerCommand(CommandsKeys.showDiagnostics, () =>
+    this.registerCommand(CommandsKeys.showDiagnostics, () =>
       this.healthService.showDiagnostics(),
     );
+    setupConfigTelemetry();
   }
 
   private async startServer() {
@@ -335,4 +341,5 @@ export async function activate(extension: ExtensionContext) {
 
 export async function deactivate() {
   logger.info("marimo extension is now deactivated!");
+  trackEvent("vscode-lifecycle", { action: "deactivate" });
 }

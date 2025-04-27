@@ -22,6 +22,7 @@ export interface Config {
   readonly https: boolean;
   readonly sandbox: boolean;
   readonly watch: boolean;
+  readonly telemetry: boolean;
 }
 
 /**
@@ -128,6 +129,14 @@ export const Config = {
    */
   get showTerminal(): boolean {
     return getConfig("showTerminal", true) || Config.debug;
+  },
+
+  /**
+   * Whether to send anonymous usage data to marimo.
+   * @default true
+   */
+  get telemetry(): boolean {
+    return getConfig("telemetry", true);
   },
 
   /**

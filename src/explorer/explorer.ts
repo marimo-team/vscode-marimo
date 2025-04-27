@@ -27,6 +27,7 @@ import type { MarimoFile } from "../notebook/marimo/types";
 import type { ServerManager } from "../services/server-manager";
 import { LogMethodCalls } from "../utils/log";
 import { showNotebookDocument } from "../utils/show";
+import { trackEvent } from "../telemetry";
 
 interface Entry {
   uri: Uri;
@@ -318,7 +319,10 @@ export class MarimoExplorer implements Disposable {
     this.disposables.push(
       commands.registerCommand(
         CommandsKeys.refresh,
-        () => MarimoRunningKernelsProvider.refresh(),
+        () => {
+          trackEvent("vscode-command", { command: CommandsKeys.refresh });
+          MarimoRunningKernelsProvider.refresh();
+        },
         MarimoAppProvider.refresh(),
       ),
     );
@@ -328,7 +332,12 @@ export class MarimoExplorer implements Disposable {
       ...this.runningKernelsProvider.getCommands(),
     };
     for (const [command, handler] of Object.entries(explorerCommands)) {
-      this.disposables.push(commands.registerCommand(command, handler));
+      this.disposables.push(
+        commands.registerCommand(command, (arg) => {
+          trackEvent("vscode-command", { command });
+          handler(arg);
+        }),
+      );
     }
   }
 

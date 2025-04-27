@@ -1,14 +1,10 @@
-import {
-  extensions,
-  version as vscodeVersion,
-  window,
-  workspace,
-} from "vscode";
+import { window, workspace } from "vscode";
 import { Config } from "../config";
-import { EXTENSION_PACKAGE } from "../constants";
 import { logger } from "../logger";
 import { execMarimoCommand, getInterpreter } from "../utils/exec";
 import type { ServerManager } from "./server-manager";
+import { getExtensionVersion, getVscodeVersion } from "../utils/versions";
+import { anonymouseId } from "../telemetry";
 
 export class HealthService {
   constructor(private readonly serverManager: ServerManager) {}
@@ -79,7 +75,7 @@ export class HealthService {
         `\tpython interpreter: ${pythonInterpreter}`,
         isDefaultMarimoPath(path) ? "" : `\tmarimo executable path: ${path}`, // don't show if default
         `\tmarimo version: ${version}`,
-        `\textension version: ${this.printExtensionVersion()}`,
+        `\textension version: ${getExtensionVersion()}`,
         "\nserver status:",
         status.isRunning
           ? [
@@ -105,25 +101,16 @@ export class HealthService {
         `\tdebug mode: ${Config.debug}`,
         "\nsystem information:",
         `\tplatform: ${process.platform}`,
+        `\tanonymous id: ${anonymouseId()}`,
         `\tarchitecture: ${process.arch}`,
         `\tnode version: ${process.version}`,
-        `\tvscode version: ${vscodeVersion}`,
+        `\tvscode version: ${getVscodeVersion()}`,
       ]
         .filter(Boolean)
         .join("\n");
     }
 
     return troubleShootingMessage(path, pythonInterpreter);
-  }
-
-  public printExtensionVersion(): string {
-    try {
-      const extension = extensions.getExtension(EXTENSION_PACKAGE.fullName);
-      return extension?.packageJSON.version || "unknown";
-    } catch (error) {
-      logger.error("Error getting extension version:", error);
-      return "unknown";
-    }
   }
 
   public async printStatus(): Promise<string> {
