@@ -10,9 +10,15 @@
     "vscode": "^1.99.3"
   },
   "private": true,
-  "categories": ["Notebooks", "Machine Learning", "Data Science"],
+  "categories": [
+    "Notebooks",
+    "Machine Learning",
+    "Data Science"
+  ],
   "icon": "resources/marimo.png",
-  "activationEvents": ["onLanguage"],
+  "activationEvents": [
+    "onLanguage"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/marimo-team/vscode-marimo"
@@ -20,7 +26,11 @@
   "bugs": {
     "url": "https://github.com/marimo-team/vscode-marimo/issues"
   },
-  "files": ["dist", "resources", "LICENSE"],
+  "files": [
+    "dist",
+    "resources",
+    "LICENSE"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
@@ -122,9 +132,9 @@
         "icon": "$(remote-explorer-documentation)"
       },
       {
-        "command": "vscode-marimo.showStatus",
+        "command": "vscode-marimo.showDiagnostics",
         "category": "marimo",
-        "title": "Show marimo status",
+        "title": "Show marimo diagnostics",
         "icon": "$(info)"
       },
       {
@@ -296,7 +306,7 @@
           "group": "navigation@9"
         },
         {
-          "command": "vscode-marimo.showStatus",
+          "command": "vscode-marimo.showDiagnostics",
           "when": "view == marimo-explorer-running-applications",
           "group": "navigation@8"
         },
@@ -333,7 +343,10 @@
       "properties": {
         "marimo.browserType": {
           "type": "string",
-          "enum": ["embedded", "system"],
+          "enum": [
+            "embedded",
+            "system"
+          ],
           "default": "embedded",
           "description": "The type of browser to use for opening marimo apps."
         },

@@ -100,7 +100,7 @@ describe("HealthService", () => {
     });
   });
 
-  describe("showStatus", () => {
+  describe("showDiagnostics", () => {
     it("should show status in a new document", async () => {
       const mockStatusText = "test status";
       const mockDocument = { uri: "test" };
@@ -111,7 +111,7 @@ describe("HealthService", () => {
         mockStatusText,
       );
 
-      const result = await healthService.showStatus();
+      const result = await healthService.showDiagnostics();
 
       expect(workspace.openTextDocument).toHaveBeenCalledWith({
         content: mockStatusText,
@@ -129,7 +129,7 @@ describe("HealthService", () => {
         mockDocument as any,
       );
 
-      const result = await healthService.showStatus();
+      const result = await healthService.showDiagnostics();
 
       expect(workspace.openTextDocument).toHaveBeenCalledWith({
         content: `Error showing status: ${error}`,

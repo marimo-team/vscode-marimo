@@ -47,9 +47,9 @@ export class HealthService {
   }
 
   /**
-   * Shows an alert with the status of the server
+   * Shows an page with diagnostics the extension and server
    */
-  public async showStatus() {
+  public async showDiagnostics() {
     let statusText = "";
     try {
       statusText = await this.printStatusVerbose();

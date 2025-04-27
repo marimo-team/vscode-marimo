@@ -18,7 +18,7 @@ body:
     id: env
     attributes:
       label: Environment
-      description: Open the command palette and paste the output of "Show marimo status"
+      description: Open the command palette and paste the output of "Show marimo diagnostics"
       value: |
         <details>
 

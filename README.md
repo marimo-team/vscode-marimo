@@ -120,6 +120,6 @@ To ensure marimo works correctly with your Python environment, you have several 
 
 ## Troubleshooting
 
-If you encounter issues, you can open the marimo extension logs by running the `marimo: Show marimo status` command from the command palette.
+If you encounter issues, you can open the marimo extension logs by running the `marimo: Show marimo diagnostics` command from the command palette.
 
 You can also hover over the marimo status bar item in the bottom left of the VSCode window to see the status of the marimo extension.

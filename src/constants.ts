@@ -47,8 +47,8 @@ export const CommandsKeys = {
   // Native vscode notebook commands
   openNotebook: "vscode-marimo.openAsVSCodeNotebook",
 
-  // Show marimo status
-  showStatus: "vscode-marimo.showStatus",
+  // Show marimo diagnostics
+  showDiagnostics: "vscode-marimo.showDiagnostics",
   // Show marimo help
   showHelp: "vscode-marimo.showHelp",
 };

@@ -215,7 +215,7 @@ export function miscCommands(serverManager: ServerManager): CommandPickItem[] {
     {
       label: `$(info) Server status: ${serverManager.getStatus()}`,
       handler: () => {
-        void commands.executeCommand(CommandsKeys.showStatus);
+        void commands.executeCommand(CommandsKeys.showDiagnostics);
         goToLogs();
       },
     },

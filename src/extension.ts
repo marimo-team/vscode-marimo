@@ -117,8 +117,8 @@ class MarimoExtension {
     commands.registerCommand(CommandsKeys.convertToMarimoApp, () =>
       this.convertToMarimoApp(),
     );
-    commands.registerCommand(CommandsKeys.showStatus, () =>
-      this.healthService.showStatus(),
+    commands.registerCommand(CommandsKeys.showDiagnostics, () =>
+      this.healthService.showDiagnostics(),
     );
   }
 
