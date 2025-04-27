@@ -5,7 +5,7 @@
   "publisher": "marimo-team",
   "description": "Run marimo in VSCode",
   "packageManager": "pnpm@10.9.0",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "engines": {
     "vscode": "^1.99.3"
   },
