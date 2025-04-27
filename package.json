@@ -7,7 +7,7 @@
   "packageManager": "pnpm@10.9.0",
   "version": "0.6.1",
   "engines": {
-    "vscode": "^1.99.3"
+    "vscode": "^1.77.0"
   },
   "private": true,
   "categories": [
