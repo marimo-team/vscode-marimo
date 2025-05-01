@@ -127,7 +127,20 @@ export class MarimoTerminal implements IMarimoTerminal {
     }
 
     try {
-      this.terminal.sendText(cmd);
+      // Check if we're in PowerShell and format command accordingly
+      const isPowerShell = this.terminal.name
+        ?.toLowerCase()
+        .includes("powershell");
+
+      if (isPowerShell) {
+        this.logger.info(
+          "Detected PowerShell terminal, running command with &",
+        );
+      }
+
+      const formattedCmd = isPowerShell ? `& ${cmd}` : cmd;
+
+      this.terminal.sendText(formattedCmd);
 
       if (Config.showTerminal) {
         this.terminal.show(true);
