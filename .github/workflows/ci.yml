@@ -77,7 +77,7 @@ jobs:
           version: 8
 
       - name: 🐍 Setup uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v6
 
       - name: 🐍 Setup Python
         uses: actions/setup-python@v5
