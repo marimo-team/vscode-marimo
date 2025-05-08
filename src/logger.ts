@@ -2,6 +2,12 @@ import { type LogOutputChannel, window } from "vscode";
 import { Config } from "./config";
 import { EXTENSION_DISPLAY_NAME } from "./constants";
 
+/**
+ * Logger is a utility class for logging messages with different levels (debug, info, error, warn).
+ * It supports optional prefixing to provide context for log messages and integrates with the
+ * VS Code Output Channel for displaying logs. This class is designed to be used throughout
+ * the extension to ensure consistent and structured logging.
+ */
 class Logger {
   private channel: LogOutputChannel;
 
