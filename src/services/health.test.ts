@@ -46,7 +46,7 @@ describe("HealthService", () => {
   describe("isMarimoInstalled", () => {
     it("should return true when marimo is installed", async () => {
       const mockVersion = "1.0.0";
-      vi.mocked(execMarimoCommand).mockResolvedValue(Buffer.from(mockVersion));
+      vi.mocked(execMarimoCommand).mockResolvedValue(mockVersion);
       vi.spyOn(Config, "marimoPath", "get").mockReturnValue("/path/to/marimo");
 
       const result = await healthService.isMarimoInstalled();
@@ -165,7 +165,7 @@ describe("HealthService", () => {
     it("should return status when marimo is installed", async () => {
       const mockVersion = "1.0.0";
       const mockPythonPath = "/path/to/python";
-      vi.mocked(execMarimoCommand).mockResolvedValue(Buffer.from(mockVersion));
+      vi.mocked(execMarimoCommand).mockResolvedValue(mockVersion);
       vi.mocked(getInterpreter).mockResolvedValue(mockPythonPath);
       vi.spyOn(Config, "marimoPath", "get").mockReturnValue(
         "/custom/path/to/marimo",
