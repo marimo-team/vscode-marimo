@@ -22,7 +22,7 @@ export function urlJoin(...paths: string[]): string {
   }
   let normalized = [...paths];
 
-  // remove leading exception for the first path
+  // Process the first path to remove its trailing slash
   normalized = normalized.map((path, index) => {
     // first
     if (index === 0) {
