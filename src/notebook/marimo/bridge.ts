@@ -1,4 +1,3 @@
-import { join } from "node:path";
 import createClient from "openapi-fetch";
 import * as vscode from "vscode";
 import { WebSocket } from "ws";
@@ -22,7 +21,7 @@ import { logNever } from "../../utils/invariant";
 import { LogMethodCalls } from "../../utils/log";
 import { retry } from "../../utils/retry";
 import { SingleMessage } from "../../utils/single-promise";
-import { asURL } from "../../utils/url";
+import { asURL, urlJoin } from "../../utils/url";
 import type { KernelKey } from "../common/key";
 import {
   type CellOp,
@@ -92,7 +91,7 @@ export class MarimoBridge implements ILifecycle {
     // Create URLs
     this.sessionId = SessionId.create();
     const wsBaseUrl = await composeWsUrl(this.port);
-    const wsURL = asURL(join(wsBaseUrl, "ws"));
+    const wsURL = asURL(urlJoin(wsBaseUrl, "ws"));
     wsURL.searchParams.set("session_id", this.sessionId);
     wsURL.searchParams.set("file", this.kernelKey);
     const httpURL = await composeUrl(this.port);

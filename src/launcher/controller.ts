@@ -5,7 +5,6 @@ import {
   type TextDocument,
   Uri,
   env,
-  window,
   workspace,
 } from "vscode";
 import { MarimoPanelManager } from "../browser/panel";

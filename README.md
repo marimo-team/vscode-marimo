@@ -103,6 +103,16 @@ To ensure marimo works correctly with your Python environment, you have several 
    }
    ```
 
+6. **windows**
+   If you are on windows, you may have something that looks like this:
+
+   ```json
+   {
+     "marimo.marimoPath": ".venv/Scripts/marimo.exe",
+     "marimo.pythonPath": ".venv/Scripts/python.exe"
+   }
+   ```
+
 ## Configuration
 
 - `marimo.browserType`: Browser to open marimo app (`system` or `embedded`, default: `embedded`)

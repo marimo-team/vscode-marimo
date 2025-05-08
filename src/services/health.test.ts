@@ -3,6 +3,7 @@ import { extensions, window, workspace } from "vscode";
 import { Config } from "../config";
 import { logger } from "../logger";
 import { execMarimoCommand, getInterpreter } from "../utils/exec";
+import { getExtensionVersion } from "../utils/versions";
 import { HealthService } from "./health";
 import type { ServerManager } from "./server-manager";
 
@@ -45,7 +46,7 @@ describe("HealthService", () => {
   describe("isMarimoInstalled", () => {
     it("should return true when marimo is installed", async () => {
       const mockVersion = "1.0.0";
-      vi.mocked(execMarimoCommand).mockResolvedValue(Buffer.from(mockVersion));
+      vi.mocked(execMarimoCommand).mockResolvedValue(mockVersion);
       vi.spyOn(Config, "marimoPath", "get").mockReturnValue("/path/to/marimo");
 
       const result = await healthService.isMarimoInstalled();
@@ -146,7 +147,7 @@ describe("HealthService", () => {
         packageJSON: { version: mockVersion },
       } as any);
 
-      const result = healthService.printExtensionVersion();
+      const result = getExtensionVersion();
 
       expect(result).toBe(mockVersion);
     });
@@ -154,7 +155,7 @@ describe("HealthService", () => {
     it("should return unknown when extension is not found", () => {
       vi.mocked(extensions.getExtension).mockReturnValue(undefined);
 
-      const result = healthService.printExtensionVersion();
+      const result = getExtensionVersion();
 
       expect(result).toBe("unknown");
     });
@@ -164,7 +165,7 @@ describe("HealthService", () => {
     it("should return status when marimo is installed", async () => {
       const mockVersion = "1.0.0";
       const mockPythonPath = "/path/to/python";
-      vi.mocked(execMarimoCommand).mockResolvedValue(Buffer.from(mockVersion));
+      vi.mocked(execMarimoCommand).mockResolvedValue(mockVersion);
       vi.mocked(getInterpreter).mockResolvedValue(mockPythonPath);
       vi.spyOn(Config, "marimoPath", "get").mockReturnValue(
         "/custom/path/to/marimo",
