@@ -19,6 +19,7 @@ import { getInterpreter, maybeQuotes } from "../utils/exec";
 import { LogMethodCalls } from "../utils/log";
 import { tryPort } from "../utils/network";
 import { VscodeContextManager } from "./context-manager";
+import { urlJoin } from "../utils/url";
 
 interface IServerManager {
   getStatus(): "stopped" | "starting" | "started";
@@ -135,7 +136,7 @@ export class ServerManager implements IServerManager {
   public async isHealthy(port: number): Promise<boolean> {
     try {
       const baseUrl = await composeUrl(port);
-      const health = await fetch(join(baseUrl, "health"));
+      const health = await fetch(urlJoin(baseUrl, "health"));
       return health.ok;
     } catch {
       return false;

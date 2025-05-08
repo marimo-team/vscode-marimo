@@ -5,6 +5,7 @@ import { logger } from "../logger";
 import { execMarimoCommand, getInterpreter } from "../utils/exec";
 import { HealthService } from "./health";
 import type { ServerManager } from "./server-manager";
+import { getExtensionVersion } from "../utils/versions";
 
 vi.mock("vscode", () => ({
   extensions: {
@@ -146,7 +147,7 @@ describe("HealthService", () => {
         packageJSON: { version: mockVersion },
       } as any);
 
-      const result = healthService.printExtensionVersion();
+      const result = getExtensionVersion();
 
       expect(result).toBe(mockVersion);
     });
@@ -154,7 +155,7 @@ describe("HealthService", () => {
     it("should return unknown when extension is not found", () => {
       vi.mocked(extensions.getExtension).mockReturnValue(undefined);
 
-      const result = healthService.printExtensionVersion();
+      const result = getExtensionVersion();
 
       expect(result).toBe("unknown");
     });

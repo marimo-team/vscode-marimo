@@ -1,48 +1,50 @@
-import { window } from "vscode";
+import { type LogOutputChannel, window } from "vscode";
 import { Config } from "./config";
 import { EXTENSION_DISPLAY_NAME } from "./constants";
 
-const channel = window.createOutputChannel(EXTENSION_DISPLAY_NAME, {
-  log: true,
-});
-
 class Logger {
-  constructor(private prefix: string) {}
+  private channel: LogOutputChannel;
+
+  constructor(private prefix: string) {
+    this.channel = window.createOutputChannel(EXTENSION_DISPLAY_NAME, {
+      log: true,
+    });
+  }
 
   debug(...args: unknown[]) {
     if (!Config.debug) {
       return;
     }
     if (this.prefix) {
-      channel.debug(`[${this.prefix}]: ${args.map(stringify).join(" ")}`);
+      this.channel.debug(`[${this.prefix}]: ${args.map(stringify).join(" ")}`);
     } else {
-      channel.debug(args.map(stringify).join(" "));
+      this.channel.debug(args.map(stringify).join(" "));
     }
   }
 
   info(...args: unknown[]) {
     if (this.prefix) {
-      channel.info(`[${this.prefix}]: ${args.map(stringify).join(" ")}`);
+      this.channel.info(`[${this.prefix}]: ${args.map(stringify).join(" ")}`);
     } else {
-      channel.info(args.map(stringify).join(" "));
+      this.channel.info(args.map(stringify).join(" "));
     }
   }
 
   error(...args: unknown[]) {
     if (this.prefix) {
-      channel.error(`[${this.prefix}] ${args.map(stringify).join(" ")}`);
+      this.channel.error(`[${this.prefix}] ${args.map(stringify).join(" ")}`);
     } else {
-      channel.error(args.map(stringify).join(" "));
+      this.channel.error(args.map(stringify).join(" "));
     }
   }
 
   warn(...args: unknown[]) {
     if (this.prefix) {
-      channel.warn(
+      this.channel.warn(
         `[⚠️ warn] [${this.prefix}] ${args.map(stringify).join(" ")}`,
       );
     } else {
-      channel.warn(args.map(stringify).join(" "));
+      this.channel.warn(args.map(stringify).join(" "));
     }
   }
 
