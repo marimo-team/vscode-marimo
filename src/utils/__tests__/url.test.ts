@@ -1,5 +1,5 @@
-import { describe, expect, it, vi } from "vitest";
 import { createVSCodeMock } from "jest-mock-vscode";
+import { describe, expect, it, vi } from "vitest";
 
 vi.mock("vscode", () => createVSCodeMock(vi));
 

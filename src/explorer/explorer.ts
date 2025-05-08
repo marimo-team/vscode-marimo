@@ -25,9 +25,9 @@ import type { Kernel } from "../notebook/kernel";
 import { KernelManager } from "../notebook/kernel-manager";
 import type { MarimoFile } from "../notebook/marimo/types";
 import type { ServerManager } from "../services/server-manager";
+import { trackEvent } from "../telemetry";
 import { LogMethodCalls } from "../utils/log";
 import { showNotebookDocument } from "../utils/show";
-import { trackEvent } from "../telemetry";
 
 interface Entry {
   uri: Uri;

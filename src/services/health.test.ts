@@ -3,9 +3,9 @@ import { extensions, window, workspace } from "vscode";
 import { Config } from "../config";
 import { logger } from "../logger";
 import { execMarimoCommand, getInterpreter } from "../utils/exec";
+import { getExtensionVersion } from "../utils/versions";
 import { HealthService } from "./health";
 import type { ServerManager } from "./server-manager";
-import { getExtensionVersion } from "../utils/versions";
 
 vi.mock("vscode", () => ({
   extensions: {

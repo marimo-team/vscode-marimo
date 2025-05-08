@@ -1,10 +1,10 @@
 import { window, workspace } from "vscode";
 import { Config } from "../config";
 import { logger } from "../logger";
-import { execMarimoCommand, getInterpreter } from "../utils/exec";
-import type { ServerManager } from "./server-manager";
-import { getExtensionVersion, getVscodeVersion } from "../utils/versions";
 import { anonymouseId } from "../telemetry";
+import { execMarimoCommand, getInterpreter } from "../utils/exec";
+import { getExtensionVersion, getVscodeVersion } from "../utils/versions";
+import type { ServerManager } from "./server-manager";
 
 export class HealthService {
   constructor(private readonly serverManager: ServerManager) {}

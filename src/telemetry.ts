@@ -1,8 +1,8 @@
-import { logger } from "./logger";
-import { getGlobalState } from "./ctx";
-import { getExtensionVersion, getVscodeVersion } from "./utils/versions";
-import { Config } from "./config";
 import { workspace } from "vscode";
+import { Config } from "./config";
+import { getGlobalState } from "./ctx";
+import { logger } from "./logger";
+import { getExtensionVersion, getVscodeVersion } from "./utils/versions";
 
 export function trackEvent(
   event: "vscode-lifecycle",

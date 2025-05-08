@@ -18,8 +18,8 @@ import { Deferred } from "../utils/deferred";
 import { getInterpreter, maybeQuotes } from "../utils/exec";
 import { LogMethodCalls } from "../utils/log";
 import { tryPort } from "../utils/network";
-import { VscodeContextManager } from "./context-manager";
 import { urlJoin } from "../utils/url";
+import { VscodeContextManager } from "./context-manager";
 
 interface IServerManager {
   getStatus(): "stopped" | "starting" | "started";

@@ -33,8 +33,8 @@ import { KernelManager } from "./notebook/kernel-manager";
 import { MarimoNotebookSerializer } from "./notebook/serializer";
 import { HealthService } from "./services/health";
 import { ServerManager } from "./services/server-manager";
-import { StatusBar } from "./ui/status-bar";
 import { setupConfigTelemetry, trackEvent } from "./telemetry";
+import { StatusBar } from "./ui/status-bar";
 
 class MarimoExtension {
   private extension: ExtensionContext;
