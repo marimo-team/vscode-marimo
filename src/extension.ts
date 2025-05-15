@@ -342,4 +342,14 @@ export async function activate(extension: ExtensionContext) {
 export async function deactivate() {
   logger.info("marimo extension is now deactivated!");
   trackEvent("vscode-lifecycle", { action: "deactivate" });
+
+  // Make sure to stop any running server on VSCode shutdown
+  try {
+    const serverManager = ServerManager.getInstance(Config);
+    if (serverManager) {
+      await serverManager.stopServer();
+    }
+  } catch (e) {
+    logger.error("Error stopping server during deactivation", e);
+  }
 }
