@@ -1,5 +1,8 @@
 # vscode marimo
 
+> [!Important]
+> **We are actively rewriting this extension to provide a more native and robust experience**, similar to what you may be used to when using Jupyter in VS Code. In the meantime, if you have issues with this extension, we recommend you run marimo from the terminal. See our [docs](https://docs.marimo.io/getting_started/) to get started.
+
 <a href="https://marketplace.visualstudio.com/items?itemName=marimo-team.vscode-marimo" target="__blank">
   <img src="https://img.shields.io/visual-studio-marketplace/v/marimo-team.vscode-marimo.svg?color=eee&amp;label=VS%20Code%20Marketplace&logo=visual-studio-code" alt="Visual Studio Marketplace Version" />
 </a>
