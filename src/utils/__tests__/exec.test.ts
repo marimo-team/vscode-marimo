@@ -23,6 +23,9 @@ beforeEach(() => {
 });
 
 describe("exec utilities", () => {
+  const env = expect.objectContaining({
+    MARIMO_DANGEROUS_SANDBOX: "1",
+  })
   describe("execMarimoCommand", () => {
     it("should use marimoPath when set", async () => {
       workspace.getConfiguration().set("marimo.marimoPath", "/path/to/marimo");
@@ -30,7 +33,7 @@ describe("exec utilities", () => {
       expect(child_process.execFileSync).toHaveBeenCalledWith(
         "/path/to/marimo",
         ["edit", "--version"],
-        { shell: false, encoding: "utf8" },
+        { shell: false, encoding: "utf8", env },
       );
     });
 
@@ -40,7 +43,7 @@ describe("exec utilities", () => {
       expect(child_process.execFileSync).toHaveBeenCalledWith(
         "uv",
         ["run", "marimo", "edit", "--version"],
-        { shell: false, encoding: "utf8" },
+        { shell: false, encoding: "utf8", env },
       );
     });
 
@@ -50,7 +53,7 @@ describe("exec utilities", () => {
       expect(child_process.execFileSync).toHaveBeenCalledWith(
         "uvx",
         ["run", "marimo", "edit", "--version"],
-        { shell: false, encoding: "utf8" },
+        { shell: false, encoding: "utf8", env },
       );
     });
 
@@ -61,7 +64,7 @@ describe("exec utilities", () => {
       expect(child_process.execFileSync).toHaveBeenCalledWith(
         "python",
         ["-m", "marimo", "edit", "--version"],
-        { shell: false, encoding: "utf8" },
+        { shell: false, encoding: "utf8", env },
       );
     });
 
@@ -73,7 +76,7 @@ describe("exec utilities", () => {
       expect(child_process.execFileSync).toHaveBeenCalledWith(
         "/path with spaces/marimo",
         ["edit", "--version"],
-        { shell: false, encoding: "utf8" },
+        { shell: false, encoding: "utf8", env },
       );
     });
   });
@@ -85,7 +88,7 @@ describe("exec utilities", () => {
       expect(child_process.execFileSync).toHaveBeenCalledWith(
         "python",
         ["-m", "marimo", "--version"],
-        { shell: false, encoding: "utf8" },
+        { shell: false, encoding: "utf8", env },
       );
     });
 
@@ -97,7 +100,7 @@ describe("exec utilities", () => {
       expect(child_process.execFileSync).toHaveBeenCalledWith(
         "/path with spaces/python",
         ["-m", "marimo", "--version"],
-        { shell: false, encoding: "utf8" },
+        { shell: false, encoding: "utf8", env },
       );
     });
 
@@ -107,7 +110,7 @@ describe("exec utilities", () => {
       expect(child_process.execFileSync).toHaveBeenCalledWith(
         "uv",
         ["run", "python", "-m", "marimo", "--version"],
-        { shell: false, encoding: "utf8" },
+        { shell: false, encoding: "utf8", env },
       );
     });
 
@@ -117,7 +120,7 @@ describe("exec utilities", () => {
       expect(child_process.execFileSync).toHaveBeenCalledWith(
         "uvx",
         ["run", "python", "-m", "marimo", "--version"],
-        { shell: false, encoding: "utf8" },
+        { shell: false, encoding: "utf8", env },
       );
     });
   });
@@ -129,7 +132,7 @@ describe("exec utilities", () => {
       expect(child_process.execFileSync).toHaveBeenCalledWith(
         "python",
         ["script.py", "--arg"],
-        { shell: false, encoding: "utf8" },
+        { shell: false, encoding: "utf8", env },
       );
     });
 
@@ -139,7 +142,7 @@ describe("exec utilities", () => {
       expect(child_process.execFileSync).toHaveBeenCalledWith(
         "uv",
         ["run", "python", "script.py", "--arg"],
-        { shell: false, encoding: "utf8" },
+        { shell: false, encoding: "utf8", env },
       );
     });
 
@@ -149,7 +152,7 @@ describe("exec utilities", () => {
       expect(child_process.execFileSync).toHaveBeenCalledWith(
         "python",
         ["/path with spaces/script.py", "--arg"],
-        { shell: false, encoding: "utf8" },
+        { shell: false, encoding: "utf8", env },
       );
     });
   });
@@ -161,7 +164,7 @@ describe("exec utilities", () => {
       expect(child_process.execFileSync).toHaveBeenCalledWith(
         "uv",
         ["run", "python", "-c", "import marimo"],
-        { shell: false, encoding: "utf8" },
+        { shell: false, encoding: "utf8", env },
       );
     });
 
@@ -171,7 +174,7 @@ describe("exec utilities", () => {
       expect(child_process.execFileSync).toHaveBeenCalledWith(
         "python",
         ["-c", "import module with spaces"],
-        { shell: false, encoding: "utf8" },
+        { shell: false, encoding: "utf8", env },
       );
     });
   });
@@ -184,7 +187,7 @@ describe("exec utilities", () => {
       expect(child_process.execFileSync).toHaveBeenCalledWith(
         "python",
         ["--help"],
-        { shell: false, encoding: "utf8" },
+        { shell: false, encoding: "utf8", env },
       );
     });
 
@@ -203,7 +206,7 @@ describe("exec utilities", () => {
       expect(child_process.execFileSync).toHaveBeenCalledWith(
         "/path with spaces/executable",
         ["--help"],
-        { shell: false, encoding: "utf8" },
+        { shell: false, encoding: "utf8", env },
       );
     });
   });

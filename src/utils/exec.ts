@@ -10,6 +10,11 @@ function execWithLogger(command: string, args: string[]) {
   return execFileSync(command, cleanedArgs, {
     shell: false,
     encoding: "utf8",
+    env: {
+      ...process.env,
+      // Force dangerous sandbox mode: https://github.com/marimo-team/marimo/pull/5958
+      MARIMO_DANGEROUS_SANDBOX: "1",
+    },
   });
 }
 
