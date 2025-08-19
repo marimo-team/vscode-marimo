@@ -67,24 +67,63 @@ export async function fetchMarimoStartupValues({
 
   const html = await response.text();
   const root = parse(html);
-  const getDomValue = (tagName: string, datasetKey: string) => {
-    const element = root.querySelector(tagName);
-    if (!element) {
-      throw new Error(`Could not find ${tagName}. Is ${url} healthy?`);
-    }
-    const value = element.getAttribute(`data-${datasetKey}`);
-    if (value === undefined) {
-      throw new Error(`${datasetKey} is undefined`);
+
+  const findMarimoMountedConfig = () => {
+    const marimoDataElement = root.querySelectorAll("script").find((el) => {
+      return (
+        el.getAttribute("data-marimo") === "true" &&
+        el.innerHTML.includes("window.__MARIMO_MOUNT_CONFIG__")
+      );
+    });
+    if (!marimoDataElement) {
+      throw new Error(
+        `Could not find marimo mounted config. Is ${url} healthy?`,
+      );
     }
 
-    return value;
+    const scriptContent = marimoDataElement.innerHTML;
+
+    const match = scriptContent.match(
+      /window\.__MARIMO_MOUNT_CONFIG__\s*=\s*({[\s\S]*?});/,
+    );
+    if (!match || !match[1]) {
+      throw new Error(
+        "Could not parse marimo mount config from script content",
+      );
+    }
+
+    try {
+      // Config object cannot be parsed directly as JSON because it contains trailing commas.
+      const configObject = new Function(`return ${match[1]}`)();
+      return configObject;
+    } catch (e) {
+      throw new Error(
+        `Failed to parse marimo mount config as JavaScript object: ${e}`,
+      );
+    }
   };
 
-  const skewToken = getDomValue("marimo-server-token", "token") as SkewToken;
-  const userConfig = JSON.parse(
-    getDomValue("marimo-user-config", "config"),
-  ) as MarimoConfig;
-  const marimoVersion = getDomValue("marimo-version", "version");
+  const mountedConfig = findMarimoMountedConfig();
+  const skewToken = mountedConfig.serverToken as SkewToken | undefined;
+  if (!skewToken) {
+    throw new Error(
+      `Could not find serverToken in marimo mounted config. Is ${url} healthy?`,
+    );
+  }
+
+  const userConfig = mountedConfig.config as MarimoConfig | undefined;
+  if (!userConfig) {
+    throw new Error(
+      `Could not find userConfig in marimo mounted config. Is ${url} healthy?`,
+    );
+  }
+
+  const marimoVersion = mountedConfig.version as string | undefined;
+  if (!marimoVersion) {
+    throw new Error(
+      `Could not find marimo version in marimo mounted config. Is ${url} healthy?`,
+    );
+  }
 
   return {
     skewToken,

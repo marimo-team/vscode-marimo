@@ -27,11 +27,16 @@ describe("fetchMarimoStartupValues", () => {
     vi.mocked(composeUrl).mockResolvedValue("http://localhost:1234");
 
     // Mock the fetch response
+    const mockScriptContent = `window.__MARIMO_MOUNT_CONFIG__ = {
+            "version": "1.0.0",
+            "serverToken": "mock-skew-token",
+            "config": {"key": "value"},
+        };`;
     const mockHtml = `
       <html>
-        <marimo-server-token data-token="mock-skew-token"></marimo-server-token>
-        <marimo-user-config data-config='{"key": "value"}'></marimo-user-config>
-        <marimo-version data-version="1.0.0"></marimo-version>
+        <script data-marimo="true">
+          ${mockScriptContent}
+        </script>
       </html>
     `;
     mockFetch.mockResolvedValue({
@@ -42,17 +47,15 @@ describe("fetchMarimoStartupValues", () => {
 
     // Mock the parse function
     const mockRoot = {
-      querySelector: (selector: string) => ({
-        getAttribute: (attr: string) => {
-          if (selector === "marimo-server-token" && attr === "data-token")
-            return "mock-skew-token";
-          if (selector === "marimo-user-config" && attr === "data-config")
-            return '{"key": "value"}';
-          if (selector === "marimo-version" && attr === "data-version")
-            return "1.0.0";
-          return null;
+      querySelectorAll: (selector: string) => [
+        {
+          getAttribute: (attr: string) => {
+            if (selector === "script" && attr === "data-marimo") return "true";
+            return null;
+          },
+          innerHTML: mockScriptContent,
         },
-      }),
+      ],
     };
     vi.mocked(parse).mockReturnValue(mockRoot as any);
 
@@ -111,13 +114,52 @@ describe("fetchMarimoStartupValues", () => {
     });
 
     vi.mocked(parse).mockReturnValue({
-      querySelector: () => null,
+      querySelectorAll: () => [],
     } as any);
 
     await expect(
       fetchMarimoStartupValues({ port: 1234, backoff: 1 }),
     ).rejects.toThrow(
-      "Could not find marimo-server-token. Is http://localhost:1234/ healthy?",
+      "Could not find marimo mounted config. Is http://localhost:1234/ healthy?",
+    );
+  });
+
+  it("should throw an error if some fields of mounted config are missing", async () => {
+    vi.mocked(composeUrl).mockResolvedValue("http://localhost:1234");
+    const mockScriptContent = `window.__MARIMO_MOUNT_CONFIG__ = {
+            "version": "1.0.0",
+            "config": {"key": "value"},
+        };`;
+    const mockHtml = `
+      <html>
+        <script data-marimo="true">
+          ${mockScriptContent}
+        </script>
+      </html>
+    `;
+    mockFetch.mockResolvedValue({
+      ok: true,
+      text: () => Promise.resolve(mockHtml),
+      url: "http://localhost:1234",
+    });
+
+    const mockRoot = {
+      querySelectorAll: (selector: string) => [
+        {
+          getAttribute: (attr: string) => {
+            if (selector === "script" && attr === "data-marimo") return "true";
+            return null;
+          },
+          innerHTML: mockScriptContent,
+        },
+      ],
+    };
+    vi.mocked(parse).mockReturnValue(mockRoot as any);
+
+    await expect(
+      fetchMarimoStartupValues({ port: 1234, backoff: 1 }),
+    ).rejects.toThrow(
+      "Could not find serverToken in marimo mounted config. Is http://localhost:1234/ healthy?",
     );
   });
 });
