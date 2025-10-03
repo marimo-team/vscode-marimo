@@ -75,10 +75,10 @@ export async function createVSCodeMock(vi: VitestUtils) {
 
   vscode.env = vscode.env || {};
   vscode.env.asExternalUri = vi.fn().mockImplementation(async (uri) => uri);
-  enum QuickPickItemKind {
-    Separator = -1,
-    Default = 0,
-  }
+  const QuickPickItemKind = {
+    Separator: -1,
+    Default: 0,
+  };
   vscode.QuickPickItemKind = QuickPickItemKind;
   vscode.window.createWebviewPanel = vi.fn().mockImplementation(() => {
     return {
