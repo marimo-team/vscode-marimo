@@ -430,7 +430,7 @@
     "openapi-typescript": "^7.6.1",
     "tempy": "^3.1.0",
     "tsup": "^8.4.0",
-    "typescript": "^5.8.2",
+    "typescript": "^5.9.3",
     "vitest": "^3.1.2",
     "ws": "^8.18.1"
   },
