@@ -416,7 +416,7 @@
     "vscode:prepublish": "pnpm run build"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.9.4",
+    "@biomejs/biome": "^2.3.8",
     "@types/node": "22.14.1",
     "@types/vscode": "^1.77.0",
     "@types/ws": "^8.18.1",
