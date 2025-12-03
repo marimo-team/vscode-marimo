@@ -22,12 +22,12 @@ jobs:
       - name: ⎔ Setup pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: 8
+          version: 8.15.9
 
       - name: ⎔ Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 18.20.8
           cache: pnpm
 
       - name: 📥 Install dependencies
@@ -48,12 +48,12 @@ jobs:
       - name: ⎔ Setup pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: 8
+          version: 8.15.9
 
       - name: ⎔ Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 18.20.8
           cache: pnpm
 
       - name: 📥 Install dependencies
@@ -74,7 +74,7 @@ jobs:
       - name: ⎔ Setup pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: 8
+          version: 8.15.9
 
       - name: 🐍 Setup uv
         uses: astral-sh/setup-uv@v6
@@ -82,12 +82,12 @@ jobs:
       - name: 🐍 Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: 3.12
+          python-version: 3.14.1
 
       - name: ⎔ Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 20.19.6
           cache: pnpm
 
       - name: 📥 Install dependencies
