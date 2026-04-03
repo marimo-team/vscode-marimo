@@ -4,10 +4,7 @@ env:
   MARIMO_SKIP_UPDATE_CHECK: true
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+  workflow_dispatch: # manual only — repo is deprecated
 
 jobs:
   lint:

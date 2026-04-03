@@ -4,9 +4,7 @@ permissions:
   contents: write
 
 on:
-  push:
-    tags:
-      - "v*"
+  workflow_dispatch: # manual only — repo is deprecated
 
 jobs:
   release:
