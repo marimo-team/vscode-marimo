@@ -1,10 +1,10 @@
 name: Release
 
-permissions:
-  contents: write
+permissions: {}
 
 on:
-  workflow_dispatch: # manual only — repo is deprecated
+  workflow_dispatch:
+    # manual only — repo is deprecated
 
 jobs:
   release:
@@ -21,3 +21,5 @@ jobs:
       - run: npx changelogithub
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+    permissions:
+      contents: write
