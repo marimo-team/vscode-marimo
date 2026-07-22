@@ -25,7 +25,7 @@ beforeEach(() => {
 describe("exec utilities", () => {
   const env = expect.objectContaining({
     MARIMO_DANGEROUS_SANDBOX: "1",
-  })
+  });
   describe("execMarimoCommand", () => {
     it("should use marimoPath when set", async () => {
       workspace.getConfiguration().set("marimo.marimoPath", "/path/to/marimo");
